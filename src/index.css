@@ -142,3 +142,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.react-flow__panel.react-flow__attribution.bottom.right {
+  display: none;
+}
