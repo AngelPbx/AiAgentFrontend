@@ -80,7 +80,7 @@ const ConversationOptions = () => {
       <ul className="w-full h-full overflow-y-auto p-2">
         {NODE_TYPES.map((node) => (
           <li
-            className="cursor-pointer hover:bg-gray-100 p-2 rounded-md flex items-center gap-2"
+            className="cursor-pointer hover:bg-slate-800 p-2 rounded-md flex items-center gap-2"
             key={node.code}
             value={node.code}
             onClick={() => onNodeClick(node)}

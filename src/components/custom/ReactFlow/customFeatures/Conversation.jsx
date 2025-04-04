@@ -24,41 +24,72 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 const Conversation = ({ id, data }) => {
   const { setNodes } = useReactFlow();
 
-  const [fields, setFields] = useState([]);
-  const textAreaRefs = useRef({}); // Store refs for each text area
+  const [fields, setFields] = useState(data.fields || []);
+  const textAreaRefs = useRef({});
+  const [inputs, setInputs] = useState(data.inputs || []);
 
   // Add new field
   const addField = () => {
-    if (fields.some((field) => field.value.trim() === "")) return; // Prevent new field if any field is empty
+    if (fields.some((field) => field.value.trim() === "")) return;
     const newField = { id: uuidv4(), value: "" };
-    setFields([...fields, newField]);
+    const updatedFields = [...fields, newField];
+    setFields(updatedFields);
+
+    // Update the parent node's data
+    if (data.onUpdate) {
+      data.onUpdate({ fields: updatedFields });
+    }
   };
 
   // Delete a field
   const deleteField = (id) => {
-    setFields(fields.filter((field) => field.id !== id));
-    delete textAreaRefs.current[id]; // Clean up ref
+    const updatedFields = fields.filter((field) => field.id !== id);
+    setFields(updatedFields);
+    delete textAreaRefs.current[id];
+
+    // Update the parent node's data
+    if (data.onUpdate) {
+      data.onUpdate({ fields: updatedFields });
+    }
   };
 
   // Handle value change
   const handleChange = (id, newValue) => {
-    setFields(
-      fields.map((field) =>
-        field.id === id ? { ...field, value: newValue } : field
-      )
+    const updatedFields = fields.map((field) =>
+      field.id === id ? { ...field, value: newValue } : field
     );
+    setFields(updatedFields);
+
+    // Update the parent node's data when field value changes
+    if (data.onUpdate) {
+      data.onUpdate({ fields: updatedFields });
+    }
   };
 
   // Focus on the text area when the edit icon is clicked
   const focusTextArea = (id) => {
     if (textAreaRefs.current[id]) {
       textAreaRefs.current[id].focus(); // Programmatically focus
+    }
+  };
+
+  // Function to add a new input (sub-node)
+  const addInput = () => {
+    const newInput = {
+      id: `input-${inputs.length + 1}`,
+      label: `Input ${inputs.length + 1}`,
+      type: "source", // Example type
+    };
+    const updatedInputs = [...inputs, newInput];
+    setInputs(updatedInputs);
+
+    // Update the parent node's data
+    if (data.onUpdate) {
+      data.onUpdate({ inputs: updatedInputs });
     }
   };
 

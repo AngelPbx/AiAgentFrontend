@@ -3,6 +3,7 @@ import {
   BezierEdge,
   EdgeLabelRenderer,
   getBezierPath,
+  getSmoothStepPath,
   useReactFlow,
 } from "@xyflow/react";
 import { X } from "lucide-react";
@@ -21,7 +22,7 @@ const CustomEdge = (props) => {
 
   const { setEdges } = useReactFlow();
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     targetX,
@@ -32,7 +33,14 @@ const CustomEdge = (props) => {
 
   return (
     <>
-      <BezierEdge {...props} />
+      {/* <BezierEdge {...props} /> */}
+      <path
+        className="react-flow__edge-path"
+        d={edgePath}
+        fill="none"
+        stroke="#b1b1b7"
+        strokeWidth={2}
+      />
       <EdgeLabelRenderer>
         <Button
           className="text-red-600 hover:bg-none hover:text-red-600 nodrag absolute text-5xl"

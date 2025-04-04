@@ -55,10 +55,186 @@ const Reactflow = () => {
     [setEdges]
   );
 
+  // Function to handle updates from child nodes (e.g., Conversation)
+  const handleNodeUpdate = (nodeId, updatedData) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, ...updatedData } }
+          : node
+      )
+    );
+  };
+
+  // Map all nodes to include the onUpdate handler
+  const nodesWithHandlers = nodes.map((node) => {
+    // Add the onUpdate handler to conversation nodes
+    if (node.type === "conversation") {
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          onUpdate: (updatedData) => handleNodeUpdate(node.id, updatedData),
+        },
+      };
+    }
+    // Add the onUpdate handler to pressDigit nodes
+    if (node.type === "pressDigit") {
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          onUpdate: (updatedData) => handleNodeUpdate(node.id, updatedData),
+        },
+      };
+    }
+    return node;
+  });
+
+  // Enhanced function to export flow data with sub-nodes
+  const exportFlowData = () => {
+    console.log("nodes:", nodes);
+
+    // Create a mapping of all sub-node handles for reference
+    const subNodeHandleMap = {};
+
+    nodes.forEach((node) => {
+      // Store the sub-node handle ID for each "conversation" node
+      if (node.type === "conversation" && node.data?.inputs) {
+        node.data.inputs.forEach((input) => {
+          // Store the sub-node handle ID
+          subNodeHandleMap[`source-${input.id}`] = {
+            parentNodeId: node.id,
+            subNodeId: input.id,
+          };
+        });
+      }
+      // Store the sub-node handle ID for each "pressDigit" node
+      if (node.type === "pressDigit" && node.data?.inputs) {
+        node.data.inputs.forEach((input) => {
+          // Store the sub-node handle ID
+          subNodeHandleMap[`source-${input.id}`] = {
+            parentNodeId: node.id,
+            subNodeId: input.id,
+          };
+        });
+      }
+
+      // Also handle dynamically added field connections
+      if (node.data?.fields) {
+        node.data.fields.forEach((field) => {
+          subNodeHandleMap[`source-${field.id}`] = {
+            parentNodeId: node.id,
+            subNodeId: field.id,
+          };
+        });
+      }
+    });
+
+    const formattedNodes = nodes.map((node) => {
+      // Collect all inputs and dynamically added fields as sub-nodes
+      const subNodes = [];
+
+      // Add inputs as sub-nodes if they exist
+      if (node.data?.inputs) {
+        node.data.inputs.forEach((input) => {
+          subNodes.push({
+            id: input.id,
+            parentId: node.id,
+            label: input.label,
+            type: input.type,
+            handleId: `source-${input.id}`,
+          });
+        });
+      }
+
+      // Add fields as sub-nodes if they exist (for conversation node)
+      if (node.type === "conversation" && node.data?.fields) {
+        node.data.fields.forEach((field) => {
+          subNodes.push({
+            id: field.id,
+            parentId: node.id,
+            value: field.value,
+            handleId: `source-${field.id}`,
+          });
+        });
+      }
+      // Add fields as sub-nodes if they exist (for pressDigit node)
+      if (node.type === "pressDigit" && node.data?.fields) {
+        node.data.fields.forEach((field) => {
+          subNodes.push({
+            id: field.id,
+            parentId: node.id,
+            value: field.value,
+            handleId: `source-${field.id}`,
+          });
+        });
+      }
+
+      return {
+        id: node.id,
+        type: node.type,
+        position: node.position,
+        data: {
+          ...node.data,
+          subNodes, // Include sub-node details
+        },
+      };
+    });
+
+    const formattedEdges = edges.map((edge) => {
+      // Check if the source handle is from a sub-node
+      const sourceInfo =
+        edge.sourceHandle && subNodeHandleMap[edge.sourceHandle];
+
+      return {
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        sourceHandle: edge.sourceHandle,
+        targetHandle: edge.targetHandle,
+        type: edge.type,
+        animated: edge.animated,
+        // Add sub-node information if this edge connects from a sub-node
+        subNodeConnection: sourceInfo
+          ? {
+              parentNodeId: sourceInfo.parentNodeId,
+              subNodeId: sourceInfo.subNodeId,
+            }
+          : null,
+      };
+    });
+
+    const flowData = {
+      nodes: formattedNodes,
+      edges: formattedEdges,
+    };
+
+    console.log("Exported Flow Data with Sub-Nodes:", flowData);
+    // You can replace the console.log with an API call, e.g.:
+    // fetch('/api/endpoint', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(flowData),
+    // });
+  };
+
   return (
     <div className="w-full h-9/10">
       <ReactFlow
-        nodes={nodes}
+        // nodes={nodes.map((node) =>
+        //   node.type === "conversation"
+        //     ? {
+        //         ...node,
+        //         data: {
+        //           ...node.data,
+        //           onUpdate: (updatedData) =>
+        //             handleNodeUpdate(node.id, updatedData),
+        //         },
+        //       }
+        //     : node
+        // )}
+        nodes={nodesWithHandlers}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -70,11 +246,16 @@ const Reactflow = () => {
       >
         <Panel
           position="top-left"
-          className="bg-white rounded-lg shadow-lg p-4"
+          className=" bg-slate-900 text-white rounded-lg shadow-lg p-4"
         >
           <div className="flex flex-col gap-4">
             <ConversationOptions />
-            {/* <PaymentProviderSelect /> */}
+            <button
+              onClick={exportFlowData}
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Export Flow Data
+            </button>
           </div>
         </Panel>
         <Controls />
