@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -22,6 +22,10 @@ import CallEnd from "./customFeatures/CallEnd";
 import ConversationOptions from "./ConversationOptions";
 import CallTransfer from "./customFeatures/CallTransfer";
 import PressDigit from "./customFeatures/PressDigit";
+import NodeConfig from "./NodeConfig";
+import { CircleX } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useDispatch, useSelector } from "react-redux";
 // import DatabaseSchemaDemo from "./Retail/DatabaseSchemaDemo";
 
 const nodeType = {
@@ -39,8 +43,13 @@ const edgeType = {
 };
 
 const Reactflow = () => {
+  const dispatch = useDispatch();
+
+  const nodeConfigBar = useSelector((state) => state.app.nodeConfigBar);
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [showNodeConfig, setShowNodeConfig] = useState(true);
 
   const onConnect = useCallback(
     (connection) => {
@@ -211,29 +220,12 @@ const Reactflow = () => {
     };
 
     console.log("Exported Flow Data with Sub-Nodes:", flowData);
-    // You can replace the console.log with an API call, e.g.:
-    // fetch('/api/endpoint', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(flowData),
-    // });
   };
 
   return (
-    <div className="w-full h-9/10">
+    // <div className="w-full h-9/10">
+    <div className="w-full h-full">
       <ReactFlow
-        // nodes={nodes.map((node) =>
-        //   node.type === "conversation"
-        //     ? {
-        //         ...node,
-        //         data: {
-        //           ...node.data,
-        //           onUpdate: (updatedData) =>
-        //             handleNodeUpdate(node.id, updatedData),
-        //         },
-        //       }
-        //     : node
-        // )}
         nodes={nodesWithHandlers}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -258,6 +250,28 @@ const Reactflow = () => {
             </button>
           </div>
         </Panel>
+        {nodeConfigBar && (
+          <Panel
+            position="bottom-right"
+            className=" bg-slate-900 text-slate-100 rounded-lg shadow-lg p-2"
+          >
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-end items-center mb-2">
+                <Button
+                  className="text-gray-700 hover:bg-gray-100 hover:text-gray-400 cursor-pointer"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    dispatch({ type: "SET_NODE_CONFIG_BAR", payload: false })
+                  }
+                >
+                  <CircleX />
+                </Button>
+              </div>
+              <NodeConfig />
+            </div>
+          </Panel>
+        )}
         <Controls />
         <Background variant={BackgroundVariant.Dots} />
       </ReactFlow>

@@ -4,12 +4,18 @@ import { CircleX } from "lucide-react";
 import React from "react";
 import { Position, useReactFlow } from "@xyflow/react";
 import CustomHandle from "../CustomHandle";
+import { useDispatch } from "react-redux";
 
 const Function = ({ id, data }) => {
+  const dispatch = useDispatch();
+
   const { setNodes } = useReactFlow();
   return (
     <>
-      <Card className="w-[300px] text-center flex flex-col items-center">
+      <Card
+        className="w-[300px] text-center flex flex-col items-center"
+        onClick={() => dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true })}
+      >
         <div>
           <CardTitle className="flex justify-between">
             <h1>{data.label}</h1>

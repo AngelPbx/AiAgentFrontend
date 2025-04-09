@@ -15,13 +15,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useDispatch } from "react-redux";
 
 const CallTransfer = ({ id, data }) => {
+  const dispatch = useDispatch();
+
   const { setNodes } = useReactFlow();
 
   return (
     <>
-      <Card className="w-[300px] text-center flex flex-col items-center bg-violet-900 px-2 pt-2 pb-1">
+      <Card
+        className="w-[300px] text-center flex flex-col items-center bg-violet-900 px-2 pt-2 pb-1"
+        onClick={() => dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true })}
+      >
         <Dialog>
           <div className="w-full ps-1">
             <CardTitle className="flex justify-between">

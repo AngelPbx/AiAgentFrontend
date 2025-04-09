@@ -7,9 +7,10 @@ import {
   Pencil,
   Plus,
   Split,
+  SquarePen,
   Trash2,
 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Position, useReactFlow } from "@xyflow/react";
 import CustomHandle from "../CustomHandle";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,13 +25,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import { useDispatch } from "react-redux";
+import { Input } from "@/components/ui/input";
 
 const Conversation = ({ id, data }) => {
+  const dispatch = useDispatch();
+
   const { setNodes } = useReactFlow();
 
   const [fields, setFields] = useState(data.fields || []);
   const textAreaRefs = useRef({});
   const [inputs, setInputs] = useState(data.inputs || []);
+  const [isReadonly, setIsreadonly] = useState(false);
+
+  // initially set all the fields comes from data
+  useEffect(() => {
+    if (data.subNodes && data.subNodes.length > 0) {
+      const initialFields = data.subNodes.map((item) => ({
+        id: item.id,
+        value: item.value || "",
+      }));
+      setFields(initialFields);
+    }
+  }, []);
 
   // Add new field
   const addField = () => {
@@ -95,14 +112,29 @@ const Conversation = ({ id, data }) => {
 
   return (
     <>
-      <Card className="w-[300px] px-2 pt-2 pb-1 text-center flex flex-col items-center bg-teal-900">
+      <Card
+        className="w-[300px] px-2 pt-2 pb-1 text-center flex flex-col items-center bg-teal-900"
+        onClick={() => dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true })}
+      >
         <Dialog>
           <div className="w-full ps-1">
             <CardTitle className="flex justify-between">
-              <h1 className="pt-3 flex">
-                <MessageSquare className="w-4 h-4 mr-1" />
-                {data.label}
-              </h1>
+              <div className="pt-3 pr-3 flex items-center ">
+                <MessageSquare className="w-6 h-6 mr-1" />
+                <Input
+                  value={data.label}
+                  readOnly={isReadonly}
+                  onChange={(e) => data.onUpdate({ label: e.target.value })}
+                  className={`h-6 text-md font-bold placeholder:text-muted-foreground border-none !bg-transparent !focus:outline-none focus:ring-0 ${
+                    isReadonly ? "!border-1 !border-gray-800" : ""
+                  }`}
+                />
+                <SquarePen
+                  className="w-4 h-4 ms-1 cursor-pointer text-muted-foreground"
+                  onClick={() => setIsreadonly(!isReadonly)}
+                />
+                {/* {data.label} */}
+              </div>
               <DialogTrigger asChild>
                 <Button
                   className="text-red-600 hover:bg-red-100 hover:text-red-600 cursor-pointer"

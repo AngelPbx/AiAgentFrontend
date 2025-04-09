@@ -9,7 +9,7 @@ import {
   Trash2,
   Info,
 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Position, useReactFlow } from "@xyflow/react";
 import CustomHandle from "../CustomHandle";
 import { v4 as uuidv4 } from "uuid";
@@ -25,12 +25,26 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useDispatch } from "react-redux";
 
 const PressDigit = ({ id, data }) => {
+  const dispatch = useDispatch();
+
   const { setNodes } = useReactFlow();
 
   const [fields, setFields] = useState([]);
   const textAreaRefs = useRef({}); // Store refs for each text area
+
+  // initially set all the fields comes from data
+  useEffect(() => {
+    if (data.subNodes && data.subNodes.length > 0) {
+      const initialFields = data.subNodes.map((item) => ({
+        id: item.id,
+        value: item.value || "",
+      }));
+      setFields(initialFields);
+    }
+  }, [data.subNodes]);
 
   // Add new field
   const addField = () => {
@@ -79,7 +93,10 @@ const PressDigit = ({ id, data }) => {
 
   return (
     <>
-      <Card className="w-[300px] text-center flex flex-col items-center px-2 pt-2 pb-1 bg-yellow-900">
+      <Card
+        className="w-[300px] text-center flex flex-col items-center px-2 pt-2 pb-1 bg-yellow-900"
+        onClick={() => dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true })}
+      >
         <Dialog>
           <div className="w-full ps-1">
             <CardTitle className="flex justify-between">
