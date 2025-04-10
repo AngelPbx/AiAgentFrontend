@@ -31,6 +31,8 @@ const CustomEdge = (props) => {
     targetPosition,
   });
 
+  console.log("props: ", props);
+
   return (
     <>
       {/* <BezierEdge {...props} /> */}

@@ -83,6 +83,11 @@ const data = {
           icon: Waypoints,
         },
         {
+          title: "Knowledge Base",
+          url: "/agents/knowledge-base",
+          icon: BookUser,
+        },
+        {
           title: "Single Prompt",
           url: "/agents/single-prompt",
           icon: Workflow,

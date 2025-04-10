@@ -83,7 +83,7 @@ const AgentsList = () => {
 
   return (
     <>
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-fu">
         <h1 className="opacity-50">
           <Bot className="mr-1 inline" />
           <span className="sr-only" /> Agents
