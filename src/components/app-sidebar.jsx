@@ -88,6 +88,11 @@ const data = {
           icon: BookUser,
         },
         {
+          title: "Phone Numbers",
+          url: "/agents/phone-numbers",
+          icon: Phone,
+        },
+        {
           title: "Single Prompt",
           url: "/agents/single-prompt",
           icon: Workflow,

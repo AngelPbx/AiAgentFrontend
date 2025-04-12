@@ -7,6 +7,7 @@ import SinglePrompt from "@/components/pages/agents/SinglePrompt";
 import MultiPrompt from "@/components/pages/agents/MultiPrompt";
 import Agentflow from "./components/pages/Agentflow";
 import KnowledgeBase from "./components/pages/KnowledgeBase";
+import PhoneNumber from "./components/pages/PhoneNumber";
 // import CustomLLM from "@/components/pages/agents/CustomLLM";
 
 // // Models pages
@@ -41,6 +42,7 @@ export function AppRoutes() {
           <Route path="list" element={<AgentsList />} />
           <Route path="conversations-flow" element={<ConversationsFlow />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
+          <Route path="phone-numbers" element={<PhoneNumber />} />
           <Route path="single-prompt" element={<SinglePrompt />} />
           <Route path="multi-prompt" element={<MultiPrompt />} />
           {/* 
