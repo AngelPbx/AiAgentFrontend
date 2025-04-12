@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+import dagre from "dagre";
 import {
   ReactFlow,
   MiniMap,
@@ -27,6 +28,49 @@ import { CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 // import DatabaseSchemaDemo from "./Retail/DatabaseSchemaDemo";
+
+// Utility function for auto layout
+const getLayoutedElements = (nodes, edges, direction = "TB") => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+  const nodeWidth = 300;
+  const nodeHeight = 150;
+
+  // Set graph direction and other settings
+  dagreGraph.setGraph({
+    rankdir: direction,
+    ranker: "network-simplex",
+    align: "UL",
+  });
+
+  // Add nodes to the graph
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  // Add edges to the graph
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  // Apply layout
+  dagre.layout(dagreGraph);
+
+  // Get new node positions
+  const layoutedNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      position: {
+        x: nodeWithPosition.x - nodeWidth / 2,
+        y: nodeWithPosition.y - nodeHeight / 2,
+      },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+};
 
 const nodeType = {
   callBegin: CallBegin,
@@ -62,6 +106,24 @@ const Reactflow = () => {
       setEdges((eds) => addEdge(edge, eds));
     },
     [setEdges]
+  );
+
+  const onLayout = useCallback(
+    (direction) => {
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        getLayoutedElements(nodes, edges, direction);
+      setNodes([...layoutedNodes]);
+      setEdges([...layoutedEdges]);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          const flow = document.querySelector(".react-flow");
+          if (flow) {
+            flow.fitView?.();
+          }
+        });
+      });
+    },
+    [nodes, edges, setNodes, setEdges]
   );
 
   // Function to handle updates from child nodes (e.g., Conversation)
@@ -242,12 +304,20 @@ const Reactflow = () => {
         >
           <div className="flex flex-col gap-4">
             <ConversationOptions />
-            <button
-              onClick={exportFlowData}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Export Flow Data
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={exportFlowData}
+                className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+              >
+                Export Flow Data
+              </button>
+              <button
+                onClick={() => onLayout("LR")}
+                className="bg-green-500 text-white px-4 py-2 rounded cursor-pointer"
+              >
+                Auto Layout
+              </button>
+            </div>
           </div>
         </Panel>
         {nodeConfigBar && (
