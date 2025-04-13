@@ -8,27 +8,8 @@ import MultiPrompt from "@/components/pages/agents/MultiPrompt";
 import Agentflow from "./components/pages/Agentflow";
 import KnowledgeBase from "./components/pages/KnowledgeBase";
 import PhoneNumber from "./components/pages/PhoneNumber";
+import CallHistory from "./components/pages/CallHistory";
 // import CustomLLM from "@/components/pages/agents/CustomLLM";
-
-// // Models pages
-// import ModelsLayout from "@/components/pages/models/ModelsLayout";
-// import Genesis from "@/components/pages/models/Genesis";
-// import Explorer from "@/components/pages/models/Explorer";
-// import Quantum from "@/components/pages/models/Quantum";
-
-// // Documentation pages
-// import DocsLayout from "@/components/pages/docs/DocsLayout";
-// import Introduction from "@/components/pages/docs/Introduction";
-// import GetStarted from "@/components/pages/docs/GetStarted";
-// import Tutorials from "@/components/pages/docs/Tutorials";
-// import Changelog from "@/components/pages/docs/Changelog";
-
-// // Settings pages
-// import SettingsLayout from "@/components/pages/settings/SettingsLayout";
-// import General from "@/components/pages/settings/General";
-// import Team from "@/components/pages/settings/Team";
-// import Billing from "@/components/pages/settings/Billing";
-// import Limits from "@/components/pages/settings/Limits";
 
 export function AppRoutes() {
   return (
@@ -43,6 +24,7 @@ export function AppRoutes() {
           <Route path="conversations-flow" element={<ConversationsFlow />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="phone-numbers" element={<PhoneNumber />} />
+          <Route path="call-history" element={<CallHistory />} />
           <Route path="single-prompt" element={<SinglePrompt />} />
           <Route path="multi-prompt" element={<MultiPrompt />} />
           {/* 

@@ -93,6 +93,11 @@ const data = {
           icon: Phone,
         },
         {
+          title: "Call History",
+          url: "/agents/call-history",
+          icon: History,
+        },
+        {
           title: "Single Prompt",
           url: "/agents/single-prompt",
           icon: Workflow,
