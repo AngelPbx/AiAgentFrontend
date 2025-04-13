@@ -9,6 +9,7 @@ import Agentflow from "./components/pages/Agentflow";
 import KnowledgeBase from "./components/pages/KnowledgeBase";
 import PhoneNumber from "./components/pages/PhoneNumber";
 import CallHistory from "./components/pages/CallHistory";
+import Billing from "./components/pages/Billing";
 // import CustomLLM from "@/components/pages/agents/CustomLLM";
 
 export function AppRoutes() {
@@ -25,6 +26,7 @@ export function AppRoutes() {
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="phone-numbers" element={<PhoneNumber />} />
           <Route path="call-history" element={<CallHistory />} />
+          <Route path="billing" element={<Billing />} />
           <Route path="single-prompt" element={<SinglePrompt />} />
           <Route path="multi-prompt" element={<MultiPrompt />} />
           {/* 

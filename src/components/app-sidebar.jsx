@@ -21,6 +21,7 @@ import {
   Phone,
   PieChart,
   Pyramid,
+  ReceiptText,
   RotateCcwSquare,
   Settings2,
   SquareTerminal,
@@ -96,6 +97,11 @@ const data = {
           title: "Call History",
           url: "/agents/call-history",
           icon: History,
+        },
+        {
+          title: "Billing",
+          url: "/agents/billing",
+          icon: ReceiptText,
         },
         {
           title: "Single Prompt",
@@ -232,7 +238,7 @@ const data = {
 export function AppSidebar({ ...props }) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarTrigger className="-ml-1" />
+      {/* <SidebarTrigger className="-ml-1" /> */}
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
