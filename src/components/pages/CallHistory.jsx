@@ -39,8 +39,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 
 const calls = [
@@ -156,7 +154,7 @@ const CallHistory = () => {
 
         {/* Call history table */}
         <Sheet>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full">
             <Table>
               <TableCaption>A list of your recent calls.</TableCaption>
               <TableHeader className="bg-zinc-800">
@@ -181,49 +179,62 @@ const CallHistory = () => {
               </TableHeader>
               <TableBody>
                 {calls.map((call, index) => (
-                  <>
-                    <TableRow key={index}>
-                      <TableCell>
-                        <SheetTrigger>
-                          {" "}
-                          {call.time ? call.time : "-"}
-                        </SheetTrigger>
-                      </TableCell>
-                      <TableCell>
-                        {call.call_duration ? call.call_duration : "-"}
-                      </TableCell>
-                      <TableCell>{call.type ? call.type : "-"}</TableCell>
-                      <TableCell>{call.cost ? call.cost : "-"}</TableCell>
-                      <TableCell>{call.call_id ? call.call_id : "-"}</TableCell>
-                      <TableCell>
-                        {call.disconnect_reason ? call.disconnect_reason : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {call.call_status ? call.call_status : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {call.user_sentiment ? call.user_sentiment : "-"}
-                      </TableCell>
-                      <TableCell>{call.from ? call.from : "-"}</TableCell>
-                      <TableCell>{call.to ? call.to : "-"}</TableCell>
-                      <TableCell>
-                        {call.call_success ? call.call_success : "-"}
-                      </TableCell>
-                      <TableCell>{call.latency ? call.latency : "-"}</TableCell>
-                      <TableCell>
-                        {call.question_1 ? call.question_1 : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {call.question_2 ? call.question_2 : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {call.question_3 ? call.question_3 : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {call.question_4 ? call.question_4 : "-"}
-                      </TableCell>
-                    </TableRow>
-                  </>
+                  <TableRow key={index} className="cursor-pointer">
+                    <TableCell className="p-0" colSpan={16}>
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-16 w-full">
+                          <div className="p-4">
+                            {call.time ? call.time : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.call_duration ? call.call_duration : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.type ? call.type : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.cost ? call.cost : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.call_id ? call.call_id : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.disconnect_reason
+                              ? call.disconnect_reason
+                              : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.call_status ? call.call_status : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.user_sentiment ? call.user_sentiment : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.from ? call.from : "-"}
+                          </div>
+                          <div className="p-4">{call.to ? call.to : "-"}</div>
+                          <div className="p-4">
+                            {call.call_success ? call.call_success : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.latency ? call.latency : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.question_1 ? call.question_1 : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.question_2 ? call.question_2 : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.question_3 ? call.question_3 : "-"}
+                          </div>
+                          <div className="p-4">
+                            {call.question_4 ? call.question_4 : "-"}
+                          </div>
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
