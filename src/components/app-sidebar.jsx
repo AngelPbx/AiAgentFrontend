@@ -66,6 +66,8 @@ const data = {
     //   plan: "Free",
     // },
   ],
+
+  // This is main navigation
   navMain: [
     {
       title: "Agents",
@@ -140,53 +142,54 @@ const data = {
     //   ],
     // },
   ],
-  // projects: [
-  //   {
-  //     name: "Agents",
-  //     url: "/agents",
-  //     icon: Bot,
-  //   },
-  //   {
-  //     name: "Knowledge Base",
-  //     url: "#",
-  //     icon: Book,
-  //   },
-  //   {
-  //     name: "Phone Numbers",
-  //     url: "#",
-  //     icon: BookUser,
-  //   },
-  //   {
-  //     name: "Batch Call",
-  //     url: "#",
-  //     icon: Phone,
-  //   },
-  //   {
-  //     name: "Call History",
-  //     url: "#",
-  //     icon: History,
-  //   },
-  //   {
-  //     name: "Analytics",
-  //     url: "#",
-  //     icon: ChartPie,
-  //   },
-  //   {
-  //     name: "Billing",
-  //     url: "#",
-  //     icon: NotepadText,
-  //   },
-  //   {
-  //     name: "API Keys",
-  //     url: "#",
-  //     icon: Key,
-  //   },
-  //   {
-  //     name: "Webhooks",
-  //     url: "#",
-  //     icon: Box,
-  //   },
-  // ],
+
+  projects: [
+    {
+      name: "All Agents",
+      url: "/agents/list",
+      icon: Bot,
+    },
+    {
+      name: "Conversations Flow",
+      url: "/agents/conversations-flow",
+      icon: Waypoints,
+    },
+    {
+      name: "Knowledge Base",
+      url: "/agents/knowledge-base",
+      icon: BookUser,
+    },
+    {
+      name: "Phone Numbers",
+      url: "/agents/phone-numbers",
+      icon: Phone,
+    },
+    {
+      name: "Call History",
+      url: "/agents/call-history",
+      icon: History,
+    },
+    {
+      name: "Billing",
+      url: "/agents/billing",
+      icon: ReceiptText,
+    },
+    // {
+    //   title: "Single Prompt",
+    //   url: "/agents/single-prompt",
+    //   icon: Workflow,
+    // },
+    // {
+    //   title: "Multi Prompt",
+    //   url: "/agents/multi-prompt",
+    //   icon: Network,
+    // },
+    // {
+    //   title: "Custom LLM",
+    //   url: "/agents/custom-llm",
+    //   icon: Link,
+    // },
+  ],
 };
 
 export function AppSidebar({ ...props }) {
@@ -197,8 +200,8 @@ export function AppSidebar({ ...props }) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.projects} /> */}
+        {/* <NavMain items={data.navMain} /> */}
+        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
