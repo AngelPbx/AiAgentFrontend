@@ -83,10 +83,10 @@ const AgentsList = () => {
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-fu">
-        <h1 className="opacity-50">
-          <Bot className="mr-1 inline" />
-          <span className="sr-only" /> Agents
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold">Agents</h1>
+          <p className="text-gray-600">You can manage your agents here.</p>
+        </div>
         <div className="flex flex-col md:flex-row items-center justify-between">
           <Input
             type="text"

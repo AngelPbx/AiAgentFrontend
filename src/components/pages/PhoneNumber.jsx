@@ -114,10 +114,12 @@ const PhoneNumber = () => {
     <>
       <Dialog>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full">
-          <h1 className="opacity-50">
-            <Phone className="mr-1 inline" />
-            <span className="sr-only" /> Phone Numbers
-          </h1>
+          <div>
+            <h1 className="text-2xl font-bold">Phone Numbers</h1>
+            <p className="text-gray-600">
+              You can manage your phone numbers here.
+            </p>
+          </div>
           <div className="h-full flex flex-col md:flex-row items-center justify-between gap-2">
             {/* All the available numbers  */}
             <div className="bg-white dark:bg-zinc-800 rounded-md shadow-md p-4 flex-1 max-w-sm h-full">
