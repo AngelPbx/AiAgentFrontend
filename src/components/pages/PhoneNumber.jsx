@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/command";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import "./custom-phone-input.css"; // We'll style it below
+import "../../assets/css/custom-phone-input.css";
 import {
   Dialog,
   DialogClose,

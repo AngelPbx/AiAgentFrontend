@@ -43,7 +43,6 @@ import {
   DialogTrigger,
 } from "../../ui/dialog";
 import { Label } from "../../ui/label";
-import CreateAgentDialog from "../../custom/createAgentDialog";
 
 const agents = [
   {

@@ -51,20 +51,20 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "user2@mail.com",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
       plan: "Free",
     },
+    // {
+    //   name: "Acme Corp.",
+    //   logo: AudioWaveform,
+    //   plan: "Startup",
+    // },
+    // {
+    //   name: "Evil Corp.",
+    //   logo: Command,
+    //   plan: "Free",
+    // },
   ],
   navMain: [
     {
@@ -103,136 +103,90 @@ const data = {
           url: "/agents/billing",
           icon: ReceiptText,
         },
-        {
-          title: "Single Prompt",
-          url: "/agents/single-prompt",
-          icon: Workflow,
-        },
-        {
-          title: "Multi Prompt",
-          url: "/agents/multi-prompt",
-          icon: Network,
-        },
-        {
-          title: "Custom LLM",
-          url: "/agents/custom-llm",
-          icon: Link,
-        },
+        // {
+        //   title: "Single Prompt",
+        //   url: "/agents/single-prompt",
+        //   icon: Workflow,
+        // },
+        // {
+        //   title: "Multi Prompt",
+        //   url: "/agents/multi-prompt",
+        //   icon: Network,
+        // },
+        // {
+        //   title: "Custom LLM",
+        //   url: "/agents/custom-llm",
+        //   icon: Link,
+        // },
       ],
     },
-    {
-      title: "Models",
-      url: "/models",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "/models/genesis",
-        },
-        {
-          title: "Explorer",
-          url: "/models/explorer",
-        },
-        {
-          title: "Quantum",
-          url: "/models/quantum",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "/docs",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "/docs/introduction",
-        },
-        {
-          title: "Get Started",
-          url: "/docs/get-started",
-        },
-        {
-          title: "Tutorials",
-          url: "/docs/tutorials",
-        },
-        {
-          title: "Changelog",
-          url: "/docs/changelog",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "/settings/general",
-        },
-        {
-          title: "Team",
-          url: "/settings/team",
-        },
-        {
-          title: "Billing",
-          url: "/settings/billing",
-        },
-        {
-          title: "Limits",
-          url: "/settings/limits",
-        },
-      ],
-    },
+    // {
+    //   title: "Models",
+    //   url: "/models",
+    //   icon: Bot,
+    //   items: [
+    //     {
+    //       title: "Genesis",
+    //       url: "/models/genesis",
+    //     },
+    //     {
+    //       title: "Explorer",
+    //       url: "/models/explorer",
+    //     },
+    //     {
+    //       title: "Quantum",
+    //       url: "/models/quantum",
+    //     },
+    //   ],
+    // },
   ],
-  projects: [
-    {
-      name: "Agents",
-      url: "/agents",
-      icon: Bot,
-    },
-    {
-      name: "Knowledge Base",
-      url: "#",
-      icon: Book,
-    },
-    {
-      name: "Phone Numbers",
-      url: "#",
-      icon: BookUser,
-    },
-    {
-      name: "Batch Call",
-      url: "#",
-      icon: Phone,
-    },
-    {
-      name: "Call History",
-      url: "#",
-      icon: History,
-    },
-    {
-      name: "Analytics",
-      url: "#",
-      icon: ChartPie,
-    },
-    {
-      name: "Billing",
-      url: "#",
-      icon: NotepadText,
-    },
-    {
-      name: "API Keys",
-      url: "#",
-      icon: Key,
-    },
-    {
-      name: "Webhooks",
-      url: "#",
-      icon: Box,
-    },
-  ],
+  // projects: [
+  //   {
+  //     name: "Agents",
+  //     url: "/agents",
+  //     icon: Bot,
+  //   },
+  //   {
+  //     name: "Knowledge Base",
+  //     url: "#",
+  //     icon: Book,
+  //   },
+  //   {
+  //     name: "Phone Numbers",
+  //     url: "#",
+  //     icon: BookUser,
+  //   },
+  //   {
+  //     name: "Batch Call",
+  //     url: "#",
+  //     icon: Phone,
+  //   },
+  //   {
+  //     name: "Call History",
+  //     url: "#",
+  //     icon: History,
+  //   },
+  //   {
+  //     name: "Analytics",
+  //     url: "#",
+  //     icon: ChartPie,
+  //   },
+  //   {
+  //     name: "Billing",
+  //     url: "#",
+  //     icon: NotepadText,
+  //   },
+  //   {
+  //     name: "API Keys",
+  //     url: "#",
+  //     icon: Key,
+  //   },
+  //   {
+  //     name: "Webhooks",
+  //     url: "#",
+  //     icon: Box,
+  //   },
+  // ],
 };
 
 export function AppSidebar({ ...props }) {
