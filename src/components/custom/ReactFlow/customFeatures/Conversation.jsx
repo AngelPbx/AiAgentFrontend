@@ -25,18 +25,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Input } from "@/components/ui/input";
 
 const Conversation = ({ id, data }) => {
   const dispatch = useDispatch();
-
   const { setNodes } = useReactFlow();
 
   const [fields, setFields] = useState(data.fields || []);
+  const [prompt, setPrompt] = useState(data.prompt || "");
   const textAreaRefs = useRef({});
   const [inputs, setInputs] = useState(data.inputs || []);
   const [isReadonly, setIsreadonly] = useState(false);
+
+  // const clickedNodeType = useSelector((state) => state.app.clickedNodeType);
+
+  // useEffect(() => {
+  //   console.log("clickedNodeType:", clickedNodeType);
+  // }, [clickedNodeType, dispatch]);
 
   // initially set all the fields comes from data
   useEffect(() => {
@@ -87,6 +93,16 @@ const Conversation = ({ id, data }) => {
     }
   };
 
+  // Handle prompt change
+  const handlePromptChange = (newValue) => {
+    setPrompt(newValue);
+
+    // Update the parent node's data when prompt changes
+    if (data.onUpdate) {
+      data.onUpdate({ prompt: newValue });
+    }
+  };
+
   // Focus on the text area when the edit icon is clicked
   const focusTextArea = (id) => {
     if (textAreaRefs.current[id]) {
@@ -114,7 +130,11 @@ const Conversation = ({ id, data }) => {
     <>
       <Card
         className="w-[300px] px-2 pt-2 pb-1 text-center flex flex-col items-center bg-teal-900"
-        onClick={() => dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true })}
+        onClick={(e) => {
+          e.stopPropagation();
+          dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true });
+          dispatch({ type: "SET_CLICKED_NODE_TYPE", payload: "conversation" });
+        }}
       >
         <Dialog>
           <div className="w-full ps-1">
@@ -159,9 +179,11 @@ const Conversation = ({ id, data }) => {
             </div>
           )}
 
-          {/* User propmt section */}
+          {/* User prompt section */}
           <div className="w-full bg-gray-950 rounded-sm pb-1 mt-2">
             <Textarea
+              value={prompt}
+              onChange={(e) => handlePromptChange(e.target.value)}
               placeholder="Type your prompts for the LLM..."
               className="min-h-30 max-h-60 text-xs font-normal text-muted-foreground placeholder:text-muted-foreground"
             />

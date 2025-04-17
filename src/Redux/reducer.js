@@ -1,7 +1,9 @@
 var nodeConfigBar = true;
+var clickedNodeType = null;
 
 const initialState = {
   nodeConfigBar: nodeConfigBar,
+  clickedNodeType: clickedNodeType,
 };
 
 const reducer = (state = initialState, action) => {
@@ -10,6 +12,12 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         nodeConfigBar: action.payload,
+      };
+    case "SET_CLICKED_NODE_TYPE":
+      console.log("curr val: ", action.payload);
+      return {
+        ...state,
+        clickedNodeType: action.payload,
       };
     default:
       return state;

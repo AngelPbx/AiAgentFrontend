@@ -26,7 +26,11 @@ const CallTransfer = ({ id, data }) => {
     <>
       <Card
         className="w-[300px] text-center flex flex-col items-center bg-violet-900 px-2 pt-2 pb-1"
-        onClick={() => dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true })}
+        onClick={(e) => {
+          e.stopPropagation();
+          dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true });
+          dispatch({ type: "SET_CLICKED_NODE_TYPE", payload: "callTransfer" });
+        }}
       >
         <Dialog>
           <div className="w-full ps-1">

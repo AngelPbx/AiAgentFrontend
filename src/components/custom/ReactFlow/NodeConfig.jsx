@@ -1,8 +1,12 @@
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
+import { useSelector } from "react-redux";
+import ConversationEdit from "./customFeatures/NodeEditSection/ConversationEdit";
 
 const NodeConfig = () => {
+  const clickedNodeType = useSelector((state) => state.app.clickedNodeType);
+
   return (
     <div className="w-[400px] min-h-[600px] overflow-y-auto">
       <Tabs defaultValue="nodeSettings">
@@ -11,7 +15,9 @@ const NodeConfig = () => {
             value="nodeSettings"
             className="bg-slate-900 cursor-pointer"
           >
-            Node Settings
+            {clickedNodeType && clickedNodeType === "global"
+              ? "Global Settings"
+              : "Node Settings"}
           </TabsTrigger>
           <TabsTrigger value="testFlow" className="bg-slate-900 cursor-pointer">
             Test Flow
@@ -19,7 +25,8 @@ const NodeConfig = () => {
         </TabsList>
         <Separator className="my-2" />
         <TabsContent value="nodeSettings">
-          <h1>This is node settings</h1>
+          {/* <h1>This is node settings</h1> */}
+          <ConversationEdit />
         </TabsContent>
         <TabsContent value="testFlow">
           <h1>This is test flow</h1>
