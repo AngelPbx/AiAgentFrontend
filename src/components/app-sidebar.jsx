@@ -174,6 +174,11 @@ const data = {
       url: "/agents/billing",
       icon: ReceiptText,
     },
+    {
+      name: "Provider Keys",
+      url: "/agents/keys",
+      icon: Key,
+    },
     // {
     //   title: "Single Prompt",
     //   url: "/agents/single-prompt",
