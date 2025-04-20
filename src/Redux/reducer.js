@@ -1,5 +1,5 @@
 var nodeConfigBar = true;
-var clickedNodeType = null;
+var clickedNodeType = "global"; // default value "global"
 
 const initialState = {
   nodeConfigBar: nodeConfigBar,
