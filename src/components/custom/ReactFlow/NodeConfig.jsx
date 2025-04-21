@@ -6,6 +6,7 @@ import ConversationEdit from "./customFeatures/NodeEditSection/ConversationEdit"
 import GlobalSettings from "./customFeatures/NodeEditSection/GlobalSettings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import CallTransfarEdit from "./customFeatures/NodeEditSection/CallTransfarEdit";
+import PressDigitEdit from "./customFeatures/NodeEditSection/PressDigitEdit";
 
 const NodeConfig = () => {
   const clickedNodeType = useSelector((state) => state.app.clickedNodeType);
@@ -40,6 +41,9 @@ const NodeConfig = () => {
             )}
             {clickedNodeType && clickedNodeType === "callTransfer" && (
               <CallTransfarEdit />
+            )}
+            {clickedNodeType && clickedNodeType === "pressDigit" && (
+              <PressDigitEdit />
             )}
           </TabsContent>
           <TabsContent value="testFlow">
