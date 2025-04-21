@@ -299,8 +299,9 @@ const Reactflow = () => {
         fitView
         onClick={(event) => {
           // Only set to global if clicking directly on the canvas
-          if (event.target.classList.contains('react-flow__pane')) {
+          if (event.target.classList.contains("react-flow__pane")) {
             dispatch({ type: "SET_CLICKED_NODE_TYPE", payload: "global" });
+            dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true });
           }
         }}
       >
@@ -326,28 +327,28 @@ const Reactflow = () => {
             </div>
           </div>
         </Panel>
-        {/* {nodeConfigBar && ( */}
-        <Panel
-          position="bottom-right"
-          className=" bg-slate-900 text-slate-100 rounded-lg shadow-lg p-2"
-        >
-          <div className="flex flex-col gap-4">
-            <div className="flex justify-end items-center mb-2">
-              <Button
-                className="text-gray-700 hover:bg-gray-100 hover:text-gray-400 cursor-pointer"
-                variant="ghost"
-                size="icon"
-                onClick={() =>
-                  dispatch({ type: "SET_NODE_CONFIG_BAR", payload: false })
-                }
-              >
-                <CircleX />
-              </Button>
+        {nodeConfigBar && (
+          <Panel
+            position="bottom-right"
+            className=" bg-slate-900 text-slate-100 rounded-lg shadow-lg p-2"
+          >
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-end items-center mb-2">
+                <Button
+                  className="text-gray-700 hover:bg-gray-100 hover:text-gray-400 cursor-pointer"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() =>
+                    dispatch({ type: "SET_NODE_CONFIG_BAR", payload: false })
+                  }
+                >
+                  <CircleX />
+                </Button>
+              </div>
+              <NodeConfig />
             </div>
-            <NodeConfig />
-          </div>
-        </Panel>
-        {/* )} */}
+          </Panel>
+        )}
         <Controls />
         <Background variant={BackgroundVariant.Dots} />
       </ReactFlow>

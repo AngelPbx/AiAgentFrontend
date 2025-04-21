@@ -14,7 +14,6 @@ const reducer = (state = initialState, action) => {
         nodeConfigBar: action.payload,
       };
     case "SET_CLICKED_NODE_TYPE":
-      console.log("curr val: ", action.payload);
       return {
         ...state,
         clickedNodeType: action.payload,
