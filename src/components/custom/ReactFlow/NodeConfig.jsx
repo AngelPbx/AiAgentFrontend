@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import ConversationEdit from "./customFeatures/NodeEditSection/ConversationEdit";
 import GlobalSettings from "./customFeatures/NodeEditSection/GlobalSettings";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import CallTransfarEdit from "./customFeatures/NodeEditSection/CallTransfarEdit";
 
 const NodeConfig = () => {
   const clickedNodeType = useSelector((state) => state.app.clickedNodeType);
@@ -36,6 +37,9 @@ const NodeConfig = () => {
             )}
             {clickedNodeType && clickedNodeType === "conversation" && (
               <ConversationEdit />
+            )}
+            {clickedNodeType && clickedNodeType === "callTransfer" && (
+              <CallTransfarEdit />
             )}
           </TabsContent>
           <TabsContent value="testFlow">
