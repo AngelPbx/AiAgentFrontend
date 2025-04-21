@@ -45,6 +45,7 @@ import {
   Bot,
   Box,
   Grid2x2,
+  Keyboard,
   Move,
   Plus,
   Settings,
@@ -79,8 +80,8 @@ const PressDigitEdit = () => {
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <div className="flex items-center gap-3 font-bold text-sm cursor-pointer">
-                  <Box className="w-5 h-5" />
-                  Node Settings
+                  <Keyboard className="w-5 h-5" />
+                  Press Digit Settings
                 </div>
               </AccordionTrigger>
               <Separator />

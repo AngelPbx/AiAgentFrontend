@@ -43,7 +43,16 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
-import { Bot, Box, Grid2x2, Move, Plus, Trash, Users } from "lucide-react";
+import {
+  Bot,
+  Box,
+  Grid2x2,
+  MessagesSquare,
+  Move,
+  Plus,
+  Trash,
+  Users,
+} from "lucide-react";
 import React, { useState } from "react";
 import { ReactSortable } from "react-sortablejs";
 
@@ -69,8 +78,8 @@ const ConversationEdit = () => {
             <AccordionItem value="item-1">
               <AccordionTrigger>
                 <div className="flex items-center gap-3 font-bold text-sm cursor-pointer">
-                  <Box className="w-5 h-5" />
-                  Node Settings
+                  <MessagesSquare className="w-5 h-5" />
+                  Conversation Settings
                 </div>
               </AccordionTrigger>
               <Separator />

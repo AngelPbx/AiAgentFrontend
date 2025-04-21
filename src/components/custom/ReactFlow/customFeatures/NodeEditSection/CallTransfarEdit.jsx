@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { AccordionItem } from "@radix-ui/react-accordion";
-import { Box, Settings } from "lucide-react";
+import { Box, PhoneOutgoing, Settings } from "lucide-react";
 import React, { useState } from "react";
 
 const CallTransfarEdit = () => {
@@ -36,8 +36,8 @@ const CallTransfarEdit = () => {
           <AccordionItem value="item-1">
             <AccordionTrigger>
               <div className="flex items-center gap-3 font-bold text-sm cursor-pointer">
-                <Box className="w-5 h-5" />
-                Node Settings
+                <PhoneOutgoing className="w-5 h-5" />
+                Call Transfer Settings
               </div>
             </AccordionTrigger>
             <Separator />
