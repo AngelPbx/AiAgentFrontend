@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import dagre from "dagre";
 import {
   ReactFlow,
@@ -93,7 +93,6 @@ const Reactflow = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [showNodeConfig, setShowNodeConfig] = useState(true);
 
   const onConnect = useCallback(
     (connection) => {
