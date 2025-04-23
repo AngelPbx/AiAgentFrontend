@@ -25,7 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const PressDigit = ({ id, data }) => {
   const dispatch = useDispatch();
@@ -34,6 +34,7 @@ const PressDigit = ({ id, data }) => {
 
   const [fields, setFields] = useState([]);
   const textAreaRefs = useRef({}); // Store refs for each text area
+  const clickedNodeId = useSelector((state) => state.app.clickedNodeId);
 
   // initially set all the fields comes from data
   useEffect(() => {
@@ -94,11 +95,14 @@ const PressDigit = ({ id, data }) => {
   return (
     <>
       <Card
-        className="w-[300px] text-center flex flex-col items-center px-2 pt-2 pb-1 bg-yellow-900"
+        className={`w-[300px] text-center flex flex-col items-center px-2 pt-2 pb-1 bg-yellow-900 ${
+          clickedNodeId === id ? "border-2 border-blue-700" : ""
+        }`}
         onClick={(e) => {
           e.stopPropagation();
           dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true });
           dispatch({ type: "SET_CLICKED_NODE_TYPE", payload: "pressDigit" });
+          dispatch({ type: "SET_CLICKED_NODE_ID", payload: id });
         }}
       >
         <Dialog>

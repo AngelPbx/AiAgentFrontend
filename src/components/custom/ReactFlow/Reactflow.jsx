@@ -301,6 +301,7 @@ const Reactflow = () => {
           if (event.target.classList.contains("react-flow__pane")) {
             dispatch({ type: "SET_CLICKED_NODE_TYPE", payload: "global" });
             dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true });
+            dispatch({ type: "SET_CLICKED_NODE_ID", payload: null });
           }
         }}
       >

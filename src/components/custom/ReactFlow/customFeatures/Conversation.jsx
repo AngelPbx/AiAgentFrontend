@@ -35,8 +35,9 @@ const Conversation = ({ id, data }) => {
   const [fields, setFields] = useState(data.fields || []);
   const [prompt, setPrompt] = useState(data.prompt || "");
   const textAreaRefs = useRef({});
-  const [inputs, setInputs] = useState(data.inputs || []);
+  // const [inputs, setInputs] = useState(data.inputs || []);
   const [isReadonly, setIsreadonly] = useState(false);
+  const clickedNodeId = useSelector((state) => state.app.clickedNodeId);
 
   // const clickedNodeType = useSelector((state) => state.app.clickedNodeType);
 
@@ -111,29 +112,32 @@ const Conversation = ({ id, data }) => {
   };
 
   // Function to add a new input (sub-node)
-  const addInput = () => {
-    const newInput = {
-      id: `input-${inputs.length + 1}`,
-      label: `Input ${inputs.length + 1}`,
-      type: "source", // Example type
-    };
-    const updatedInputs = [...inputs, newInput];
-    setInputs(updatedInputs);
+  // const addInput = () => {
+  //   const newInput = {
+  //     id: `input-${inputs.length + 1}`,
+  //     label: `Input ${inputs.length + 1}`,
+  //     type: "source", // Example type
+  //   };
+  //   const updatedInputs = [...inputs, newInput];
+  //   setInputs(updatedInputs);
 
-    // Update the parent node's data
-    if (data.onUpdate) {
-      data.onUpdate({ inputs: updatedInputs });
-    }
-  };
+  //   // Update the parent node's data
+  //   if (data.onUpdate) {
+  //     data.onUpdate({ inputs: updatedInputs });
+  //   }
+  // };
 
   return (
     <>
       <Card
-        className="w-[300px] px-2 pt-2 pb-1 text-center flex flex-col items-center bg-teal-900"
+        className={`w-[300px] px-2 pt-2 pb-1 text-center flex flex-col items-center bg-teal-900 ${
+          clickedNodeId === id ? "border-2 border-blue-700" : ""
+        }`}
         onClick={(e) => {
           e.stopPropagation();
           dispatch({ type: "SET_NODE_CONFIG_BAR", payload: true });
           dispatch({ type: "SET_CLICKED_NODE_TYPE", payload: "conversation" });
+          dispatch({ type: "SET_CLICKED_NODE_ID", payload: id });
         }}
       >
         <Dialog>
