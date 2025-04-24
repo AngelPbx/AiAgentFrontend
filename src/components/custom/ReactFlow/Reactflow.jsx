@@ -13,7 +13,7 @@ import {
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
-import { initialEdges, initialNodes } from "./workflow.constants";
+// import { initialEdges, initialNodes } from "./workflow.constants";
 import CustomEdge from "./CustomEdge";
 import CallBegin from "./customFeatures/CallBegin";
 import Conversation from "./customFeatures/Conversation";
@@ -90,6 +90,8 @@ const Reactflow = () => {
   const dispatch = useDispatch();
 
   const nodeConfigBar = useSelector((state) => state.app.nodeConfigBar);
+  const initialNodes = useSelector((state) => state.app.initialNodes);
+  const initialEdges = useSelector((state) => state.app.initialEdges);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);

@@ -1,11 +1,21 @@
 var nodeConfigBar = true;
 var clickedNodeType = "global"; // default value "global"
 var clickedNodeId = null;
+var initialNodes = [
+  {
+    id: "7",
+    position: { x: 275, y: 200 },
+    type: "callBegin",
+  },
+];
+var initialEdges = [];
 
 const initialState = {
   nodeConfigBar: nodeConfigBar,
   clickedNodeType: clickedNodeType,
   clickedNodeId: clickedNodeId,
+  initialNodes: initialNodes,
+  initialEdges: initialEdges,
 };
 
 const reducer = (state = initialState, action) => {
@@ -24,6 +34,16 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         clickedNodeId: action.payload,
+      };
+    case "SET_INITIAL_NODES":
+      return {
+        ...state,
+        initialNodes: action.payload,
+      };
+    case "SET_INITIAL_EDGES":
+      return {
+        ...state,
+        initialEdges: action.payload,
       };
     default:
       return state;

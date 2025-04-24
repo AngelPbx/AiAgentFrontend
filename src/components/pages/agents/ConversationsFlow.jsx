@@ -1,20 +1,45 @@
 import Reactflow from "@/components/custom/ReactFlow/Reactflow";
 import Simulations from "@/components/custom/Simulations";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChartPie, Copy, Dot } from "lucide-react";
+import { ChartPie, Copy, Dot, PencilLine } from "lucide-react";
+import { useState } from "react";
 
 export default function ConversationsFlow() {
+  const [defaultName, setDefaultName] = useState("Conversation Flow");
+  const [isEdit, setIsEdit] = useState(false);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Conversation Flow</h1>
-          <div className="text-muted-foreground flex items-center text-xs">
+          <div className="flex gap-2 items-center">
+            {isEdit ? (
+              <Input
+                className={"w-[300px]"}
+                defaultValue={defaultName}
+                onChange={(e) => setDefaultName(e.target.value)}
+                onBlur={() => setIsEdit(false)}
+              />
+            ) : (
+              <h1 className="text-2xl font-bold">{defaultName}</h1>
+            )}
+
+            <Button
+              variant={"outline"}
+              size={"icon"}
+              className={"cursor-pointer"}
+              onClick={() => setIsEdit(!isEdit)}
+            >
+              <PencilLine />
+            </Button>
+          </div>
+          <div className="text-muted-foreground flex items-center text-xs mt-2">
             <p className="flex gap-2">
               Agent ID: ag...9df <Copy className="h-4 w-4 cursor-pointer" />
             </p>
