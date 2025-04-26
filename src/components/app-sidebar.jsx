@@ -25,6 +25,7 @@ import {
   RotateCcwSquare,
   Settings2,
   SquareTerminal,
+  Users,
   Waypoints,
   Workflow,
 } from "lucide-react";
@@ -158,6 +159,11 @@ const data = {
       name: "Knowledge Base",
       url: "/agents/knowledge-base",
       icon: BookUser,
+    },
+    {
+      name: "Squads",
+      url: "/agents/squads",
+      icon: Users,
     },
     {
       name: "Phone Numbers",

@@ -9,6 +9,7 @@ import CallHistory from "./components/pages/CallHistory";
 import Billing from "./components/pages/Billing";
 import Members from "./components/pages/Members";
 import ProviderKeys from "./components/pages/ProviderKeys";
+import Squads from "./components/pages/Squads";
 // import CustomLLM from "@/components/pages/agents/CustomLLM";
 
 export function AppRoutes() {
@@ -23,6 +24,7 @@ export function AppRoutes() {
           <Route path="list" element={<AgentsList />} />
           <Route path="conversations-flow" element={<ConversationsFlow />} />
           <Route path="knowledge-base" element={<KnowledgeBase />} />
+          <Route path="squads" element={<Squads />} />
           <Route path="phone-numbers" element={<PhoneNumber />} />
           <Route path="call-history" element={<CallHistory />} />
           <Route path="billing" element={<Billing />} />

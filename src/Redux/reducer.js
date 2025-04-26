@@ -9,6 +9,7 @@ var initialNodes = [
   },
 ];
 var initialEdges = [];
+var squadConfigBar = false;
 
 const initialState = {
   nodeConfigBar: nodeConfigBar,
@@ -16,6 +17,7 @@ const initialState = {
   clickedNodeId: clickedNodeId,
   initialNodes: initialNodes,
   initialEdges: initialEdges,
+  squadConfigBar: squadConfigBar,
 };
 
 const reducer = (state = initialState, action) => {
@@ -44,6 +46,11 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         initialEdges: action.payload,
+      };
+    case "SET_SQUAD_CONFIG_BAR":
+      return {
+        ...state,
+        squadConfigBar: action.payload,
       };
     default:
       return state;
