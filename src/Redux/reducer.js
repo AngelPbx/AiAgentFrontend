@@ -10,6 +10,7 @@ var initialNodes = [
 ];
 var initialEdges = [];
 var squadConfigBar = false;
+var createAgentType = "multi";
 
 const initialState = {
   nodeConfigBar: nodeConfigBar,
@@ -18,6 +19,7 @@ const initialState = {
   initialNodes: initialNodes,
   initialEdges: initialEdges,
   squadConfigBar: squadConfigBar,
+  createAgentType: createAgentType,
 };
 
 const reducer = (state = initialState, action) => {
@@ -51,6 +53,11 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         squadConfigBar: action.payload,
+      };
+    case "CREATE_AGENT_TYPE":
+      return {
+        ...state,
+        createAgentType: action.payload,
       };
     default:
       return state;

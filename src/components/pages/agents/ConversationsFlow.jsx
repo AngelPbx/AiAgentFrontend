@@ -1,5 +1,6 @@
 import Reactflow from "@/components/custom/ReactFlow/Reactflow";
 import Simulations from "@/components/custom/Simulations";
+import SinglePrompt from "@/components/custom/SinglePrompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,10 +11,13 @@ import {
 } from "@/components/ui/tooltip";
 import { ChartPie, Copy, Dot, PencilLine } from "lucide-react";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function ConversationsFlow() {
   const [defaultName, setDefaultName] = useState("Conversation Flow");
   const [isEdit, setIsEdit] = useState(false);
+  const createAgentType = useSelector((state) => state.app.createAgentType);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -132,7 +136,7 @@ export default function ConversationsFlow() {
           <TabsContent value="create">
             <div className="grid gap-4 min-h-200">
               {/* Sample Flow Cards */}
-              <Reactflow />
+              {createAgentType === "single" ? <SinglePrompt /> : <Reactflow />}
             </div>
           </TabsContent>
           <TabsContent value="simulation">

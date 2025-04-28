@@ -105,7 +105,7 @@ const AgentsList = () => {
           <div className="mt-4 md:mt-0">
             {/* Create an agent */}
             <Dialog>
-              <DialogTrigger>
+              <DialogTrigger asChild>
                 <Button className="cursor-pointer w-25 me-3">
                   Create <ChevronDown />
                 </Button>
@@ -273,8 +273,9 @@ const CreateAgent = () => {
   const emptyInitialEdges = [];
 
   const handleClick = () => {
+    console.log("agentType", agentType);
     if (
-      agentType === "single-healthcare" ||
+      // agentType === "single-healthcare" ||
       agentType === "conversation-flow-patiend-screening"
     ) {
       dispatch({ type: "SET_INITIAL_NODES", payload: initialNodes });
@@ -282,6 +283,14 @@ const CreateAgent = () => {
     } else {
       dispatch({ type: "SET_INITIAL_NODES", payload: emptyInitialNodes });
       dispatch({ type: "SET_INITIAL_EDGES", payload: emptyInitialEdges });
+      dispatch({ type: "CREATE_AGENT_TYPE", payload: "single" });
+    }
+
+    if (
+      agentType === "conversation-flow-patiend-screening" ||
+      agentType === "conversation-flow-blank"
+    ) {
+      dispatch({ type: "CREATE_AGENT_TYPE", payload: "multiple" });
     }
 
     navigate("/agents/conversations-flow");
