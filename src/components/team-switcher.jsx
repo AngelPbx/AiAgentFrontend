@@ -17,6 +17,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "./ui/dialog";
+import { Button } from "./ui/button";
 
 export function TeamSwitcher({ teams }) {
   const { isMobile } = useSidebar();
@@ -54,7 +64,7 @@ export function TeamSwitcher({ teams }) {
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Teams
             </DropdownMenuLabel>
-            {teams.map((team, index) => (
+            {teams.map((team) => (
               <DropdownMenuItem
                 key={team.name}
                 onClick={() => setActiveTeam(team)}
@@ -68,16 +78,49 @@ export function TeamSwitcher({ teams }) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <Link to="/members" className="flex gap-2">
-                <div className="bg-background flex size-6 items-center justify-center rounded-md border">
-                  <Plus className="size-4" />
+            <Dialog>
+              <DialogTrigger asChild>
+                <DropdownMenuItem
+                  className="gap-2 p-2 cursor-pointer"
+                  onSelect={(event) => {
+                    event.preventDefault();
+                  }}
+                >
+                  <div className="bg-background flex size-6 items-center justify-center rounded-md border">
+                    <Plus className="size-4" />
+                  </div>
+                  <div className="text-muted-foreground font-medium">
+                    Add new workspace
+                  </div>
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Add new workspace</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="name">Workspace name</label>
+                    <input
+                      id="name"
+                      type="text"
+                      placeholder="Workspace name"
+                      className="border rounded-md p-2"
+                    />
+                  </div>
                 </div>
-                <div className="text-muted-foreground font-medium">
-                  Add new member
-                </div>
-              </Link>
-            </DropdownMenuItem>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline" className="mr-2 cursor-pointer">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button type="submit" className={"cursor-pointer"} disabled>
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
