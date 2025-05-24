@@ -71,7 +71,7 @@ const AgentsList = () => {
         setLoading(false);
       }
     }
-    // getData();
+    getData();
   }, []);
   return (
     <>
