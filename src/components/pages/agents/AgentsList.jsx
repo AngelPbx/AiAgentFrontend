@@ -9,12 +9,13 @@ import {
   Copy,
   EllipsisVertical,
   Link,
+  Loader,
   PhoneOutgoing,
   Plus,
   RotateCcwSquare,
   Trash2,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import {
@@ -54,41 +55,24 @@ import {
   initialNodes,
 } from "@/components/custom/ReactFlow/workflow.constants";
 import { useDispatch } from "react-redux";
-
-const agents = [
-  {
-    id: 1,
-    agent_name: "Agent 1",
-    agent_type: "Agent 1 Type",
-    voice: "Voice 1",
-    voice_face_url: "https://avatar.iran.liara.run/public/boy?username=Ash",
-    phone: "",
-    edited_date: "2023-01-01",
-    status: "Active",
-  },
-  {
-    id: 2,
-    agent_name: "Agent 2",
-    agent_type: "Agent 2 Type",
-    voice: "Voice 2",
-    voice_face_url: "https://avatar.iran.liara.run/public/boy?username=Bip",
-    phone: "1234567892",
-    edited_date: "2023-01-01",
-    status: "Active",
-  },
-  {
-    id: 3,
-    agent_name: "Agent 3",
-    agent_type: "Agent 3 Type",
-    voice: "Voice 3",
-    voice_face_url: "https://avatar.iran.liara.run/public/girl?username=Na",
-    phone: "",
-    edited_date: "2023-01-01",
-    status: "Deleted",
-  },
-];
+import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import { toast } from "sonner";
 
 const AgentsList = () => {
+  const [allAgents, setAllAgents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    async function getData() {
+      const apiData = await generalGetFunction("/agent/all");
+      if (apiData.status) {
+        setAllAgents(apiData.data);
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    }
+    // getData();
+  }, []);
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-fu">
@@ -162,91 +146,85 @@ const AgentsList = () => {
               <TableRow className="h-10">
                 <TableHead>Agent Name</TableHead>
                 <TableHead>Agent Type</TableHead>
+                <TableHead>Language</TableHead>
                 <TableHead>Voice</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Edited By</TableHead>
-                <TableHead>Status</TableHead>
+                {/* <TableHead>Edited By</TableHead>
+                <TableHead>Status</TableHead> */}
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {agents.map((agent) => (
-                <TableRow key={agent.id}>
-                  <TableCell className="font-medium flex items-center">
-                    <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
-                      <BotIcon className="w-5 h-5" />
-                    </span>{" "}
-                    {agent?.agent_name ? agent.agent_name : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {agent?.agent_type ? (
-                      <Badge variant="secondary">{agent.agent_name}</Badge>
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell className="flex items-center">
-                    <span className="mr-3">
-                      <Avatar>
-                        <AvatarImage
-                          src={
-                            agent?.voice_face_url ? agent.voice_face_url : ""
-                          }
-                          alt={agent?.voice ? agent.voice : "-"}
-                        />
-                      </Avatar>
-                    </span>
-                    {agent?.voice ? agent.voice : "-"}
-                  </TableCell>
-                  <TableCell>{agent?.phone ? agent.phone : "-"}</TableCell>
-                  <TableCell>
-                    {agent?.edited_date ? agent.edited_date : "-"}
-                  </TableCell>
-                  <TableCell>
-                    {agent?.status ? (
-                      <Badge
-                        variant={
-                          agent?.status === "Active" ? "success" : "destructive"
-                        }
-                      >
-                        {agent.status}
-                      </Badge>
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-8 h-8 hover:rounded-sm hover:bg-zinc-800 opacity-50 cursor-pointer"
-                        >
-                          <EllipsisVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem className="cursor-pointer">
-                          <Copy /> Duplicate
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">
-                          <ArrowRightLeft />
-                          Export
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          className="cursor-pointer"
-                        >
-                          <Trash2 />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {loading ? (
+                <Loader />
+              ) : (
+                <>
+                  {allAgents.map((item) => (
+                    <TableRow key={item.agent_id}>
+                      <TableCell className="font-medium flex items-center">
+                        <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
+                          <BotIcon className="w-5 h-5" />
+                        </span>{" "}
+                        {item.agent_name}
+                      </TableCell>
+                      <TableCell>
+                          <Badge variant="secondary">{item.response_engine?.["type"]}</Badge>
+                      </TableCell>
+                      <TableCell className="flex items-center">
+                        {item.language}
+                      </TableCell>
+                      <TableCell>{item.voice_id}</TableCell>
+                      {/* <TableCell>
+                        {agent?.edited_date ? agent.edited_date : "-"}
+                      </TableCell> */}
+                      {/* <TableCell>
+                        {agent?.status ? (
+                          <Badge
+                            variant={
+                              agent?.status === "Active"
+                                ? "success"
+                                : "destructive"
+                            }
+                          >
+                            {agent.status}
+                          </Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell> */}
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="w-8 h-8 hover:rounded-sm hover:bg-zinc-800 opacity-50 cursor-pointer"
+                            >
+                              <EllipsisVertical />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem className="cursor-pointer">
+                              <Copy /> Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer">
+                              <ArrowRightLeft />
+                              Export
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="destructive"
+                              className="cursor-pointer"
+                            >
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -258,7 +236,7 @@ const AgentsList = () => {
 const CreateAgent = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const [agentName,setAgentName] = useState("");
   const [currentTab, setCurrentTab] = useState("single-prompt");
   const [agentType, setAgentType] = useState("single-blank");
 
@@ -273,7 +251,10 @@ const CreateAgent = () => {
   const emptyInitialEdges = [];
 
   const handleClick = () => {
-    console.log("agentType", agentType);
+    if(agentName === "") {
+      toast.error("Please enter agent name");
+      return;
+    }
     if (
       // agentType === "single-healthcare" ||
       agentType === "conversation-flow-patiend-screening"
@@ -293,7 +274,12 @@ const CreateAgent = () => {
       dispatch({ type: "CREATE_AGENT_TYPE", payload: "multiple" });
     }
 
-    navigate("/agents/conversations-flow");
+    navigate("/agents/conversations-flow",{
+      state: {
+        unique:true,
+        agentName: agentName,
+      },
+    });
   };
 
   return (
@@ -462,6 +448,8 @@ const CreateAgent = () => {
               <Input
                 id="name"
                 type={"text"}
+                value={agentName}
+                onChange={(e) => setAgentName(e.target.value)}
                 placeholder="Enter a agent name"
                 className="col-span-3"
               />

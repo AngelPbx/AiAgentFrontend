@@ -12,9 +12,13 @@ import {
 import { ChartPie, Copy, Dot, PencilLine } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 export default function ConversationsFlow() {
-  const [defaultName, setDefaultName] = useState("Conversation Flow");
+  const location = useLocation()
+  const locationState = location.state
+  console.log(locationState)
+  const [defaultName, setDefaultName] = useState(locationState.agentName);
   const [isEdit, setIsEdit] = useState(false);
   const createAgentType = useSelector((state) => state.app.createAgentType);
 
