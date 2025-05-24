@@ -3,6 +3,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { AppRoutes } from "./routes";
 import { Provider } from "react-redux";
 import { store } from "./Redux/store";
+import { Toaster } from "sonner";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <AppRoutes />
         </BrowserRouter>
       </ThemeProvider>
+      <Toaster />
     </Provider>
   );
 }

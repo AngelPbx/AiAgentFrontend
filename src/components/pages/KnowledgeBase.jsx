@@ -9,7 +9,7 @@ import {
   Trash,
   Trash2,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import {
@@ -32,8 +32,17 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Textarea } from "../ui/textarea";
+import { requiredValidator } from "@/validation/valication";
+import ErrorMessage from "../commonComponents/ErrorMessage";
 
 const KnowledgeBase = () => {
+  const [currentTab, setCurrentTab] = useState("webPage");
+  const [addedFiles, setAddedFiles] = useState([]);
+
+  const handleFileAdd = async () => {
+    console.log("currentTab", currentTab);
+  };
+
   return (
     <>
       <Dialog>
@@ -64,18 +73,6 @@ const KnowledgeBase = () => {
                   </span>
                   <span className="text-xs text-zinc-500">
                     Uploaded on 2023-01-01
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-2 border rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer">
-                  <span>File 2</span>
-                  <span className="text-xs text-zinc-500">
-                    Uploaded on 2023-01-02
-                  </span>
-                </div>
-                <div className="flex items-center justify-between p-2 border rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer">
-                  <span>File 3</span>
-                  <span className="text-xs text-zinc-500">
-                    Uploaded on 2023-01-03
                   </span>
                 </div>
               </div>
@@ -181,6 +178,7 @@ const KnowledgeBase = () => {
                 placeholder="Enter a name for your knowledge base"
                 className="mt-1"
               />
+              {/* <ErrorMessage */}
             </div>
             {/* All the uploaded files show section  */}
             <div className="">
@@ -196,7 +194,12 @@ const KnowledgeBase = () => {
             <Separator className="my-2 bg-zinc-500" />
             {/* Upload new files section  */}
             <div>
-              <Tabs defaultValue="webPage" className="sm:max-w-[550px]">
+              {" "}
+              <Tabs
+                defaultValue="webPage"
+                className="sm:max-w-[550px]"
+                onValueChange={(value) => setCurrentTab(value)}
+              >
                 <TabsList className="grid w-full grid-cols-3 bg-zinc-700 ">
                   <TabsTrigger value="webPage" className="cursor-pointer">
                     Web Page
@@ -255,12 +258,16 @@ const KnowledgeBase = () => {
                     />
                     <Textarea
                       placeholder="Enter a text"
-                      className="mt-1 min-h-[200px]"
+                      className="mt-1 !min-h-[300px]"
                     />
                   </div>
                 </TabsContent>
               </Tabs>
             </div>
+            <Button className="mt-4 cursor-pointer" onClick={handleFileAdd}>
+              <Plus className="mr-2" />
+              Add
+            </Button>
           </div>
 
           <DialogFooter>
@@ -269,7 +276,7 @@ const KnowledgeBase = () => {
                 Cancel
               </Button>
             </DialogClose>
-            <Button className="cursor-pointer" type="submit">
+            <Button className="cursor-pointer" type="submit" disabled>
               Save changes
             </Button>
           </DialogFooter>
