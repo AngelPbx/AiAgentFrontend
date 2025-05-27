@@ -25,7 +25,8 @@ export default function ConversationsFlow() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="w-full">
+          <div className="flex justify-between w-full">
           <div className="flex gap-2 items-center">
             {isEdit ? (
               <Input
@@ -46,6 +47,10 @@ export default function ConversationsFlow() {
             >
               <PencilLine />
             </Button>
+          </div>
+          <Button className={"cursror-pointer"}>
+            Save
+          </Button>
           </div>
           <div className="text-muted-foreground flex items-center text-xs mt-2">
             <p className="flex gap-2">
@@ -140,7 +145,7 @@ export default function ConversationsFlow() {
           <TabsContent value="create">
             <div className="grid gap-4 min-h-200">
               {/* Sample Flow Cards */}
-              {createAgentType === "single" ? <SinglePrompt /> : <Reactflow />}
+              {createAgentType === "single" ? <SinglePrompt defaultName={defaultName} /> : <Reactflow />}
             </div>
           </TabsContent>
           <TabsContent value="simulation">
