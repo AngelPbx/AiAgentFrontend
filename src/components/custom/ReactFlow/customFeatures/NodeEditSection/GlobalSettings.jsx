@@ -75,11 +75,25 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import {
+  generalGetFunction,
+  generalPostFunction,
+  generalPutFunction,
+} from "@/globalFunctions/globalFunction";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
+const GlobalSettings = ({
+  defaultName,
+  beginMessage,
+  generalPrompt,
+  newAgent,
+  saveClicked,
+  agentData,
+  llmData,
+  setBeginMessage,
+  setGeneralPrompt,
+}) => {
   // Initializing all the states for agent creation
   const [llm_id, setLlmId] = useState(null);
   const [voice_id, setVoiceId] = useState(null);
@@ -125,7 +139,7 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
   const [allow_user_dtmf, setAllowUserDtmf] = useState(true); //If set to true, DTMF input will be accepted and processed. If false, any DTMF input will be ignored. Default to true.
   const [digit_limit, setDigitLimit] = useState(10); //The maximum number of digits allowed in the user's DTMF (Dual-Tone Multi-Frequency) input per turn. Once this limit is reached, the input is considered complete and a response will be generated immediately.
   const [termination_keys, setTerminationKeys] = useState("#"); //A single key that signals the end of DTMF input. Acceptable values include any digit (0–9), the pound/hash symbol (#), or the asterisk (*).
-  const [timeout_ms, setTimeoutMs] = useState(30000); //The time (in milliseconds) to wait for user DTMF input before timing out. The timer resets with each digit received.
+  const [timeout_ms, setTimeoutMs] = useState(15000); //The time (in milliseconds) to wait for user DTMF input before timing out. The timer resets with each digit received.
   const [denoising_mode, setDenoisingMode] = useState("noise-cancellation"); //If set, determines what denoising mode to use. Default to noise-cancellation..
   const [postCallName, setPostCallName] = useState("");
   const [postCallDescription, setPostCallDescription] = useState("");
@@ -136,12 +150,13 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
   const [model_high_priority, setModelHighPriority] = useState(false);
   const [model_temperature, setModelTemperature] = useState(0);
   const [model, setModel] = useState("gpt-4o");
-  // const [llmModels, setLlmModels] = useState([]);
+  const [llmModels, setLlmModels] = useState([]);
+  const [llmKnowlwdgeBaseIds, setLlmKnowlwdgeBaseIds] = useState([]);
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/knowledgebase/all");
       const voicesData = await generalGetFunction("/voice/all");
-      // const llmModelsData = await generalGetFunction("/llm/all");
+      const llmModelsData = await generalGetFunction("/llm/all");
       if (apiData.status) {
         setAllKnowledgeBases(apiData.knowledgeBaseResponses);
       }
@@ -150,13 +165,197 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
           voicesData.data.filter((item) => item.provider === "elevenlabs")
         );
       }
-      // if (llmModelsData.status) {
-      //   setLlmModels(llmModelsData.data);
-      // }
+      if (llmModelsData.status) {
+        setLlmModels(llmModelsData.data);
+      }
     }
     getData();
   }, []);
 
+  useEffect(()=>{
+     if (agentData && !newAgent) {
+      setLlmId(agentData.response_engine.llm_id);
+      setVoiceId(agentData.voice_id);
+      setAgentName(agentData.agent_name);
+      setVoiceModel(agentData.voice_model);
+      setFallbackVoiceIds(agentData.fallback_voice_ids);
+      setVoiceTemperature(agentData.voice_temperature);
+      setVoiceSpeed(agentData.voice_speed);
+      setVolume(agentData.volume);
+      setResponsiveness(agentData.responsiveness);
+      setInterruptionSensitivity(agentData.interruption_sensitivity);
+      setEnableBackchannel(agentData.enable_backchannel);
+      setBackchannelFrequency(agentData.backchannel_frequency);
+      setBackchannelWords(agentData.backchannel_words);
+      setReminderTriggerMs(agentData.reminder_trigger_ms);
+      setEnableVoicemailDetection(agentData.enable_voicemail_detection);
+      setVoicemailMessage(agentData.voicemail_message);
+      setVoicemailDetectionTimeoutMs(agentData.voicemail_detection_timeout_ms);
+      setPostCallAnalysisData(agentData.post_call_analysis_data);
+      setPostCallAnalysisModel(agentData.post_call_analysis_model);
+      setBeginMessageDelayMs(agentData.begin_message_delay_ms);
+      setRingDurationMs(agentData.ring_duration_ms);
+      setSttModel(agentData.stt_model);
+      setAllowUserDtmf(agentData.allow_user_dtmf);
+      setDigitLimit(agentData.user_dtmf_options?.digit_limit);
+      setTerminationKeys(agentData.user_dtmf_options?.termination_keys);
+      setTimeoutMs(agentData.user_dtmf_options?.timeout_ms);
+      setDenoisingMode(agentData.denoising_mode);
+      setLanguage(agentData.language);
+      setWebhookUrl(agentData.webhook_url);
+      setBoostedKeywords(agentData.boosted_keywords);
+      setEnableTranscriptionFormatting(
+        agentData.enable_transcription_formatting
+      );
+      setOptOutSensitiveDataStorage(agentData.opt_out_sensitive_data_storage);
+      setOptInSignedUrl(agentData.opt_in_signed_url);
+      setPronunciationDictionary(agentData.pronunciation_dictionary);
+      setNormalizeForSpeech(agentData.normalize_for_speech);
+      setEndCallAfterSilenceMs(agentData.end_call_after_silence_ms);
+      setMaxCallDurationMs(agentData.max_call_duration_ms);
+      setAmbientSounds(agentData.ambient_sounds);
+      setAmbientSoundVolume(agentData.ambient_sound_volume);
+      // Setting llm data
+      setModel(llmData.model);
+      setModelTemperature(llmData.model_temperature);
+      setModelHighPriority(llmData.model_high_priority);
+      setGeneralPrompt(llmData.general_prompt);
+      setBeginMessage(llmData.begin_message);
+      setLlmKnowlwdgeBaseIds(llmData.knowledge_base_ids || []);
+    }
+  },[agentData, newAgent]);
+
+  async function handleSave() {
+    if (newAgent) {
+      const llmParsedData = {
+        model: model,
+        model_temperature: model_temperature,
+        model_high_priority: model_high_priority,
+        general_prompt: generalPrompt,
+        begin_message: beginMessage,
+        knowledge_base_ids: llmKnowlwdgeBaseIds,
+      };
+      const llmData = await generalPostFunction("/llm/store", llmParsedData);
+      if (llmData.status) {
+        console.log(llmData);
+        const agentParsedData = {
+          response_engine: { type: "retell-llm", llm_id: llmData.llm_id },
+          voice_id: voice_id,
+          agent_name: agent_name,
+          voice_model: voice_model,
+          fallback_voice_ids: fallback_voice_ids,
+          voice_temperature: voice_temperature,
+          voice_speed: voice_speed,
+          volume: volume,
+          responsiveness: responsiveness,
+          interruption_sensitivity: interruption_sensitivity,
+          enable_backchannel: enable_backchannel,
+          backchannel_frequency: backchannel_frequency,
+          backchannel_words: backchannel_words,
+          reminder_trigger_ms: reminder_trigger_ms,
+          reminder_max_count: reminder_max_count,
+          ambient_sounds: ambient_sounds,
+          ambient_sound_volume: ambient_sound_volume,
+          language: language,
+          webhook_url: webhook_url,
+          boosted_keywords: boosted_keywords,
+          enable_transcription_formatting: enable_transcription_formatting,
+          opt_out_sensitive_data_storage: opt_out_sensitive_data_storage,
+          opt_in_signed_url: opt_in_signed_url,
+          pronunciation_dictionary: pronunciation_dictionary,
+          normalize_for_speech: normalize_for_speech,
+          end_call_after_silence_ms: end_call_after_silence_ms,
+          max_call_duration_ms: max_call_duration_ms,
+          enable_voicemail_detection: enable_voicemail_detection,
+          voicemail_message: voicemail_message,
+          voicemail_detection_timeout_ms: voicemail_detection_timeout_ms,
+          post_call_analysis_data: post_call_analysis_data,
+          post_call_analysis_model: post_call_analysis_model,
+          begin_message_delay_ms: begin_message_delay_ms,
+          ring_duration_ms: ring_duration_ms,
+          stt_model: stt_model,
+          allow_user_dtmf: allow_user_dtmf,
+          user_dtmf_options: {
+            digit_limit: digit_limit,
+            termination_keys: termination_keys,
+            timeout_ms: timeout_ms,
+          },
+          denoising_mode: denoising_mode,
+        };
+        const apiData = await generalPostFunction(
+          "/agent/store",
+          agentParsedData
+        );
+      }
+    } else {
+       const llmParsedData = {
+        model: model,
+        model_temperature: model_temperature,
+        model_high_priority: model_high_priority,
+        general_prompt: generalPrompt,
+        begin_message: beginMessage,
+        knowledge_base_ids: llmKnowlwdgeBaseIds,
+      };
+      const llmData = await generalPutFunction(`/llm/update-llm/${llm_id}`, llmParsedData);
+      if (llmData.status) {
+        console.log(llmData);
+        const agentParsedData = {
+          response_engine: { type: "retell-llm", llm_id: llm_id },
+          voice_id: voice_id,
+          agent_name: agent_name,
+          voice_model: voice_model,
+          fallback_voice_ids: fallback_voice_ids,
+          voice_temperature: voice_temperature,
+          voice_speed: voice_speed,
+          volume: volume,
+          responsiveness: responsiveness,
+          interruption_sensitivity: interruption_sensitivity,
+          enable_backchannel: enable_backchannel,
+          backchannel_frequency: backchannel_frequency,
+          backchannel_words: backchannel_words,
+          reminder_trigger_ms: reminder_trigger_ms,
+          reminder_max_count: reminder_max_count,
+          ambient_sounds: ambient_sounds,
+          ambient_sound_volume: ambient_sound_volume,
+          language: language,
+          webhook_url: webhook_url,
+          boosted_keywords: boosted_keywords,
+          enable_transcription_formatting: enable_transcription_formatting,
+          opt_out_sensitive_data_storage: opt_out_sensitive_data_storage,
+          opt_in_signed_url: opt_in_signed_url,
+          pronunciation_dictionary: pronunciation_dictionary,
+          normalize_for_speech: normalize_for_speech,
+          end_call_after_silence_ms: end_call_after_silence_ms,
+          max_call_duration_ms: max_call_duration_ms,
+          enable_voicemail_detection: enable_voicemail_detection,
+          voicemail_message: voicemail_message,
+          voicemail_detection_timeout_ms: voicemail_detection_timeout_ms,
+          post_call_analysis_data: post_call_analysis_data,
+          post_call_analysis_model: post_call_analysis_model,
+          begin_message_delay_ms: begin_message_delay_ms,
+          ring_duration_ms: ring_duration_ms,
+          stt_model: stt_model,
+          allow_user_dtmf: allow_user_dtmf,
+          user_dtmf_options: {
+            digit_limit: digit_limit,
+            termination_keys: termination_keys,
+            timeout_ms: timeout_ms,
+          },
+          denoising_mode: denoising_mode,
+        };
+        const apiData = await generalPutFunction(
+          `/agent/update-agent/${agentData.agent_id}`,
+          agentParsedData
+        );
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (saveClicked > 0) {
+      handleSave();
+    }
+  }, [saveClicked]);
   console.log("allKnowledgeBases", boosted_keywords);
   return (
     <>
@@ -208,20 +407,21 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                               "!border-r-0 max-w-[180px] cursor-pointer"
                             }
                           >
-                            <Avatar>
-                              <AvatarImage
-                                src={`https://flagsapi.com/${countryData[0].country_code}/flat/64.png`}
-                                alt={`${countryData[0].language} - ${countryData[0].country}`}
-                              />
-                            </Avatar>{" "}
-                            Adam watson
+                            {voice_id
+                              ? allVoices.find(
+                                  (voice) => voice.voice_id === voice_id
+                                )?.voice_name
+                              : "Please select a voice"}
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="min-w-2/3">
                           <DialogHeader>
                             <DialogTitle>Select Voice</DialogTitle>
                           </DialogHeader>
-                          <SelectVoice allVoices={allVoices} />
+                          <SelectVoice
+                            allVoices={allVoices}
+                            setVoiceId={setVoiceId}
+                          />
                         </DialogContent>
                       </Dialog>
                       <DropdownMenu>
@@ -307,7 +507,7 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                                   </p>
                                 </div>
                               </DropdownMenuRadioItem>
-                               <DropdownMenuRadioItem
+                              <DropdownMenuRadioItem
                                 className="cursor-pointer"
                                 value="Play3.0-mini"
                               >
@@ -318,14 +518,14 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                                   </p>
                                 </div>
                               </DropdownMenuRadioItem>
-                               <DropdownMenuRadioItem
+                              <DropdownMenuRadioItem
                                 className="cursor-pointer"
                                 value="PlayDialog"
                               >
                                 <div className="flex flex-col">
                                   <p>PlayDialog</p>
                                   <p className="text-xs text-muted-foreground">
-                                   PlayDialog
+                                    PlayDialog
                                   </p>
                                 </div>
                               </DropdownMenuRadioItem>
@@ -336,8 +536,9 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                               <div className="flex items-center justify-between">
                                 <Slider
                                   defaultValue={voice_speed}
-                                  max={100}
-                                  step={1}
+                                  max={2}
+                                  step={0.1}
+                                  min={0.5}
                                   className={cn("w-[80%]", "cursor-pointer")}
                                   onValueChange={(value) => {
                                     setVoiceSpeed(value);
@@ -352,8 +553,9 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                               <div className="flex items-center justify-between">
                                 <Slider
                                   defaultValue={voice_temperature}
-                                  max={100}
-                                  step={1}
+                                  max={2}
+                                  step={0.1}
+                                  min={0}
                                   className={cn("w-[80%]", "cursor-pointer")}
                                   onValueChange={(value) => {
                                     setVoiceTemperature(value);
@@ -379,11 +581,11 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                                 {volume}
                               </div>
                             </div>
-                            <div className="mt-4 flex items-center justify-center">
+                            {/* <div className="mt-4 flex items-center justify-center">
                               <Button className="w-full cursor-pointer">
                                 Save
                               </Button>
-                            </div>
+                            </div> */}
                           </DropdownMenuContent>
                         </DropdownMenuTrigger>
                       </DropdownMenu>
@@ -438,7 +640,7 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                           <div className="flex items-center justify-between">
                             <Slider
                               defaultValue={model_temperature}
-                              max={2}
+                              max={1}
                               step={0.1}
                               className={cn("w-[80%]", "cursor-pointer")}
                               onValueChange={(value) => {
@@ -498,31 +700,74 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                   {" "}
                   Add knowledge base to provide context to the agent.
                 </p>
+                <div className=" flex flex-col gap-2">
+                  {llmKnowlwdgeBaseIds.map((item, key) => {
+                    return (
+                      <div className="flex items-center  py-2 ps-2 rounded-md gap-2 bg-zinc-800">
+                        <Book className="size-4 text-muted-foreground4" />{" "}
+                        <p>
+                          {
+                            allKnowledgeBases.filter(
+                              (item2) => item2.knowledge_base_id === item
+                            )?.[0]?.knowledge_base_name
+                          }
+                        </p>{" "}
+                        <Trash2
+                          onClick={() => {
+                            setLlmKnowlwdgeBaseIds((prev) =>
+                              prev.filter((item2) => item2 !== item)
+                            );
+                          }}
+                          className=" h-4 w-4 cursor-pointer text-red-800 hover:text-red-600"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
 
-                <Select>
-                  <SelectTrigger className="w-[180px] cursor-pointer">
-                    <SelectValue placeholder="Select a knowledge base" />
-                  </SelectTrigger>
-                  <SelectContent className={"w-[250px] px-2"}>
-                    <SelectGroup>
-                      {allKnowledgeBases.map((item, index) => {
-                        return (
-                          <SelectItem value={item.knowledge_base_id}>
-                            {item.knowledge_base_name}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectGroup>
-                    <Separator className={"my-2"} />
-                    <Link
-                      to="/agents/knowledge-base"
-                      target="_blank"
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <ArrowUpRight className="h-5 w-5" /> Create New
-                    </Link>
-                  </SelectContent>
-                </Select>
+                <div className=" mt-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={"outline"} className={"cursor-pointer"}>
+                        <Plus /> Add
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56">
+                      {allKnowledgeBases
+                        .filter(
+                          (item) =>
+                            !llmKnowlwdgeBaseIds.includes(
+                              item.knowledge_base_id
+                            )
+                        )
+                        .map((item, index) => {
+                          return (
+                            <DropdownMenuItem
+                              key={index}
+                              className={"cursor-pointer"}
+                              onClick={() => {
+                                setLlmKnowlwdgeBaseIds((prev) => [
+                                  ...prev,
+                                  item.knowledge_base_id,
+                                ]);
+                              }}
+                            >
+                              {" "}
+                              {item.knowledge_base_name}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      <Separator className={"my-2"} />
+                      <Link
+                        to="/agents/knowledge-base"
+                        target="_blank"
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <ArrowUpRight className="h-5 w-5" /> Create New
+                      </Link>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>
@@ -912,7 +1157,7 @@ const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
                       Define the information that you need to extract from the
                       call.
                     </p>
-                    {post_call_analysis_data.map((item, index) => {
+                    {post_call_analysis_data?.map((item, index) => {
                       return (
                         <div
                           key={index}
@@ -1482,10 +1727,7 @@ const AgentSettings = () => {
               <SelectGroup>
                 <SelectLabel>Language</SelectLabel>
                 {countryData.map((country) => (
-                  <SelectItem
-                    key={country.locale}
-                    value={country.locale}
-                  >
+                  <SelectItem key={country.locale} value={country.locale}>
                     <Avatar>
                       <AvatarImage
                         src={`https://flagsapi.com/${country.country_code}/flat/64.png`}
@@ -1734,7 +1976,7 @@ const AgentSettings = () => {
 };
 
 // select voice modal content
-const SelectVoice = ({ allVoices }) => {
+const SelectVoice = ({ allVoices, setVoiceId }) => {
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null); // index of playing item
   const audioRef = useRef(null); // single audio element for reuse
   const [filterModels, setFilterModels] = useState(allVoices);
@@ -1742,22 +1984,26 @@ const SelectVoice = ({ allVoices }) => {
   const [AccentFilter, setAccentFilter] = useState("all");
   const [model, setModel] = useState("");
 
-  useEffect(()=>{
-    if(genderFilter !== "all" || AccentFilter !== "all"){
-      setFilterModels(allVoices.filter((voice) => {
-        if(genderFilter === "all"){
-          return voice.accent === AccentFilter
-        }else if(AccentFilter === "all"){
-          return voice.gender === genderFilter
-        }else{
-          return voice.accent === AccentFilter && voice.gender === genderFilter
-        }
-      }))
-    }else{
+  useEffect(() => {
+    if (genderFilter !== "all" || AccentFilter !== "all") {
+      setFilterModels(
+        allVoices.filter((voice) => {
+          if (genderFilter === "all") {
+            return voice.accent === AccentFilter;
+          } else if (AccentFilter === "all") {
+            return voice.gender === genderFilter;
+          } else {
+            return (
+              voice.accent === AccentFilter && voice.gender === genderFilter
+            );
+          }
+        })
+      );
+    } else {
       setFilterModels(allVoices);
     }
-  },[genderFilter, AccentFilter]);
-  console.log("Filtered Models: ", genderFilter,AccentFilter);
+  }, [genderFilter, AccentFilter]);
+  console.log("Filtered Models: ", genderFilter, AccentFilter);
   const handlePlayPause = (item, index) => {
     // If already playing this item, pause it
     if (currentlyPlaying === index) {
@@ -1801,7 +2047,7 @@ const SelectVoice = ({ allVoices }) => {
             </TabsList>
             <TabsContent value="elevelabs">
               <div className="flex w-full flex-row justify-start gap-4">
-                <Select value={genderFilter} onValueChange={setGenderFilter} >
+                <Select value={genderFilter} onValueChange={setGenderFilter}>
                   <SelectTrigger className="w-[180px] cursor-pointer">
                     <SelectValue placeholder="Select Gender" />
                   </SelectTrigger>
@@ -1888,7 +2134,10 @@ const SelectVoice = ({ allVoices }) => {
                         <TableCell>{item.age}</TableCell>
                         <TableCell>{item.gender}</TableCell>
                         <TableCell>{item.provider}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell
+                          className="text-right"
+                          onClick={() => setVoiceId(item.voice_id)}
+                        >
                           <Button
                             variant={"link"}
                             className={

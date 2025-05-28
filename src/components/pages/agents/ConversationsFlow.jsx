@@ -10,115 +10,131 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChartPie, Copy, Dot, PencilLine } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ConversationsFlow() {
-  const location = useLocation()
-  const locationState = location.state
-  console.log(locationState)
-  const [defaultName, setDefaultName] = useState(locationState.agentName);
+  const location = useLocation();
+  const locationState = location.state;
+  const navigate = useNavigate();
+  const [defaultName, setDefaultName] = useState();
   const [isEdit, setIsEdit] = useState(false);
   const createAgentType = useSelector((state) => state.app.createAgentType);
+  const [saveClicked, setSaveClicked] = useState(0);
+  const [agentData,setAgentData] = useState();
+
+  useEffect(()=>{
+    if(locationState.agentName){
+      setDefaultName(locationState.agentName);
+      setAgentData(locationState.agentData);
+    }else{
+      navigate(-1)
+    }
+  },[])
+
+  console.log("Agent Data: ", agentData);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4"> 
       <div className="flex items-center justify-between">
         <div className="w-full">
           <div className="flex justify-between w-full">
-          <div className="flex gap-2 items-center">
-            {isEdit ? (
-              <Input
-                className={"w-[300px]"}
-                defaultValue={defaultName}
-                onChange={(e) => setDefaultName(e.target.value)}
-                onBlur={() => setIsEdit(false)}
-              />
-            ) : (
-              <h1 className="text-2xl font-bold">{defaultName}</h1>
-            )}
+            <div className="flex gap-2 items-center">
+              {isEdit ? (
+                <Input
+                  className={"w-[300px]"}
+                  defaultValue={defaultName}
+                  onChange={(e) => setDefaultName(e.target.value)}
+                  onBlur={() => setIsEdit(false)}
+                />
+              ) : (
+                <h1 className="text-2xl font-bold">{defaultName}</h1>
+              )}
 
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              className={"cursor-pointer"}
-              onClick={() => setIsEdit(!isEdit)}
-            >
-              <PencilLine />
-            </Button>
+              <Button
+                variant={"outline"}
+                size={"icon"}
+                className={"cursor-pointer"}
+                onClick={() => setIsEdit(!isEdit)}
+              >
+                <PencilLine />
+              </Button>
+            </div>
+            <Button onClick={() => setSaveClicked(saveClicked + 1)} className={"cursror-pointer"}>Save</Button>
           </div>
-          <Button className={"cursror-pointer"}>
-            Save
-          </Button>
-          </div>
-          <div className="text-muted-foreground flex items-center text-xs mt-2">
-            <p className="flex gap-2">
-              Agent ID: ag...9df <Copy className="h-4 w-4 cursor-pointer" />
-            </p>
-            <Dot />
-            <p className="flex gap-2">
-              Conversation Flow ID: co...07e
-              <Copy className="h-4 w-4 cursor-pointer" />
-            </p>
-            <Dot />
-            <p className="flex gap-2">
-              $0.12/min
-              {/* <ChartPie className="h-4 w-4 cursor-pointer" /> */}
-              <Tooltip>
-                <TooltipTrigger className="cursor-pointer">
-                  <ChartPie className="h-4 w-4 cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent className="relative bg-zinc-900 text-white text-sm rounded-md p-3 shadow-lg w-64">
-                  <div className="font-semibold flex justify-between mb-1">
-                    <span>Cost per minute</span>
-                    <span className="text-white/90">$0.12/min</span>
-                  </div>
-                  <div className="text-white/80 space-y-1">
-                    <div className="flex justify-between">
-                      <span>- Voice Engine: 11labs</span>
-                      <span>$0.07/min</span>
+          {locationState.unique ? (
+            ""
+          ) : (
+            <div className="text-muted-foreground flex items-center text-xs mt-2">
+              <p className="flex gap-2">
+                Agent ID: {agentData?.agent_id} 
+                <Copy className="h-4 w-4 cursor-pointer" />
+              </p>
+              <Dot />
+              {/* <p className="flex gap-2">
+                Conversation Flow ID: 
+                <Copy className="h-4 w-4 cursor-pointer" />
+              </p> */}
+              <Dot />
+              <p className="flex gap-2">
+                $0.12/min
+                {/* <ChartPie className="h-4 w-4 cursor-pointer" /> */}
+                <Tooltip>
+                  <TooltipTrigger className="cursor-pointer">
+                    <ChartPie className="h-4 w-4 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="relative bg-zinc-900 text-white text-sm rounded-md p-3 shadow-lg w-64">
+                    <div className="font-semibold flex justify-between mb-1">
+                      <span>Cost per minute</span>
+                      <span className="text-white/90">$0.12/min</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>- LLM: gpt-4o</span>
-                      <span>$0.05/min</span>
+                    <div className="text-white/80 space-y-1">
+                      <div className="flex justify-between">
+                        <span>- Voice Engine: 11labs</span>
+                        <span>$0.07/min</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>- LLM: gpt-4o</span>
+                        <span>$0.05/min</span>
+                      </div>
                     </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </p>
-            <Dot />
-            <p className="flex gap-2">
-              2920-3250ms latency
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ChartPie className="h-4 w-4 cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent
-                  className={
-                    "bg-zinc-900 text-white text-sm rounded-md p-3 shadow-lg w-64"
-                  }
-                >
-                  <div className="font-semibold flex justify-between mb-1">
-                    <span>Cost per minute</span>
-                    <span className="text-white/90">$0.12/min</span>
-                  </div>
-                  <div className="text-white/80 space-y-1">
-                    <div className="flex justify-between">
-                      <span>- Voice Engine: 11labs</span>
-                      <span>$0.07/min</span>
+                  </TooltipContent>
+                </Tooltip>
+              </p>
+              <Dot />
+              <p className="flex gap-2">
+                2920-3250ms latency
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ChartPie className="h-4 w-4 cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className={
+                      "bg-zinc-900 text-white text-sm rounded-md p-3 shadow-lg w-64"
+                    }
+                  >
+                    <div className="font-semibold flex justify-between mb-1">
+                      <span>Cost per minute</span>
+                      <span className="text-white/90">$0.12/min</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>- LLM: gpt-4o</span>
-                      <span>$0.05/min</span>
+                    <div className="text-white/80 space-y-1">
+                      <div className="flex justify-between">
+                        <span>- Voice Engine: 11labs</span>
+                        <span>$0.07/min</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>- LLM: gpt-4o</span>
+                        <span>$0.05/min</span>
+                      </div>
                     </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </p>
-            <Dot />
-            <p className="flex gap-2">Auto saved at 16:06</p>
-          </div>
+                  </TooltipContent>
+                </Tooltip>
+              </p>
+              <Dot />
+              <p className="flex gap-2">Auto saved at 16:06</p>
+            </div>
+          )}
         </div>
         {/* <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md">
           Create New Flow
@@ -145,7 +161,17 @@ export default function ConversationsFlow() {
           <TabsContent value="create">
             <div className="grid gap-4 min-h-200">
               {/* Sample Flow Cards */}
-              {createAgentType === "single" ? <SinglePrompt defaultName={defaultName} /> : <Reactflow />}
+              {true ? (
+                <SinglePrompt
+                  defaultName={defaultName}
+                  newAgent={locationState.unique}
+                  saveClicked={saveClicked}
+                  agentData={agentData}
+                  llmData={locationState.llmData}
+                />
+              ) : (
+                <Reactflow />
+              )}
             </div>
           </TabsContent>
           <TabsContent value="simulation">

@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "../ui/select";
 
-const SinglePrompt = ({defaultName}) => {
+const SinglePrompt = ({defaultName,newAgent, saveClicked,agentData,llmData}) => {
    const [begin_message, setBeginMessage] = useState("");
     const [general_prompt, setGeneralPrompt] = useState("");
   return (
@@ -46,7 +46,7 @@ const SinglePrompt = ({defaultName}) => {
       {/* prompt config section */}
       <div className="w-1/4 h-full bg-neutral-900 rounded-md px-5 pt-2 overflow-y-auto">
         <ScrollArea className="w-full h-[750px]">
-          <GlobalSettings defaultName={defaultName} generalPrompt={general_prompt} beginMessage={begin_message} />
+          <GlobalSettings defaultName={defaultName} generalPrompt={general_prompt} beginMessage={begin_message} newAgent={newAgent} saveClicked={saveClicked} agentData={agentData} llmData={llmData} setBeginMessage={setBeginMessage} setGeneralPrompt={setGeneralPrompt} />
         </ScrollArea>
       </div>
       {/* agent test section */}

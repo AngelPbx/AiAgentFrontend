@@ -61,6 +61,7 @@ import { toast } from "sonner";
 const AgentsList = () => {
   const [allAgents, setAllAgents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/agent/all");
@@ -73,6 +74,27 @@ const AgentsList = () => {
     }
     getData();
   }, []);
+
+  async function handleEditClick(item) {
+    setLoading(true);
+    const apiData = await generalGetFunction(`/agent/get/${item.agent_id}`);
+    if (apiData.status) {
+      const llmData = await generalGetFunction(
+        `/llm/get/${apiData.data.response_engine.llm_id}`
+      );
+      if (llmData.status) {
+        setLoading(false);
+        navigate("/agents/conversations-flow", {
+          state: {
+            unique: false,
+            agentName: item.agent_name,
+            agentData: apiData.data,
+            llmData: llmData.data,
+          },
+        });
+      }
+    }
+  }
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-fu">
@@ -159,7 +181,11 @@ const AgentsList = () => {
               ) : (
                 <>
                   {allAgents.map((item) => (
-                    <TableRow key={item.agent_id}>
+                    <TableRow
+                      key={item.agent_id}
+                      onClick={() => handleEditClick(item)}
+                      className="cursor-pointer hover:bg-zinc-800"
+                    >
                       <TableCell className="font-medium flex items-center">
                         <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
                           <BotIcon className="w-5 h-5" />
@@ -167,7 +193,9 @@ const AgentsList = () => {
                         {item.agent_name}
                       </TableCell>
                       <TableCell>
-                          <Badge variant="secondary">{item.response_engine?.["type"]}</Badge>
+                        <Badge variant="secondary">
+                          {item.response_engine?.["type"]}
+                        </Badge>
                       </TableCell>
                       <TableCell className="flex items-center">
                         {item.language}
@@ -236,7 +264,7 @@ const AgentsList = () => {
 const CreateAgent = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [agentName,setAgentName] = useState("");
+  const [agentName, setAgentName] = useState("");
   const [currentTab, setCurrentTab] = useState("single-prompt");
   const [agentType, setAgentType] = useState("single-blank");
 
@@ -251,7 +279,7 @@ const CreateAgent = () => {
   const emptyInitialEdges = [];
 
   const handleClick = () => {
-    if(agentName === "") {
+    if (agentName === "") {
       toast.error("Please enter agent name");
       return;
     }
@@ -274,9 +302,9 @@ const CreateAgent = () => {
       dispatch({ type: "CREATE_AGENT_TYPE", payload: "multiple" });
     }
 
-    navigate("/agents/conversations-flow",{
+    navigate("/agents/conversations-flow", {
       state: {
-        unique:true,
+        unique: true,
         agentName: agentName,
       },
     });
