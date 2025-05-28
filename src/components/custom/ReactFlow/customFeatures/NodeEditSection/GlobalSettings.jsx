@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,8 +58,12 @@ import {
   Bot,
   Box,
   ChartLine,
+  Check,
   Headphones,
   List,
+  Pause,
+  Pencil,
+  Play,
   Plus,
   Settings,
   ShieldCheck,
@@ -67,12 +71,93 @@ import {
   Text,
   Trash2,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-const GlobalSettings = () => {
+const GlobalSettings = ({ defaultName, beginMessage, generalPrompt }) => {
+  // Initializing all the states for agent creation
+  const [llm_id, setLlmId] = useState(null);
+  const [voice_id, setVoiceId] = useState(null);
+  const [agent_name, setAgentName] = useState(defaultName);
+  const [voice_model, setVoiceModel] = useState("eleven_turbo_v2"); //The voice model to use for the agent. Default to eleven_turbo_v2.
+  const [fallback_voice_ids, setFallbackVoiceIds] = useState(null);
+  const [voice_temperature, setVoiceTemperature] = useState(1); //Controls how stable the voice is. Value ranging from [0,2]
+  const [voice_speed, setVoiceSpeed] = useState(1); //Controls speed of voice. Value ranging from [0.5,2]
+  const [volume, setVolume] = useState(1); //If set, will control the volume of the agent. Value ranging from [0,2]
+  const [responsiveness, setResponsiveness] = useState(1); //Controls how responsive is the agent. Value ranging from [0,1]
+  const [interruption_sensitivity, setInterruptionSensitivity] = useState(1); //Controls how sensitive the agent is to user interruptions. Value ranging from [0,1]
+  const [enable_backchannel, setEnableBackchannel] = useState(false); //Controls whether the agent would backchannel (agent interjects the speaker with phrases like "yeah", "uh-huh" to signify interest and engagement)
+  const [backchannel_frequency, setBackchannelFrequency] = useState(0); //Controls how often the agent would backchannel. Value ranging from [0,1]
+  const [backchannel_words, setBackchannelWords] = useState(null);
+  const [reminder_trigger_ms, setReminderTriggerMs] = useState(10000); //If set (in milliseconds), will trigger a reminder to the agent to speak if the user has been silent for the specified duration after some agent speech
+  const [reminder_max_count, setReminderMaxCount] = useState(1); //If set, controls how many times agent would remind user when user is unresponsive
+  const [ambient_sounds, setAmbientSounds] = useState(null); //If set, will add ambient environment sound to the call to make experience more realistic Currently supports the following options: coffee-shop, convention-hall,summer-outdoor, mountain-outdoor, static-noise, call-center
+  const [ambient_sound_volume, setAmbientSoundVolume] = useState(1); //If set, will control the volume of the ambient sound. Value ranging from [0,2]
+  const [language, setLanguage] = useState("en-US"); //Specifies what language (and dialect) the speech recognition will operate in
+  const [webhook_url, setWebhookUrl] = useState(null); //The webhook for agent to listen to call events.
+  const [boosted_keywords, setBoostedKeywords] = useState(null); //Provide a customized list of keywords to bias the transcriber model, so that these words are more likely to get transcribed. Commonly used for names, brands, street, etc.
+  const [enable_transcription_formatting, setEnableTranscriptionFormatting] =
+    useState(false); //If set to true, will format transcription to number, date, email, etc. If set to false, will return transcripts in raw words
+  const [opt_out_sensitive_data_storage, setOptOutSensitiveDataStorage] =
+    useState(false); //Whether this agent opts out of sensitive data storage like transcript, recording, logging, inbound/outbound phone numbers, etc.
+  const [opt_in_signed_url, setOptInSignedUrl] = useState(false); //Whether this agent opts in for signed URLs for public logs and recordings. When enabled, the generated URLs will include security signatures that restrict access and automatically expire after 24 hours.
+  const [pronunciation_dictionary, setPronunciationDictionary] = useState(null); //A list of words / phrases and their pronunciation to be used to guide the audio synthesize for consistent pronunciation. Currently only supported for English & 11labs voices. Set to null to remove pronunciation dictionary from this agent.
+  const [normalize_for_speech, setNormalizeForSpeech] = useState(false); //If set to true, will normalize the some part of text (number, currency, date, etc) to spoken to its spoken form for more consistent speech synthesis (sometimes the voice synthesize system itself might read these wrong with the raw text)
+  const [end_call_after_silence_ms, setEndCallAfterSilenceMs] =
+    useState(600000); //If users stay silent for a period after agent speech, end the call. The minimum value allowed is 10,000 ms (10 s). By default, this is set to 600000 (10 min).
+  const [max_call_duration_ms, setMaxCallDurationMs] = useState(7200000); //Maximum allowed length for the call, will force end the call if reached. The minimum value allowed is 60,000 ms (1 min), and maximum value allowed is 7,200,000 (2 hours). By default, this is set to 3,600,000 (1 hour).
+  const [enable_voicemail_detection, setEnableVoicemailDetection] =
+    useState(false); //If set to true, will detect voicemail and pause the call if detected
+  const [voicemail_message, setVoicemailMessage] = useState(""); //The message to be played when the call enters a voicemail. Note that this feature is only available for phone calls. If you want to hangup after hitting voicemail, set this to empty string
+  const [voicemail_detection_timeout_ms, setVoicemailDetectionTimeoutMs] =
+    useState(30000); //Configures when to stop running voicemail detection, as it becomes unlikely to hit voicemail after a couple minutes, and keep running it will only have negative impact
+  const [post_call_analysis_data, setPostCallAnalysisData] = useState([]); //Post call analysis data to extract from the call. This data will augment the pre-defined variables extracted in the call analysis. This will be available after the call ends.
+  const [post_call_analysis_model, setPostCallAnalysisModel] =
+    useState("gpt-4o-mini"); //The model to use for post call analysis. Currently only supports gpt-4o-mini and gpt-4o. Default to gpt-4o-mini.
+  const [begin_message_delay_ms, setBeginMessageDelayMs] = useState(0); //If set, will delay the first message by the specified amount of milliseconds, so that it gives user more time to prepare to take the call
+  const [ring_duration_ms, setRingDurationMs] = useState(30000); //If set, the phone ringing will last for the specified amount of milliseconds. This applies for both outbound call ringtime, and call transfer ringtime
+  const [stt_model, setSttModel] = useState("fast"); //If set, determines whether speech to text should focus on latency or accuracy. Default to fast mode.
+  const [allow_user_dtmf, setAllowUserDtmf] = useState(true); //If set to true, DTMF input will be accepted and processed. If false, any DTMF input will be ignored. Default to true.
+  const [digit_limit, setDigitLimit] = useState(10); //The maximum number of digits allowed in the user's DTMF (Dual-Tone Multi-Frequency) input per turn. Once this limit is reached, the input is considered complete and a response will be generated immediately.
+  const [termination_keys, setTerminationKeys] = useState("#"); //A single key that signals the end of DTMF input. Acceptable values include any digit (0–9), the pound/hash symbol (#), or the asterisk (*).
+  const [timeout_ms, setTimeoutMs] = useState(30000); //The time (in milliseconds) to wait for user DTMF input before timing out. The timer resets with each digit received.
+  const [denoising_mode, setDenoisingMode] = useState("noise-cancellation"); //If set, determines what denoising mode to use. Default to noise-cancellation..
+  const [postCallName, setPostCallName] = useState("");
+  const [postCallDescription, setPostCallDescription] = useState("");
+  const [postCallExample, setPostCallExample] = useState("");
+  const [allKnowledgeBases, setAllKnowledgeBases] = useState([]);
+  const [allVoices, setAllVoices] = useState([]);
+  const [postCallDataEdit, setPostCallDataEdit] = useState(null);
+  const [model_high_priority, setModelHighPriority] = useState(false);
+  const [model_temperature, setModelTemperature] = useState(0);
+  const [model, setModel] = useState("gpt-4o");
+  // const [llmModels, setLlmModels] = useState([]);
+  useEffect(() => {
+    async function getData() {
+      const apiData = await generalGetFunction("/knowledgebase/all");
+      const voicesData = await generalGetFunction("/voice/all");
+      // const llmModelsData = await generalGetFunction("/llm/all");
+      if (apiData.status) {
+        setAllKnowledgeBases(apiData.knowledgeBaseResponses);
+      }
+      if (voicesData.status) {
+        setAllVoices(
+          voicesData.data.filter((item) => item.provider === "elevenlabs")
+        );
+      }
+      // if (llmModelsData.status) {
+      //   setLlmModels(llmModelsData.data);
+      // }
+    }
+    getData();
+  }, []);
+
+  console.log("allKnowledgeBases", boosted_keywords);
   return (
     <>
       <div className="w-full">
@@ -85,7 +170,319 @@ const GlobalSettings = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <AgentSettings />
+              <div className="w-full">
+                {/* voice and language  */}
+                <div>
+                  <p className="mb-2">Voice & Language</p>
+                  <div className="text-sm text-muted-foreground flex items-center justify-between">
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select a language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Language</SelectLabel>
+                          {countryData.map((country) => (
+                            <SelectItem
+                              key={country.locale}
+                              value={country.locale}
+                            >
+                              <Avatar>
+                                <AvatarImage
+                                  src={`https://flagsapi.com/${country.country_code}/flat/64.png`}
+                                  alt={`${country.language} - ${country.country}`}
+                                />
+                              </Avatar>
+                              {`${country.language} - ${country.country}`}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={
+                              "!border-r-0 max-w-[180px] cursor-pointer"
+                            }
+                          >
+                            <Avatar>
+                              <AvatarImage
+                                src={`https://flagsapi.com/${countryData[0].country_code}/flat/64.png`}
+                                alt={`${countryData[0].language} - ${countryData[0].country}`}
+                              />
+                            </Avatar>{" "}
+                            Adam watson
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="min-w-2/3">
+                          <DialogHeader>
+                            <DialogTitle>Select Voice</DialogTitle>
+                          </DialogHeader>
+                          <SelectVoice allVoices={allVoices} />
+                        </DialogContent>
+                      </Dialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <Button
+                            // variant="outline"
+                            size={"icon"}
+                            asChild
+                            className={"cursor-pointer"}
+                          >
+                            <Settings className="w-7 h-7" />
+                          </Button>
+                          <DropdownMenuContent className="w-fit">
+                            <DropdownMenuLabel>Voice Model</DropdownMenuLabel>
+                            <DropdownMenuRadioGroup
+                              value={voice_model}
+                              onValueChange={setVoiceModel}
+                            >
+                              {/* <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="auto"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Auto(Elevenlabs Turbo V2)</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    English only, fast, high quality
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem> */}
+                              {/* <Separator /> */}
+                              <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="eleven_turbo_v2"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Elevenlabs Turbo V2</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    English only, fast, high quality
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="eleven_flash_v2"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Elevenlabs Flash V2</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    English only, fastest, medium quality
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="eleven_turbo_v2_5"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Elevenlabs Turbo V2.5</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Multilingual, fast, high quality
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="eleven_flash_v2_5"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Elevenlabs Flash V2.5</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Multilingual, fastest, medium quality
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                              <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="eleven_multilingual_v2"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Elevenlabs Multilingual v2</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Multilingual, slow, highest quality
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                               <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="Play3.0-mini"
+                              >
+                                <div className="flex flex-col">
+                                  <p>Play3.0-mini</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Play3.0-mini
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                               <DropdownMenuRadioItem
+                                className="cursor-pointer"
+                                value="PlayDialog"
+                              >
+                                <div className="flex flex-col">
+                                  <p>PlayDialog</p>
+                                  <p className="text-xs text-muted-foreground">
+                                   PlayDialog
+                                  </p>
+                                </div>
+                              </DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                            <DropdownMenuSeparator />
+                            <div className="px-2 mb-2">
+                              <p>Voice Speed</p>
+                              <div className="flex items-center justify-between">
+                                <Slider
+                                  defaultValue={voice_speed}
+                                  max={100}
+                                  step={1}
+                                  className={cn("w-[80%]", "cursor-pointer")}
+                                  onValueChange={(value) => {
+                                    setVoiceSpeed(value);
+                                  }}
+                                  //   {...props}
+                                />{" "}
+                                {voice_speed}
+                              </div>
+                            </div>
+                            <div className="px-2 mb-2">
+                              <p>Voice Temperature</p>
+                              <div className="flex items-center justify-between">
+                                <Slider
+                                  defaultValue={voice_temperature}
+                                  max={100}
+                                  step={1}
+                                  className={cn("w-[80%]", "cursor-pointer")}
+                                  onValueChange={(value) => {
+                                    setVoiceTemperature(value);
+                                  }}
+                                  //   {...props}
+                                />{" "}
+                                {voice_temperature}
+                              </div>
+                            </div>
+                            <div className="px-2 mb-2">
+                              <p>Voice Volume</p>
+                              <div className="flex items-center justify-between">
+                                <Slider
+                                  defaultValue={volume}
+                                  max={2}
+                                  step={0.1}
+                                  className={cn("w-[80%]", "cursor-pointer")}
+                                  onValueChange={(value) => {
+                                    setVolume(value);
+                                  }}
+                                  //   {...props}
+                                />{" "}
+                                {volume}
+                              </div>
+                            </div>
+                            <div className="mt-4 flex items-center justify-center">
+                              <Button className="w-full cursor-pointer">
+                                Save
+                              </Button>
+                            </div>
+                          </DropdownMenuContent>
+                        </DropdownMenuTrigger>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                  <p className="my-2">LLM Settings</p>
+                  <div className="flex">
+                    <Select value={model} onValueChange={setModel}>
+                      <SelectTrigger className="w-[180px] cursor-pointer">
+                        <SelectValue placeholder="Select a voice" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+                        <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                        <SelectItem value="gpt-4.1">gpt-4.1</SelectItem>
+                        <SelectItem value="gpt-4.1-mini">
+                          gpt-4.1-mini
+                        </SelectItem>
+                        <SelectItem value="gpt-4.1-nano">
+                          gpt-4.1-nano
+                        </SelectItem>
+                        <SelectItem value="claude-3.7-sonnet">
+                          claude-3.7-sonnet
+                        </SelectItem>
+                        <SelectItem value="claude-3.5-haiku">
+                          claude-3.5-haiku
+                        </SelectItem>
+                        <SelectItem value="gemini-2.0-flash">
+                          gemini-2.0-flash
+                        </SelectItem>
+                        <SelectItem value="gemini-2.0-flash-lite">
+                          gemini-2.0-flash-lite
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button
+                          variant={"outline"}
+                          className={"cursor-pointer"}
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className={"w-[350px] p-3"}>
+                        <div>
+                          <p className="text-xl">LLM Temperature</p>
+                          <p className="text-xs text-muted-foreground">
+                            Lower value yields better function call results.
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Slider
+                              defaultValue={model_temperature}
+                              max={2}
+                              step={0.1}
+                              className={cn("w-[80%]", "cursor-pointer")}
+                              onValueChange={(value) => {
+                                setModelTemperature(value);
+                              }}
+                              //   {...props}
+                            />{" "}
+                            {model_temperature}
+                          </div>
+                        </div>
+                        {/* <div className="mt-4">
+                <p className="text-xl">Structured Output</p>
+                <p className="text-xs text-muted-foreground">
+                  Always generate responses that adhere to your supplied JSON
+                  Schema. This will make functions longer to save or update.
+                </p>
+                <div class="flex items-center justify-between">
+                  <Switch className={"cursor-pointer mt-4"} />
+                </div>
+              </div> */}
+                        <div className="mt-4">
+                          <p className="text-xl">High Priority</p>
+                          <p className="text-xs text-muted-foreground">
+                            Use more dedicated resource pool to ensure lower and
+                            more consistent latency. This feature incurs a
+                            higher cost.
+                          </p>
+                          <div class="flex items-center justify-between">
+                            <Switch
+                              checked={model_high_priority}
+                              onCheckedChange={setModelHighPriority}
+                              className={"cursor-pointer mt-4"}
+                            />
+                          </div>
+                        </div>
+                        {/* <Separator className={"my-4"} />
+              <Button className={"w-full"} disabled>
+                Save
+              </Button> */}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="knowsedge-base">
@@ -108,8 +505,13 @@ const GlobalSettings = () => {
                   </SelectTrigger>
                   <SelectContent className={"w-[250px] px-2"}>
                     <SelectGroup>
-                      <SelectItem value="knowledge-1">Knowledge 1</SelectItem>
-                      <SelectItem value="knowledge-2">Knowledge 2</SelectItem>
+                      {allKnowledgeBases.map((item, index) => {
+                        return (
+                          <SelectItem value={item.knowledge_base_id}>
+                            {item.knowledge_base_name}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectGroup>
                     <Separator className={"my-2"} />
                     <Link
@@ -132,7 +534,275 @@ const GlobalSettings = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <SpeechSettings />
+              <div className="w-full font-normal">
+                <div>
+                  <p className="mb-2">Background Sound</p>
+                  <div className="flex items-center gap-3">
+                    <Select
+                      value={ambient_sounds}
+                      onValueChange={setAmbientSounds}
+                    >
+                      <SelectTrigger className="w-full cursor-pointer">
+                        <SelectValue placeholder="Select a background sound" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value={null}>None</SelectItem>
+                          <SelectItem value="coffee-shop">
+                            Coffee Shop
+                          </SelectItem>
+                          <SelectItem value="convention-hall">
+                            Convention Hall
+                          </SelectItem>
+                          <SelectItem value="summer-outdoor">
+                            Summer Outdoor
+                          </SelectItem>
+                          <SelectItem value="mountain-outdoor">
+                            Mountain Outdoor
+                          </SelectItem>
+                          <SelectItem value="static-noise">
+                            Static Noise
+                          </SelectItem>
+                          <SelectItem value="call-center">
+                            Call Center
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button
+                          variant={"icon"}
+                          size={"icon"}
+                          className="w-5 h-5 cursor-pointer"
+                          asChild
+                        >
+                          <Settings />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className={cn("w-56", "me-6")}>
+                        <div className="px-2 mb-2">
+                          <p>Volume</p>
+                          <div className="flex items-center justify-between">
+                            <Slider
+                              defaultValue={ambient_sound_volume}
+                              max={2}
+                              step={0.1}
+                              className={cn("w-[80%]", "cursor-pointer")}
+                              onValueChange={(value) => {
+                                setAmbientSoundVolume(value);
+                              }}
+                              //   {...props}
+                            />{" "}
+                            {ambient_sound_volume}
+                          </div>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Responsiveness</p>
+                  <p className="text-sm text-muted-foreground">
+                    Controls how responsive is the agent.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Slider
+                      defaultValue={responsiveness}
+                      max={1}
+                      step={0.1}
+                      className={cn("w-[80%]", "cursor-pointer")}
+                      onValueChange={(value) => {
+                        setResponsiveness(value);
+                      }}
+                    />{" "}
+                    {responsiveness}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Interruption Sensitivity</p>
+                  <p className="text-sm text-muted-foreground">
+                    Controls how sensitive the agent is to user interruptions.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Slider
+                      defaultValue={interruption_sensitivity}
+                      max={1}
+                      step={0.1}
+                      className={cn("w-[80%]", "cursor-pointer")}
+                      onValueChange={(value) => {
+                        setInterruptionSensitivity(value);
+                      }}
+                      //   {...props}
+                    />{" "}
+                    {interruption_sensitivity}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Enable Backchanneling</p>
+                  <p className="text-sm text-muted-foreground">
+                    Enables the agent to use affirmations like 'yeah' or
+                    'uh-huh' during conversations, indicating active listening
+                    and engagement.
+                  </p>
+                  <Switch
+                    checked={enable_backchannel}
+                    onCheckedChange={setEnableBackchannel}
+                    className={"mt-2 cursor-pointer"}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Transcription Mode</p>
+                  <p className="text-sm text-muted-foreground">
+                    Balance between speed and accuracy.
+                  </p>
+                  <RadioGroup
+                    defaultValue="optimized-accuracy"
+                    className="mt-2"
+                    value={stt_model}
+                    onValueChange={setSttModel}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="fast"
+                        id="r1"
+                        className={"cursor-pointer border border-white"}
+                      />
+                      <p htmlFor="r1">Optimize for speed</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="accuracy"
+                        id="r2"
+                        className={"cursor-pointer border border-white"}
+                      />
+                      <p htmlFor="r2">Optimize for accuracy</p>
+                    </div>
+                  </RadioGroup>
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Boosted Keywords</p>
+                  <p className="text-sm text-muted-foreground">
+                    Provide a customized list of keywords to expand our models'
+                    vocabulary.
+                  </p>
+                  <Input
+                    className={"mt-2"}
+                    placeholder="Split by comma. Ex: hello, hi"
+                    value={boosted_keywords}
+                    onChange={(e) => setBoostedKeywords(e.target.value)}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Enable Speech Normalization</p>
+                  <p className="text-sm text-muted-foreground">
+                    It converts text elements like numbers, currency, and dates
+                    into human-like spoken forms. (Learn more)
+                  </p>
+                  <Switch
+                    checked={normalize_for_speech}
+                    onCheckedChange={setNormalizeForSpeech}
+                    className={"mt-2 cursor-pointer"}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Enable Transcript Formatting</p>
+                  <p className="text-sm text-muted-foreground">
+                    Prevent agent errors like phone numbers being formatted as
+                    timestamps.
+                  </p>
+                  <Switch
+                    checked={enable_transcription_formatting}
+                    onCheckedChange={setEnableTranscriptionFormatting}
+                    className={"mt-2 cursor-pointer"}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Reminder Message Frequency</p>
+                  <p className="text-sm text-muted-foreground">
+                    Control how often AI will send a reminder message.
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Input
+                      className={"w-18 mx-2"}
+                      value={reminder_trigger_ms}
+                      onChange={(e) => setReminderTriggerMs(e.target.value)}
+                    />
+                    milliseconds{" "}
+                  </div>
+                </div>
+                {/* <div className="mt-4">
+                  <p className="mb-2 font-bold">Pronunciation</p>
+                  <p className="text-sm text-muted-foreground">
+                    Guide the model to pronunce a word, name, or phrase in a
+                    specific way. (Learn more)
+                  </p>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={"cursor-pointer mt-2"}
+                      >
+                        <Plus /> Add
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle>Pronunciation</DialogTitle>
+                      </DialogHeader>
+                      <div className="">
+                        <div className="flex gap-2 flex-col w-full">
+                          <Label htmlFor="word">Word</Label>
+                          <Input type="text" id="word" placeholder="word" />
+                        </div>
+                        <div className="flex gap-2 flex-col w-full mt-4">
+                          <Label htmlFor="pronunciation">Pronunciation</Label>
+                          <Select>
+                            <SelectTrigger
+                              className="w-full"
+                              id="pronunciation"
+                            >
+                              <SelectValue placeholder="Select a fruit" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Fruits</SelectLabel>
+                                <SelectItem value="apple">Apple</SelectItem>
+                                <SelectItem value="banana">Banana</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex gap-2 flex-col w-full  mt-4">
+                          <Label htmlFor="phoneme">Phoneme</Label>
+                          <Input
+                            type="text"
+                            id="phoneme"
+                            placeholder="Phoneme"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose>
+                          <Button
+                            variant="outline"
+                            className={"cursor-pointer"}
+                          >
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          type="submit"
+                          className={"cursor-pointer"}
+                          disabled
+                        >
+                          Save changes
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div> */}
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="call-settings">
@@ -143,7 +813,87 @@ const GlobalSettings = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <CallSettings />
+              <div className="w-full font-normal">
+                <div className="mt-2">
+                  <p className="mb-2 font-bold">Voicemail Detection</p>
+                  <p className="text-sm text-muted-foreground">
+                    Hang up or leave a voicemail if a voicemail is detected.
+                  </p>
+                  <Switch
+                    checked={enable_voicemail_detection}
+                    onCheckedChange={setEnableVoicemailDetection}
+                    className={"mt-2 cursor-pointer"}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">End Call on Silence</p>
+                  <p className="text-sm text-muted-foreground">
+                    Call will automatically terminated if there is silence.
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Input
+                      className={"w-22 mx-2"}
+                      value={end_call_after_silence_ms}
+                      onChange={(e) => setEndCallAfterSilenceMs(e.target.value)}
+                    />
+                    milliseconds{" "}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Max call duration</p>
+                  <p className="text-sm text-muted-foreground">
+                    Call will automatically terminated after this duration.
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <Input
+                      className={"w-22 mx-2"}
+                      value={max_call_duration_ms}
+                      onChange={(e) => setMaxCallDurationMs(e.target.value)}
+                    />
+                    milliseconds{" "}
+                  </div>
+                </div>
+                {/* <div className="mt-4">
+                  <p className="mb-2 font-bold">Pause Before Speaking</p>
+                  <p className="text-sm text-muted-foreground">
+                    The duration before the assistant starts speaking at the
+                    beginning of the call.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Slider
+                      defaultValue={voice_speed}
+                      max={100}
+                      step={1}
+                      className={cn("w-[80%]", "cursor-pointer")}
+                      onValueChange={(value) => {
+                        setVoiceSpeed(value);
+                      }}
+                      //   {...props}
+                    />{" "}
+                    {voice_speed}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Ring Duration</p>
+                  <p className="text-sm text-muted-foreground">
+                    The duration for which the phone will ring before the call
+                    is answered or terminated.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <Slider
+                      defaultValue={voice_speed}
+                      max={100}
+                      step={1}
+                      className={cn("w-[80%]", "cursor-pointer")}
+                      onValueChange={(value) => {
+                        setVoiceSpeed(value);
+                      }}
+                      //   {...props}
+                    />{" "}
+                    {voice_speed}
+                  </div>
+                </div> */}
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="post-call-analysis">
@@ -154,7 +904,252 @@ const GlobalSettings = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <PostCallAnalysis />
+              <Dialog>
+                <div className="w-full font-normal">
+                  <div className="mt-2">
+                    <p className="mb-2 font-bold">Post Call Data Retrieval</p>
+                    <p className="text-sm text-muted-foreground">
+                      Define the information that you need to extract from the
+                      call.
+                    </p>
+                    {post_call_analysis_data.map((item, index) => {
+                      return (
+                        <div
+                          key={index}
+                          className="mt-2 flex items-center justify-between bg-zinc-800 p-2 rounded-md"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Text className="w-5 h-5 inline-block" />
+                            <p className=" text-muted-foreground">
+                              {item.name}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <DialogTrigger>
+                              <Button
+                                variant={"outline"}
+                                size={"icon"}
+                                className={"cursor-pointer"}
+                                onClick={() => {
+                                  setPostCallName(item.name);
+                                  setPostCallDescription(item.description);
+                                  setPostCallExample(item.example);
+                                  setPostCallDataEdit(index);
+                                }}
+                              >
+                                <Pencil />
+                              </Button>
+                            </DialogTrigger>
+                            <Button
+                              variant={"outline"}
+                              size={"icon"}
+                              className={
+                                "cursor-pointer text-red-800 hover:text-red-600"
+                              }
+                              onClick={() => {
+                                setPostCallAnalysisData((prev) =>
+                                  prev.filter((data) => data.name !== item.name)
+                                );
+                              }}
+                            >
+                              <Trash2 />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    <div className="mt-2 flex items-center justify-evenly gap-3">
+                      <div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            onClick={() => {
+                              setPostCallDataEdit(null);
+                            }}
+                            className="cursor-pointer border w-[100px] flex items-center gap-2 rounded-md py-2 px-3 bg-zinc-900"
+                          >
+                            <Plus /> Add
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className={"w-full"}>
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              <DialogTrigger className="flex items-center gap-2 cursor-pointer">
+                                <Text /> Text
+                              </DialogTrigger>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <DialogTrigger className="flex items-center gap-2 cursor-pointer">
+                                <List /> Selector
+                              </DialogTrigger>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <DialogTrigger className="flex items-center gap-2 cursor-pointer">
+                                <Ban /> Boolean
+                              </DialogTrigger>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <DialogTrigger className="flex items-center gap-2 cursor-pointer">
+                                <Binary /> Number
+                              </DialogTrigger>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <div>
+                        <Select
+                          onValueChange={setPostCallAnalysisModel}
+                          value={post_call_analysis_model}
+                          defaultValue="gpt-4o"
+                        >
+                          <SelectTrigger className="w-[150px] cursor-pointer">
+                            <Settings />
+                            <SelectValue placeholder="Select a model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Model</SelectLabel>
+                              <SelectItem value="gpt-4o-mini">
+                                GPT-4o Mini{" "}
+                                <span className="text-xs text-muted-foreground">
+                                  (free)
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="gpt-4o">
+                                GPT-4o{" "}
+                                <span className="text-xs text-muted-foreground">
+                                  ($0.017/session)
+                                </span>
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle className={"flex items-center gap-2"}>
+                        <Text />
+                        Text
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <div className="items-center gap-4">
+                        <Label htmlFor="name" className="text-right">
+                          Name
+                        </Label>
+                        <Input
+                          id="name"
+                          className="col-span-3 my-4"
+                          placeholder="John Smith"
+                          value={postCallName}
+                          onChange={(e) => setPostCallName(e.target.value)}
+                        />
+                      </div>
+                      <div className="items-center gap-4">
+                        <Label htmlFor="description" className="text-right">
+                          Description
+                        </Label>
+                        <Textarea
+                          id="description"
+                          className="col-span-3 my-4 h-24"
+                          placeholder="Enter a description"
+                          value={postCallDescription}
+                          onChange={(e) =>
+                            setPostCallDescription(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="items-center gap-4 flex">
+                        <div className="flex flex-col w-full ">
+                          <Label htmlFor="example" className="text-right">
+                            Format Example (Optional)
+                          </Label>
+                          <Input
+                            id="example"
+                            className="w-full mt-4"
+                            placeholder="Option value"
+                            value={postCallExample}
+                            onChange={(e) => setPostCallExample(e.target.value)}
+                          />
+                        </div>
+                        <Button
+                          variant={"outline"}
+                          size={"icon"}
+                          className={
+                            "mt-8 cursor-pointer text-red-800 hover:text-red-600"
+                          }
+                          onClick={() => {
+                            setPostCallExample("");
+                          }}
+                        >
+                          <Trash2 className="" />
+                        </Button>
+                      </div>
+                      {/* <Button
+                        variant="outline"
+                        className={"mt-4 cursor-pointer"}
+                      >
+                        <Plus />
+                        Add
+                      </Button> */}
+                    </div>
+                    <DialogFooter>
+                      <DialogClose>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setPostCallName("");
+                            setPostCallDescription("");
+                            setPostCallExample("");
+                            setPostCallDataEdit(null);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button
+                        onClick={() => {
+                          if (postCallDataEdit === null) {
+                            setPostCallAnalysisData((prev) => [
+                              ...prev,
+                              {
+                                type: "string",
+                                name: postCallName,
+                                description: postCallDescription,
+                                example: postCallExample,
+                              },
+                            ]);
+                            setPostCallName("");
+                            setPostCallDescription("");
+                            setPostCallExample("");
+                          } else {
+                            setPostCallAnalysisData((prev) => [
+                              ...prev.filter(
+                                (data, index) => index !== postCallDataEdit
+                              ),
+                              {
+                                type: "string",
+                                name: postCallName,
+                                description: postCallDescription,
+                                example: postCallExample,
+                              },
+                            ]);
+                            setPostCallName("");
+                            setPostCallDescription("");
+                            setPostCallExample("");
+                            setPostCallDataEdit(null);
+                          }
+                        }}
+                      >
+                        Save changes
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </div>
+              </Dialog>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="security-fallback">
@@ -165,7 +1160,70 @@ const GlobalSettings = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <SecurityAndFallbackModel />
+              <div className="w-full font-normal">
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">
+                    Opt Out Sensitive Data Storage
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Control whether Retell should store sensitive data. (Learn
+                    more)
+                  </p>
+                  <Switch
+                    checked={opt_out_sensitive_data_storage}
+                    onCheckedChange={setOptOutSensitiveDataStorage}
+                    className={"mt-2 cursor-pointer"}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Opt In Secure URLs</p>
+                  <p className="text-sm text-muted-foreground">
+                    Add security signatures to URLs. The URLs expire after 24
+                    hours.
+                  </p>
+                  <Switch
+                    checked={opt_in_signed_url}
+                    onCheckedChange={setOptInSignedUrl}
+                    className={"mt-2 cursor-pointer"}
+                  />
+                </div>
+                <div className="mt-4">
+                  <p className="mb-2 font-bold">Fallback Voice ID</p>
+                  <p className="text-sm text-muted-foreground">
+                    If the current voice provider fails, assign a fallback voice
+                    to continue the call.
+                  </p>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={" max-w-[180px] cursor-pointer mt-3"}
+                      >
+                        <Plus /> Add
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="min-w-2/3">
+                      <DialogHeader>
+                        <DialogTitle>Select Voice</DialogTitle>
+                      </DialogHeader>
+                      <SelectVoice allVoices={allVoices} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                {/* <div className="mt-4">
+                  <p className="mb-2 font-bold">Default Dynamic Variables</p>
+                  <p className="text-sm text-muted-foreground">
+                    Set fallback values for dynamic variables across all
+                    endpoints if they are not provided.
+                  </p>
+                  <Button
+                    variant={"outline"}
+                    className={" max-w-[180px] cursor-pointer mt-3"}
+                  >
+                    <Settings /> Set Up
+                  </Button>
+                </div> */}
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="webhook-settings">
@@ -176,7 +1234,32 @@ const GlobalSettings = () => {
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <WebhookSettings />
+              <div className="w-full font-normal">
+                <div className="mt-4">
+                  <Label className="mb-2 font-bold" htmlFor="inbound-call">
+                    Inbound Call Webhook URL
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    The webhook has been migrated to phone level webhook. (Learn
+                    more).
+                  </p>
+                  <Input
+                    id="inbound-call"
+                    className={"mt-2"}
+                    value={webhook_url}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                  />
+                </div>
+                {/* <div className="mt-4">
+                  <Label className="mb-2 font-bold" htmlFor="agent-level">
+                    Agent Level Webhook URL
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Webhook URL to receive events from Retell. (Learn more)
+                  </p>
+                  <Input id="agent-level" className={"mt-2"} />
+                </div> */}
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -187,28 +1270,201 @@ const GlobalSettings = () => {
 
 export default GlobalSettings;
 
+const countryData = [
+  {
+    language: "English (US)",
+    country: "United States",
+    country_code: "US",
+    locale: "en-US",
+  },
+  {
+    language: "English (IN)",
+    country: "India",
+    country_code: "IN",
+    locale: "en-IN",
+  },
+  {
+    language: "English (GB)",
+    country: "United Kingdom",
+    country_code: "GB",
+    locale: "en-GB",
+  },
+  {
+    language: "Spanish",
+    country: "Spain",
+    country_code: "ES",
+    locale: "es-ES",
+  },
+  {
+    language: "Spanish (LatAm)",
+    country: "Latin America",
+    country_code: "419",
+    locale: "es-419",
+  },
+  { language: "Hindi", country: "India", country_code: "IN", locale: "hi-IN" },
+  {
+    language: "Mandarin",
+    country: "China",
+    country_code: "CN",
+    locale: "zh-CN",
+  },
+  {
+    language: "Arabic",
+    country: "Saudi Arabia",
+    country_code: "SA",
+    locale: "ar-SA",
+  }, // Not in backend list, placeholder
+  {
+    language: "French",
+    country: "France",
+    country_code: "FR",
+    locale: "fr-FR",
+  },
+  {
+    language: "French (Canada)",
+    country: "Canada",
+    country_code: "CA",
+    locale: "fr-CA",
+  },
+  {
+    language: "Portuguese",
+    country: "Portugal",
+    country_code: "PT",
+    locale: "pt-PT",
+  },
+  {
+    language: "Portuguese (Brazil)",
+    country: "Brazil",
+    country_code: "BR",
+    locale: "pt-BR",
+  },
+  {
+    language: "German",
+    country: "Germany",
+    country_code: "DE",
+    locale: "de-DE",
+  },
+  {
+    language: "Japanese",
+    country: "Japan",
+    country_code: "JP",
+    locale: "ja-JP",
+  },
+  {
+    language: "Russian",
+    country: "Russia",
+    country_code: "RU",
+    locale: "ru-RU",
+  },
+  {
+    language: "Italian",
+    country: "Italy",
+    country_code: "IT",
+    locale: "it-IT",
+  },
+  {
+    language: "Korean",
+    country: "South Korea",
+    country_code: "KR",
+    locale: "ko-KR",
+  },
+  {
+    language: "Turkish",
+    country: "Turkey",
+    country_code: "TR",
+    locale: "tr-TR",
+  },
+  {
+    language: "Dutch",
+    country: "Netherlands",
+    country_code: "NL",
+    locale: "nl-NL",
+  },
+  {
+    language: "Polish",
+    country: "Poland",
+    country_code: "PL",
+    locale: "pl-PL",
+  },
+  {
+    language: "Vietnamese",
+    country: "Vietnam",
+    country_code: "VN",
+    locale: "vi-VN",
+  },
+  {
+    language: "Romanian",
+    country: "Romania",
+    country_code: "RO",
+    locale: "ro-RO",
+  },
+  {
+    language: "Bulgarian",
+    country: "Bulgaria",
+    country_code: "BG",
+    locale: "bg-BG",
+  },
+  {
+    language: "Catalan",
+    country: "Spain (Catalonia)",
+    country_code: "ES",
+    locale: "ca-ES",
+  },
+  {
+    language: "Danish",
+    country: "Denmark",
+    country_code: "DK",
+    locale: "da-DK",
+  },
+  {
+    language: "Finnish",
+    country: "Finland",
+    country_code: "FI",
+    locale: "fi-FI",
+  },
+  { language: "Greek", country: "Greece", country_code: "GR", locale: "el-GR" },
+  {
+    language: "Hungarian",
+    country: "Hungary",
+    country_code: "HU",
+    locale: "hu-HU",
+  },
+  {
+    language: "Indonesian",
+    country: "Indonesia",
+    country_code: "ID",
+    locale: "id-ID",
+  },
+  {
+    language: "Norwegian",
+    country: "Norway",
+    country_code: "NO",
+    locale: "no-NO",
+  },
+  {
+    language: "Slovak",
+    country: "Slovakia",
+    country_code: "SK",
+    locale: "sk-SK",
+  },
+  {
+    language: "Swedish",
+    country: "Sweden",
+    country_code: "SE",
+    locale: "sv-SE",
+  },
+  {
+    language: "Swahili",
+    country: "Kenya",
+    country_code: "KE",
+    locale: "sw-KE",
+  }, // Not supported, placeholder
+];
+
 // Agent settings model content
 const AgentSettings = () => {
-  const countryData = [
-    { language: "English", country: "United States", country_code: "US" },
-    { language: "Spanish", country: "Spain", country_code: "ES" },
-    { language: "Hindi", country: "India", country_code: "IN" },
-    { language: "Mandarin", country: "China", country_code: "CN" },
-    { language: "Arabic", country: "Saudi Arabia", country_code: "SA" },
-    { language: "French", country: "France", country_code: "FR" },
-    { language: "Portuguese", country: "Brazil", country_code: "BR" },
-    { language: "German", country: "Germany", country_code: "DE" },
-    { language: "Japanese", country: "Japan", country_code: "JP" },
-    { language: "Russian", country: "Russia", country_code: "RU" },
-    { language: "Italian", country: "Italy", country_code: "IT" },
-    { language: "Korean", country: "South Korea", country_code: "KR" },
-    { language: "Turkish", country: "Turkey", country_code: "TR" },
-    { language: "Dutch", country: "Netherlands", country_code: "NL" },
-    { language: "Swahili", country: "Kenya", country_code: "KE" },
-  ];
-
   const [voiceModel, setVoiceModel] = useState("auto");
-  const [voiceSpeed, setVoiceSpeed] = useState([40]);
+  const [voice_speed, setVoiceSpeed] = useState([]);
   const [voiceTemprature, setVoiceTemprature] = useState([20]);
   const [voiceVolume, setVolume] = useState([60]);
 
@@ -227,8 +1483,8 @@ const AgentSettings = () => {
                 <SelectLabel>Language</SelectLabel>
                 {countryData.map((country) => (
                   <SelectItem
-                    key={country.country_code}
-                    value={country.country_code}
+                    key={country.locale}
+                    value={country.locale}
                   >
                     <Avatar>
                       <AvatarImage
@@ -262,7 +1518,7 @@ const AgentSettings = () => {
                 <DialogHeader>
                   <DialogTitle>Select Voice</DialogTitle>
                 </DialogHeader>
-                <SelectVoice />
+                <SelectVoice allVoices={allVoices} />
               </DialogContent>
             </Dialog>
             <DropdownMenu>
@@ -354,7 +1610,7 @@ const AgentSettings = () => {
                     <p>Voice Speed</p>
                     <div className="flex items-center justify-between">
                       <Slider
-                        defaultValue={voiceSpeed}
+                        defaultValue={voice_speed}
                         max={100}
                         step={1}
                         className={cn("w-[80%]", "cursor-pointer")}
@@ -363,7 +1619,7 @@ const AgentSettings = () => {
                         }}
                         //   {...props}
                       />{" "}
-                      {voiceSpeed}
+                      {voice_speed}
                     </div>
                   </div>
                   <div className="px-2 mb-2">
@@ -478,664 +1734,185 @@ const AgentSettings = () => {
 };
 
 // select voice modal content
-const SelectVoice = () => {
-  const invoices = [
-    {
-      invoice: "INV001",
-      paymentStatus: "Paid",
-      totalAmount: "$250.00",
-      paymentMethod: "Credit Card",
-    },
-    {
-      invoice: "INV002",
-      paymentStatus: "Pending",
-      totalAmount: "$150.00",
-      paymentMethod: "PayPal",
-    },
-    {
-      invoice: "INV003",
-      paymentStatus: "Unpaid",
-      totalAmount: "$350.00",
-      paymentMethod: "Bank Transfer",
-    },
-  ];
+const SelectVoice = ({ allVoices }) => {
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null); // index of playing item
+  const audioRef = useRef(null); // single audio element for reuse
+  const [filterModels, setFilterModels] = useState(allVoices);
+  const [genderFilter, setGenderFilter] = useState("all");
+  const [AccentFilter, setAccentFilter] = useState("all");
+  const [model, setModel] = useState("");
+
+  useEffect(()=>{
+    if(genderFilter !== "all" || AccentFilter !== "all"){
+      setFilterModels(allVoices.filter((voice) => {
+        if(genderFilter === "all"){
+          return voice.accent === AccentFilter
+        }else if(AccentFilter === "all"){
+          return voice.gender === genderFilter
+        }else{
+          return voice.accent === AccentFilter && voice.gender === genderFilter
+        }
+      }))
+    }else{
+      setFilterModels(allVoices);
+    }
+  },[genderFilter, AccentFilter]);
+  console.log("Filtered Models: ", genderFilter,AccentFilter);
+  const handlePlayPause = (item, index) => {
+    // If already playing this item, pause it
+    if (currentlyPlaying === index) {
+      audioRef.current.pause();
+      setCurrentlyPlaying(null);
+    } else {
+      // Pause existing audio if any
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+
+      // Create a new audio element
+      const audio = new Audio(item.preview_audio_url);
+      audioRef.current = audio;
+
+      // Play the new audio
+      audio.play();
+      setCurrentlyPlaying(index);
+
+      // When audio ends, reset state
+      audio.onended = () => {
+        setCurrentlyPlaying(null);
+      };
+    }
+  };
   return (
     <>
-      <div>
-        <Tabs defaultValue="elevelabs" className="w-full">
-          <TabsList className="grid w-[400px] grid-cols-3">
-            <TabsTrigger value="elevelabs" className={"cursor-pointer"}>
-              Elevenlabs
-            </TabsTrigger>
-            {/* <TabsTrigger value="playht" className={"cursor-pointer"}>
+      <ScrollArea className="h-[500px] w-full rounded-md">
+        <div className="w-full  ">
+          <Tabs defaultValue="elevelabs" className="w-full">
+            <TabsList className="grid w-[400px] grid-cols-3">
+              <TabsTrigger value="elevelabs" className={"cursor-pointer"}>
+                Elevenlabs
+              </TabsTrigger>
+              {/* <TabsTrigger value="playht" className={"cursor-pointer"}>
               PlayHT
             </TabsTrigger>
             <TabsTrigger value="openai" className={"cursor-pointer"}>
               OpenAI
             </TabsTrigger> */}
-          </TabsList>
-          <TabsContent value="elevelabs">
-            <div className="flex w-full flex-row justify-start gap-4">
-              <Select>
-                <SelectTrigger className="w-[180px] cursor-pointer">
-                  <SelectValue placeholder="Select a voice" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Select a voice</SelectLabel>
-                    <SelectItem value="apple">All Gender</SelectItem>
-                    <SelectItem value="banana">Male</SelectItem>
-                    <SelectItem value="blueberry">Female</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <Select>
-                <SelectTrigger className="w-[180px] cursor-pointer">
-                  <SelectValue placeholder="All Accent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Accent List</SelectLabel>
-                    <SelectItem value="apple">All Accent</SelectItem>
-                    <SelectItem value="banana">American</SelectItem>
-                    <SelectItem value="blueberry">British</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <Select>
-                <SelectTrigger className="w-[180px] cursor-pointer">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>All Types</SelectLabel>
-                    <SelectItem value="apple">Types List</SelectItem>
-                    <SelectItem value="banana">Retell Presets</SelectItem>
-                    <SelectItem value="blueberry">Provider Presets</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <Input className="w-[400px]" placeholder="Search voice..." />
-            </div>
-            <div className="mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Invoice</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {invoices.map((invoice) => (
-                    <TableRow key={invoice.invoice}>
-                      <TableCell className="font-medium">
-                        {invoice.invoice}
-                      </TableCell>
-                      <TableCell>{invoice.paymentStatus}</TableCell>
-                      <TableCell>{invoice.paymentMethod}</TableCell>
-                      <TableCell className="text-right">
-                        {invoice.totalAmount}
-                      </TableCell>
+            </TabsList>
+            <TabsContent value="elevelabs">
+              <div className="flex w-full flex-row justify-start gap-4">
+                <Select value={genderFilter} onValueChange={setGenderFilter} >
+                  <SelectTrigger className="w-[180px] cursor-pointer">
+                    <SelectValue placeholder="Select Gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Select Gender</SelectLabel>
+                      <SelectItem value="all">All Gender</SelectItem>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Select value={AccentFilter} onValueChange={setAccentFilter}>
+                  <SelectTrigger className="w-[180px] cursor-pointer">
+                    <SelectValue placeholder="All Accent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Accent List</SelectLabel>
+                      <SelectItem value="all">All Accent</SelectItem>
+                      <SelectItem value="American">American</SelectItem>
+                      <SelectItem value="British">British</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                {/* <Select>
+                  <SelectTrigger className="w-[180px] cursor-pointer">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>All Types</SelectLabel>
+                      <SelectItem value="apple">Types List</SelectItem>
+                      <SelectItem value="banana">Retell Presets</SelectItem>
+                      <SelectItem value="blueberry">
+                        Provider Presets
+                      </SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Input className="w-[400px]" placeholder="Search voice..." /> */}
+              </div>
+              <div className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead></TableHead>
+                      <TableHead>Voice</TableHead>
+                      <TableHead>Accent</TableHead>
+                      <TableHead>Age</TableHead>
+                      <TableHead>Gender</TableHead>
+                      <TableHead>Provider</TableHead>
+                      <TableHead></TableHead>
+                      {/* <TableHead className="text-right">Amount</TableHead> */}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
-          {/* <TabsContent value="playht">
+                  </TableHeader>
+                  <TableBody>
+                    {filterModels.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            className="cursor-pointer hover:text-blue-700"
+                            size="icon"
+                            onClick={() => handlePlayPause(item, index)}
+                          >
+                            {currentlyPlaying === index ? <Pause /> : <Play />}
+                          </Button>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex gap-2 items-center">
+                            <Avatar>
+                              <AvatarImage
+                                src={item.avatar_url}
+                                alt="@shadcn"
+                              />
+                              <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                            {item.voice_name}
+                          </div>
+                        </TableCell>
+                        <TableCell>{item.accent}</TableCell>
+                        <TableCell>{item.age}</TableCell>
+                        <TableCell>{item.gender}</TableCell>
+                        <TableCell>{item.provider}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant={"link"}
+                            className={
+                              "cursor-pointer text-green-800 hover:text-green-600"
+                            }
+                          >
+                            <Check /> Use this voice
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+            {/* <TabsContent value="playht">
             <h2>pass</h2>
           </TabsContent>
           <TabsContent value="openai">
             <h2>pass</h2>
           </TabsContent> */}
-        </Tabs>
-      </div>
-    </>
-  );
-};
-
-// speech settings modal content
-const SpeechSettings = () => {
-  const [voiceSpeed, setVoiceSpeed] = useState([30]);
-  return (
-    <>
-      <div className="w-full font-normal">
-        <div>
-          <p className="mb-2">Background Sound</p>
-          <div className="flex items-center gap-3">
-            <Select>
-              <SelectTrigger className="w-full cursor-pointer">
-                <SelectValue placeholder="Select a background sound" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {/* <SelectLabel>Fruits</SelectLabel> */}
-                  <SelectItem value="coffe-shop">Coffe Shop</SelectItem>
-                  <SelectItem value="rain">Rain</SelectItem>
-                  <SelectItem value="wind">Wind</SelectItem>
-                  <SelectItem value="convention-hall">
-                    Convention Hall
-                  </SelectItem>
-                  <SelectItem value="summer-outdoor">Summer Outdoor</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button
-                  variant={"icon"}
-                  size={"icon"}
-                  className="w-5 h-5 cursor-pointer"
-                  asChild
-                >
-                  <Settings />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className={cn("w-56", "me-6")}>
-                <div className="px-2 mb-2">
-                  <p>Voice Speed</p>
-                  <div className="flex items-center justify-between">
-                    <Slider
-                      defaultValue={voiceSpeed}
-                      max={100}
-                      step={1}
-                      className={cn("w-[80%]", "cursor-pointer")}
-                      onValueChange={(value) => {
-                        setVoiceSpeed(value);
-                      }}
-                      //   {...props}
-                    />{" "}
-                    {voiceSpeed}
-                  </div>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          </Tabs>
         </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Responsiveness</p>
-          <p className="text-sm text-muted-foreground">
-            Control how fast the agent responds after users finish speaking.
-          </p>
-          <div className="flex items-center justify-between">
-            <Slider
-              defaultValue={voiceSpeed}
-              max={100}
-              step={1}
-              className={cn("w-[80%]", "cursor-pointer")}
-              onValueChange={(value) => {
-                setVoiceSpeed(value);
-              }}
-              //   {...props}
-            />{" "}
-            {voiceSpeed}
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Interruption Sensitivity</p>
-          <p className="text-sm text-muted-foreground">
-            Control how sensitively AI can be interrupted by human speech.
-          </p>
-          <div className="flex items-center justify-between">
-            <Slider
-              defaultValue={voiceSpeed}
-              max={100}
-              step={1}
-              className={cn("w-[80%]", "cursor-pointer")}
-              onValueChange={(value) => {
-                setVoiceSpeed(value);
-              }}
-              //   {...props}
-            />{" "}
-            {voiceSpeed}
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Enable Backchanneling</p>
-          <p className="text-sm text-muted-foreground">
-            Enables the agent to use affirmations like 'yeah' or 'uh-huh' during
-            conversations, indicating active listening and engagement.
-          </p>
-          <Switch className={"mt-2 cursor-pointer"} />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Transcription Mode</p>
-          <p className="text-sm text-muted-foreground">
-            Balance between speed and accuracy.
-          </p>
-          <RadioGroup defaultValue="optimized-accuracy" className="mt-2">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem
-                value="optimized-speed"
-                id="r1"
-                className={"cursor-pointer border border-white"}
-              />
-              <p htmlFor="r1">Optimize for speed</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem
-                value="optimized-accuracy"
-                id="r2"
-                className={"cursor-pointer border border-white"}
-              />
-              <p htmlFor="r2">Optimize for accuracy</p>
-            </div>
-          </RadioGroup>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Boosted Keywords</p>
-          <p className="text-sm text-muted-foreground">
-            Provide a customized list of keywords to expand our models'
-            vocabulary.
-          </p>
-          <Input
-            className={"mt-2"}
-            placeholder="Split by comma. Ex: hello, hi"
-          />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Enable Speech Normalization</p>
-          <p className="text-sm text-muted-foreground">
-            It converts text elements like numbers, currency, and dates into
-            human-like spoken forms. (Learn more)
-          </p>
-          <Switch className={"mt-2 cursor-pointer"} />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Enable Transcript Formatting</p>
-          <p className="text-sm text-muted-foreground">
-            Prevent agent errors like phone numbers being formatted as
-            timestamps.
-          </p>
-          <Switch className={"mt-2 cursor-pointer"} />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Reminder Message Frequency</p>
-          <p className="text-sm text-muted-foreground">
-            Control how often AI will send a reminder message.
-          </p>
-          <div className="flex items-center mt-2">
-            <Input className={"w-12 mx-2"} defaultValue="5" /> seconds{" "}
-            <Input className={"w-12 mx-2"} defaultValue="10" /> minutes
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Pronunciation</p>
-          <p className="text-sm text-muted-foreground">
-            Guide the model to pronunce a word, name, or phrase in a specific
-            way. (Learn more)
-          </p>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" className={"cursor-pointer mt-2"}>
-                <Plus /> Add
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Pronunciation</DialogTitle>
-              </DialogHeader>
-              <div className="">
-                <div className="flex gap-2 flex-col w-full">
-                  <Label htmlFor="word">Word</Label>
-                  <Input type="text" id="word" placeholder="word" />
-                </div>
-                <div className="flex gap-2 flex-col w-full mt-4">
-                  <Label htmlFor="pronunciation">Pronunciation</Label>
-                  <Select>
-                    <SelectTrigger className="w-full" id="pronunciation">
-                      <SelectValue placeholder="Select a fruit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Fruits</SelectLabel>
-                        <SelectItem value="apple">Apple</SelectItem>
-                        <SelectItem value="banana">Banana</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 flex-col w-full  mt-4">
-                  <Label htmlFor="phoneme">Phoneme</Label>
-                  <Input type="text" id="phoneme" placeholder="Phoneme" />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose>
-                  <Button variant="outline" className={"cursor-pointer"}>
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button type="submit" className={"cursor-pointer"} disabled>
-                  Save changes
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-    </>
-  );
-};
-
-// call settings modal content
-const CallSettings = () => {
-  const [voiceSpeed, setVoiceSpeed] = useState([30]);
-
-  return (
-    <>
-      <div className="w-full font-normal">
-        <div className="mt-2">
-          <p className="mb-2 font-bold">Voicemail Detection</p>
-          <p className="text-sm text-muted-foreground">
-            Hang up or leave a voicemail if a voicemail is detected.
-          </p>
-          <Switch className={"mt-2 cursor-pointer"} />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">End Call on Silence</p>
-          <div className="flex items-center justify-between">
-            <Slider
-              defaultValue={voiceSpeed}
-              max={100}
-              step={1}
-              className={cn("w-[80%]", "cursor-pointer")}
-              onValueChange={(value) => {
-                setVoiceSpeed(value);
-              }}
-              //   {...props}
-            />{" "}
-            {voiceSpeed}
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Max Call Duration</p>
-          <div className="flex items-center justify-between">
-            <Slider
-              defaultValue={voiceSpeed}
-              max={100}
-              step={1}
-              className={cn("w-[80%]", "cursor-pointer")}
-              onValueChange={(value) => {
-                setVoiceSpeed(value);
-              }}
-              //   {...props}
-            />{" "}
-            {voiceSpeed}
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Pause Before Speaking</p>
-          <p className="text-sm text-muted-foreground">
-            The duration before the assistant starts speaking at the beginning
-            of the call.
-          </p>
-          <div className="flex items-center justify-between">
-            <Slider
-              defaultValue={voiceSpeed}
-              max={100}
-              step={1}
-              className={cn("w-[80%]", "cursor-pointer")}
-              onValueChange={(value) => {
-                setVoiceSpeed(value);
-              }}
-              //   {...props}
-            />{" "}
-            {voiceSpeed}
-          </div>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Ring Duration</p>
-          <p className="text-sm text-muted-foreground">
-            The duration for which the phone will ring before the call is
-            answered or terminated.
-          </p>
-          <div className="flex items-center justify-between">
-            <Slider
-              defaultValue={voiceSpeed}
-              max={100}
-              step={1}
-              className={cn("w-[80%]", "cursor-pointer")}
-              onValueChange={(value) => {
-                setVoiceSpeed(value);
-              }}
-              //   {...props}
-            />{" "}
-            {voiceSpeed}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-// post-call analysis modal content
-const PostCallAnalysis = () => {
-  return (
-    <>
-      <Dialog>
-        <div className="w-full font-normal">
-          <div className="mt-2">
-            <p className="mb-2 font-bold">Post Call Data Retrieval</p>
-            <p className="text-sm text-muted-foreground">
-              Define the information that you need to extract from the call.
-              (Learn more)
-            </p>
-            <div className="mt-2 flex items-center justify-evenly gap-3">
-              <div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="cursor-pointer border w-[100px] flex items-center gap-2 rounded-md py-2 px-3 bg-zinc-900">
-                    <Plus /> Add
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className={"w-full"}>
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <DialogTrigger className="flex items-center gap-2 cursor-pointer">
-                        <Text /> Text
-                      </DialogTrigger>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DialogTrigger className="flex items-center gap-2 cursor-pointer">
-                        <List /> Selector
-                      </DialogTrigger>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DialogTrigger className="flex items-center gap-2 cursor-pointer">
-                        <Ban /> Boolean
-                      </DialogTrigger>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <DialogTrigger className="flex items-center gap-2 cursor-pointer">
-                        <Binary /> Number
-                      </DialogTrigger>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div>
-                <Select defaultValue="gpt-4o">
-                  <SelectTrigger className="w-[150px] cursor-pointer">
-                    <Settings />
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Model</SelectLabel>
-                      <SelectItem value="gpt-4o-mini">
-                        GPT-4o Mini{" "}
-                        <span className="text-xs text-muted-foreground">
-                          (free)
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="gpt-4o">
-                        GPT-4o{" "}
-                        <span className="text-xs text-muted-foreground">
-                          ($0.017/session)
-                        </span>
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle className={"flex items-center gap-2"}>
-                <Text />
-                Text
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="name"
-                  className="col-span-3 my-4"
-                  placeholder="John Smith"
-                />
-              </div>
-              <div className="items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Description
-                </Label>
-                <Textarea
-                  id="description"
-                  className="col-span-3 my-4 h-24"
-                  placeholder="Enter a description"
-                />
-              </div>
-              <div className="items-center gap-4 flex">
-                <div className="flex flex-col w-full ">
-                  <Label htmlFor="example" className="text-right">
-                    Format Example (Optional)
-                  </Label>
-                  <Input
-                    id="example"
-                    className="w-full mt-4"
-                    placeholder="Option value"
-                  />
-                </div>
-                <Button
-                  variant={"outline"}
-                  size={"icon"}
-                  className={
-                    "mt-8 cursor-pointer text-red-800 hover:text-red-600"
-                  }
-                >
-                  <Trash2 className="" />
-                </Button>
-              </div>
-              <Button variant="outline" className={"mt-4 cursor-pointer"}>
-                <Plus />
-                Add
-              </Button>
-            </div>
-            <DialogFooter>
-              <DialogClose>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button type="submit">Save changes</Button>
-            </DialogFooter>
-          </DialogContent>
-        </div>
-      </Dialog>
-    </>
-  );
-};
-
-// security and fallback model content
-const SecurityAndFallbackModel = () => {
-  return (
-    <>
-      <div className="w-full font-normal">
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Opt Out Sensitive Data Storage</p>
-          <p className="text-sm text-muted-foreground">
-            Control whether Retell should store sensitive data. (Learn more)
-          </p>
-          <Switch className={"mt-2 cursor-pointer"} />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Opt In Secure URLs</p>
-          <p className="text-sm text-muted-foreground">
-            Add security signatures to URLs. The URLs expire after 24 hours.
-            (Learn more)
-          </p>
-          <Switch className={"mt-2 cursor-pointer"} />
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Fallback Voice ID</p>
-          <p className="text-sm text-muted-foreground">
-            If the current voice provider fails, assign a fallback voice to
-            continue the call.
-          </p>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={" max-w-[180px] cursor-pointer mt-3"}
-              >
-                <Plus /> Add
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="min-w-2/3">
-              <DialogHeader>
-                <DialogTitle>Select Voice</DialogTitle>
-              </DialogHeader>
-              <SelectVoice />
-            </DialogContent>
-          </Dialog>
-        </div>
-        <div className="mt-4">
-          <p className="mb-2 font-bold">Default Dynamic Variables</p>
-          <p className="text-sm text-muted-foreground">
-            Set fallback values for dynamic variables across all endpoints if
-            they are not provided.
-          </p>
-          <Button
-            variant={"outline"}
-            className={" max-w-[180px] cursor-pointer mt-3"}
-          >
-            <Settings /> Set Up
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-};
-
-// webhook settings modal content
-const WebhookSettings = () => {
-  return (
-    <>
-      <div className="w-full font-normal">
-        <div className="mt-4">
-          <Label className="mb-2 font-bold" htmlFor="inbound-call">
-            Inbound Call Webhook URL
-          </Label>
-          <p className="text-sm text-muted-foreground">
-            The webhook has been migrated to phone level webhook. (Learn more).
-          </p>
-          <Input id="inbound-call" className={"mt-2"} />
-        </div>
-        <div className="mt-4">
-          <Label className="mb-2 font-bold" htmlFor="agent-level">
-            Agent Level Webhook URL
-          </Label>
-          <p className="text-sm text-muted-foreground">
-            Webhook URL to receive events from Retell. (Learn more)
-          </p>
-          <Input id="agent-level" className={"mt-2"} />
-        </div>
-      </div>
+      </ScrollArea>
     </>
   );
 };
