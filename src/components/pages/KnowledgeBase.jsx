@@ -61,8 +61,6 @@ const KnowledgeBase = () => {
   const [activeFile, setActiveFile] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  console.log("initialData: ", initialData);
-
   const form = useForm({
     defaultValues: {
       name: "",

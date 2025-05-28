@@ -10,6 +10,7 @@ import Billing from "./components/pages/Billing";
 import Members from "./components/pages/Members";
 import ProviderKeys from "./components/pages/ProviderKeys";
 import Squads from "./components/pages/Squads";
+import PhoneNumberRetell from "./components/pages/PhoneNumberRetell";
 // import CustomLLM from "@/components/pages/agents/CustomLLM";
 
 export function AppRoutes() {
@@ -26,6 +27,7 @@ export function AppRoutes() {
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="squads" element={<Squads />} />
           <Route path="phone-numbers" element={<PhoneNumber />} />
+          <Route path="number-retell" element={<PhoneNumberRetell />} />
           <Route path="call-history" element={<CallHistory />} />
           <Route path="billing" element={<Billing />} />
           <Route path="keys" element={<ProviderKeys />} />

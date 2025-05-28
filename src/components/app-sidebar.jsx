@@ -19,6 +19,7 @@ import {
   Network,
   NotepadText,
   Phone,
+  PhoneCall,
   PieChart,
   Pyramid,
   ReceiptText,
@@ -169,6 +170,11 @@ const data = {
       name: "Phone Numbers",
       url: "/agents/phone-numbers",
       icon: Phone,
+    },
+    {
+      name: "Number Retell",
+      url: "/agents/number-retell",
+      icon: PhoneCall,
     },
     {
       name: "Call History",
