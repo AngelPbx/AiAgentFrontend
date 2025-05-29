@@ -16,6 +16,7 @@ import {
   Key,
   Link,
   Map,
+  MonitorSmartphone,
   Network,
   NotepadText,
   Phone,
@@ -175,6 +176,11 @@ const data = {
       name: "Number Retell",
       url: "/agents/number-retell",
       icon: PhoneCall,
+    },
+    {
+      name: "Batch Calls",
+      url: "/agents/batch-calls",
+      icon: MonitorSmartphone,
     },
     {
       name: "Call History",
