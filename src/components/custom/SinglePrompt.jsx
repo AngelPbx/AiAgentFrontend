@@ -17,9 +17,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import RetellWebCall from "./ReactFlow/customFeatures/NodeEditSection/RetellWebCall";
+import {
+  generalGetFunction,
+  generalPostFunction,
+} from "@/globalFunctions/globalFunction";
+import RetellCallComponent from "./ReactFlow/customFeatures/NodeEditSection/RetellCallComponent";
 
 const SinglePrompt = ({
   defaultName,
+  setDefaultName,
   newAgent,
   saveClicked,
   agentData,
@@ -27,6 +34,17 @@ const SinglePrompt = ({
 }) => {
   const [begin_message, setBeginMessage] = useState("");
   const [general_prompt, setGeneralPrompt] = useState("");
+  const [testCallToken, setTestCallToken] = useState(false);
+  const [transcript, setTranscript] = useState([]);
+console.log(transcript)
+  async function handleTestCall() {
+    const apiData = await generalPostFunction(`/call/create-web-call`, {
+      agent_id: agentData?.agent_id,
+    });
+    if (apiData.status) {
+      setTestCallToken(apiData.data.access_token);
+    }
+  }
   return (
     <div className="h-full w-full flex gap-3 mt-2">
       {/* prompt section */}
@@ -57,6 +75,7 @@ const SinglePrompt = ({
         <ScrollArea className="w-full h-[750px]">
           <GlobalSettings
             defaultName={defaultName}
+            setDefaultName={setDefaultName}
             generalPrompt={general_prompt}
             beginMessage={begin_message}
             newAgent={newAgent}
@@ -86,58 +105,68 @@ const SinglePrompt = ({
             </TabsTrigger>
           </TabsList>
           <TabsContent value="test-audio">
-            {/* dummy UI  */}
-            {/* <div className="w-full h-full flex flex-col item-center justify-center mx-auto">
-              <div className="w-full flex items-center justify-center ">
-              <Mic className="w-10 h-10 cursor-pointer text-muted-foreground" />
-              </div>
-              <div className="flex-items-center justify-center flex-row items-center">
-                <p>Test your agent</p>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-white cursor-pointer ml-2" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add to library</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <div className="flex items-center justify-center mt-2">
-                <Button variant="outline" className={"w-20 cursor-pointer"}>Text</Button>
-                </div>
-            </div> */}
-            <div className="h-full w-full flex items-start justify-center">
-              <div className="w-full items-center justify-center flex flex-col">
-                <div className="w-full h-full flex justify-center items-center">
-                  <div className="w-full max-w-md mt-10 p-4 rounded-lg shadow-md ">
-                    <div className="space-y-2 flex flex-col">
-                      <ScrollArea className="w-full h-[600px]">
-                        {messages.map((msg, index) => (
-                          <div
-                            key={index}
-                            className={`p-3 rounded-lg w-3/4 ${
-                              msg.sender === "left"
-                                ? " self-start"
-                                : "bg-blue-500 text-white self-end"
-                            }`}
-                          >
-                            {msg.text}
+            {testCallToken ?
+             (
+              <div className="h-full w-full flex items-start justify-center">
+                {/* <RetellWebCall token={testCallToken} /> */}
+                <div className="w-full items-center justify-center flex flex-col">
+                
+                  <div className="w-full h-full flex justify-center items-center">
+                    <div className="w-full max-w-md p-4 rounded-lg shadow-md ">
+                          <div class="flex flex-col gap-4">
+                      <div className="space-y-2 flex flex-col">
+                        <ScrollArea className="w-full h-[600px]">
+                          {transcript.map((msg, index) => (
+                            <div
+                              key={index}
+                              className={` flex max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 my-2 text-sm${
+                                msg.role === "agent"
+                                  ? "  bg-muted"
+                                  : " bg-primary text-primary-foreground ml-auto"
+                              }`}
+                            >
+                              {msg.content}
+                            </div>
+                          ))}
+                        
+                        </ScrollArea>
                           </div>
-                        ))}
-                      </ScrollArea>
+                      </div>
                     </div>
                   </div>
+                  <Separator className={"mb-2"} />
+
+                  <RetellCallComponent agentId={agentData?.agent_id} transcript={transcript} setTranscript={setTranscript} />
+                  
                 </div>
-                <Separator className={"mb-2"} />
-                <Button
-                  variant={"outline"}
-                  className={"text-red-800 hover:text-red-600 cursor-pointer"}
-                >
-                  <PhoneOff />
-                  End the call
-                </Button>
               </div>
-            </div>
+            ) : (
+              <div className="w-full h-full flex flex-col item-center justify-center mx-auto">
+                <div className="w-full flex items-center justify-center ">
+                  <Mic className="w-10 h-10 cursor-pointer text-muted-foreground" />
+                </div>
+                <div className="flex flex-items-center justify-center flex-row items-center">
+                  <p>Test your agent</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-white cursor-pointer ml-2" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Call transfer only works on phone calls, not web calls.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="flex items-center justify-center mt-2">
+                  <Button
+                    variant="outline"
+                    className={"w-20 cursor-pointer"}
+                    onClick={() => setTestCallToken(true)}
+                  >
+                    Test
+                  </Button>
+                </div>
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="test-llm"></TabsContent>
         </Tabs>
@@ -151,39 +180,38 @@ export default SinglePrompt;
 const messages = [
   { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
-  { text: "I'm good, thanks!", sender: "left" },
-  { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "I'm good, thanks!ASDFGSD FGH DFG HDFJFGHJFGHJK GHJK GHJKLJHUKLRTYJRTYR6YTLKHSMNK kjabnoi;adjsgweopsfg asdmlfgher5n 4rheryjhuke, nsf5h7j", sender: "left" },
+  { text: "Glad to hear that! uighi nlksnc uigdkcn asduifc adiob adkfb sfrghmsd sfodkhimn mefsbjk aswr gbl;qem,kafpkg asdflgnkwqr gb sDLFV BWRTNJHADFOICJVSDFGH SFRGOIJV LZXD FBOKSRFGN  ", sender: "right" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-   { text: "Hello!", sender: "left" },
+  { text: "Hello!", sender: "left" },
   { text: "Hi! How are you?", sender: "right" },
   { text: "I'm good, thanks!", sender: "left" },
   { text: "Glad to hear that!", sender: "right" },
-
 ];
