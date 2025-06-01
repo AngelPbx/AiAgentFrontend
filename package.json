@@ -46,6 +46,7 @@
     "cmdk": "^1.0.0",
     "dagre": "^0.8.5",
     "date-fns": "^3.6.0",
+    "date-time-picker": "^0.5.3",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.5.2",
     "input-otp": "^1.4.2",

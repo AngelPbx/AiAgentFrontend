@@ -159,7 +159,7 @@ export default function ConversationsFlow() {
             </TabsList>
           </div>
           <TabsContent value="create">
-            <div className="grid gap-4 min-h-200">
+            <div className="grid gap-4 h-1/2">
               {/* Sample Flow Cards */}
               {true ? (
                 <SinglePrompt
