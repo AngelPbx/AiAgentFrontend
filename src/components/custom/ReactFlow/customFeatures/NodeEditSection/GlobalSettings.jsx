@@ -18,6 +18,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -51,23 +52,32 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
+  AlignHorizontalDistributeCenter,
   ArrowUpRight,
   Ban,
   Binary,
   Book,
   Bot,
   Box,
+  CalendarPlus,
+  CalendarSearch,
   ChartLine,
   Check,
+  Grid,
   Headphones,
   List,
+  MessageCircleMore,
   Pause,
   Pencil,
+  PhoneIncoming,
+  PhoneOutgoing,
   Play,
   Plus,
   Settings,
+  Shapes,
   ShieldCheck,
   Speech,
+  SquarePen,
   Text,
   Trash2,
 } from "lucide-react";
@@ -172,8 +182,8 @@ const GlobalSettings = ({
     getData();
   }, []);
 
-  useEffect(()=>{
-     if (agentData && !newAgent) {
+  useEffect(() => {
+    if (agentData && !newAgent) {
       setLlmId(agentData.response_engine.llm_id);
       setVoiceId(agentData.voice_id);
       setAgentName(agentData.agent_name);
@@ -223,7 +233,7 @@ const GlobalSettings = ({
       setBeginMessage(llmData.begin_message);
       setLlmKnowlwdgeBaseIds(llmData.knowledge_base_ids || []);
     }
-  },[agentData, newAgent]);
+  }, [agentData, newAgent]);
 
   async function handleSave() {
     if (newAgent) {
@@ -288,7 +298,7 @@ const GlobalSettings = ({
         );
       }
     } else {
-       const llmParsedData = {
+      const llmParsedData = {
         model: model,
         model_temperature: model_temperature,
         model_high_priority: model_high_priority,
@@ -296,7 +306,10 @@ const GlobalSettings = ({
         begin_message: beginMessage,
         knowledge_base_ids: llmKnowlwdgeBaseIds,
       };
-      const llmData = await generalPutFunction(`/llm/update-llm/${llm_id}`, llmParsedData);
+      const llmData = await generalPutFunction(
+        `/llm/update-llm/${llm_id}`,
+        llmParsedData
+      );
       if (llmData.status) {
         console.log(llmData);
         const agentParsedData = {
@@ -361,6 +374,118 @@ const GlobalSettings = ({
     <>
       <div className="w-full">
         <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="functions">
+            <AccordionTrigger>
+              <div className="flex items-center gap-3 font-bold text-sm cursor-pointer">
+                <Shapes className="w-5 h-5" />
+                Functions
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="w-full">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Enable your agent with capabilities such as calendar
+                    bookings, call termination, etc.
+                  </p>
+                  <div className="flex items-center gap-2 w-full flex-col my-2">
+                    <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <PhoneOutgoing className="w-4 h-4" />
+                        <p>transfer_call</p>
+                      </div>
+                      <div>
+                        <Button
+                          variant={"ghost"}
+                          size="icon"
+                          className={
+                            "cursor-pointer text-green-800 hover:text-green-600"
+                          }
+                        >
+                          <SquarePen />
+                        </Button>
+                        <Button
+                          variant={"ghost"}
+                          size="icon"
+                          className={
+                            "cursor-pointer text-red-800 hover:text-red-600"
+                          }
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <PhoneOutgoing className="w-4 h-4" />
+                        <p>transfer_call</p>
+                      </div>
+                      <div>
+                        <Button
+                          variant={"ghost"}
+                          size="icon"
+                          className={
+                            "cursor-pointer text-green-800 hover:text-green-600"
+                          }
+                        >
+                          <SquarePen />
+                        </Button>
+                        <Button
+                          variant={"ghost"}
+                          size="icon"
+                          className={
+                            "cursor-pointer text-red-800 hover:text-red-600"
+                          }
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant={"outline"} className={"cursor-pointer"}>
+                        <Plus /> Add
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className={"max-w-70"} align="start">
+                      <DropdownMenuLabel>Select a type</DropdownMenuLabel>
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem>
+                          <PhoneOutgoing /> End Call
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <PhoneIncoming />
+                          Call Transfer
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <CalendarSearch />
+                          Check Calendar Availability (Cal.com)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <CalendarPlus />
+                          Book on the Calendar (Cal.com)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Grid />
+                          Press Digits (IVR Navigation)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <MessageCircleMore />
+                          Send SMS
+                        </DropdownMenuItem>
+                        <Separator />
+                        <DropdownMenuItem>
+                          <AlignHorizontalDistributeCenter />
+                          Custom Function
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
           <AccordionItem value="agent-settings">
             <AccordionTrigger>
               <div className="flex items-center gap-3 font-bold text-sm cursor-pointer">
@@ -1514,6 +1639,105 @@ const GlobalSettings = ({
 };
 
 export default GlobalSettings;
+
+const FunctionItem = () => {
+  return (
+    <div className="w-full">
+      <div>
+        <p className="text-xs text-muted-foreground">
+          Enable your agent with capabilities such as calendar bookings, call
+          termination, etc.
+        </p>
+        <div className="flex items-center gap-2 w-full flex-col my-2">
+          <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <PhoneOutgoing className="w-4 h-4" />
+              <p>transfer_call</p>
+            </div>
+            <div>
+              <Button
+                variant={"ghost"}
+                size="icon"
+                className={"cursor-pointer text-green-800 hover:text-green-600"}
+              >
+                <SquarePen />
+              </Button>
+              <Button
+                variant={"ghost"}
+                size="icon"
+                className={"cursor-pointer text-red-800 hover:text-red-600"}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <PhoneOutgoing className="w-4 h-4" />
+              <p>transfer_call</p>
+            </div>
+            <div>
+              <Button
+                variant={"ghost"}
+                size="icon"
+                className={"cursor-pointer text-green-800 hover:text-green-600"}
+              >
+                <SquarePen />
+              </Button>
+              <Button
+                variant={"ghost"}
+                size="icon"
+                className={"cursor-pointer text-red-800 hover:text-red-600"}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          </div>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant={"outline"} className={"cursor-pointer"}>
+              <Plus /> Add
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className={"max-w-70"} align="start">
+            <DropdownMenuLabel>Select a type</DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                <PhoneOutgoing /> End Call
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <PhoneIncoming />
+                Call Transfer
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CalendarSearch />
+                Check Calendar Availability (Cal.com)
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <CalendarPlus />
+                Book on the Calendar (Cal.com)
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Grid />
+                Press Digits (IVR Navigation)
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <MessageCircleMore />
+                Send SMS
+              </DropdownMenuItem>
+              <Separator />
+              <DropdownMenuItem>
+                <AlignHorizontalDistributeCenter />
+                Custom Function
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+};
 
 const countryData = [
   {
