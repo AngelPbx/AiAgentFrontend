@@ -65,11 +65,13 @@ import {
   Check,
   Grid,
   Headphones,
+  Info,
   List,
   MessageCircleMore,
   Pause,
   Pencil,
   PhoneIncoming,
+  PhoneOff,
   PhoneOutgoing,
   Play,
   Plus,
@@ -92,6 +94,12 @@ import {
 } from "@/globalFunctions/globalFunction";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const GlobalSettings = ({
   defaultName,
@@ -369,7 +377,6 @@ const GlobalSettings = ({
       handleSave();
     }
   }, [saveClicked]);
-  console.log("allKnowledgeBases", boosted_keywords);
   return (
     <>
       <div className="w-full">
@@ -382,6 +389,7 @@ const GlobalSettings = ({
               </div>
             </AccordionTrigger>
             <AccordionContent>
+              {/* <Dialog> */}
               <div className="w-full">
                 <div>
                   <p className="text-xs text-muted-foreground">
@@ -452,38 +460,225 @@ const GlobalSettings = ({
                       <DropdownMenuLabel>Select a type</DropdownMenuLabel>
                       <DropdownMenuGroup>
                         <DropdownMenuItem>
-                          <PhoneOutgoing /> End Call
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <PhoneIncoming /> End Call
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[500px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                                  <PhoneOff /> End call
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"end-call"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <PhoneIncoming />
-                          Call Transfer
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <PhoneIncoming /> Call Transfer
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[750px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                                  <PhoneIncoming /> Call Transfer
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"call-transfer"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <CalendarSearch />
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <CalendarSearch />
                           Check Calendar Availability (Cal.com)
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[500px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                                 <CalendarSearch />
+                          Check Calendar Availability (Cal.com)
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"check-calender"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <CalendarPlus />
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                 <CalendarPlus />
                           Book on the Calendar (Cal.com)
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[500px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                                  <CalendarPlus />
+                          Book on the Calendar (Cal.com)
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"book-calender"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Grid />
+                             <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <Grid />
                           Press Digits (IVR Navigation)
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[500px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                                <Grid />
+                          Press Digits (IVR Navigation)
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"press-digits"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <MessageCircleMore />
+                         <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                               <MessageCircleMore />
                           Send SMS
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[500px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                                <MessageCircleMore />
+                          Send SMS
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"send-sms"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                         <Separator />
                         <DropdownMenuItem>
-                          <AlignHorizontalDistributeCenter />
+                           <Dialog>
+                            <DialogTrigger asChild>
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                               <AlignHorizontalDistributeCenter />
                           Custom Function
+                              </span>
+                            </DialogTrigger>
+                            <DialogContent
+                              className="sm:max-w-[750px]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              <DialogHeader>
+                                <DialogTitle
+                                  className={"flex items-center gap-2"}
+                                >
+                               <AlignHorizontalDistributeCenter />
+                          Custom Function
+                                </DialogTitle>
+                              </DialogHeader>
+                              <FunctionItem dialogType={"custom-function"} />
+                            </DialogContent>
+                          </Dialog>
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </div>
+              {/* </Dialog> */}
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="agent-settings">
@@ -1640,102 +1835,503 @@ const GlobalSettings = ({
 
 export default GlobalSettings;
 
-const FunctionItem = () => {
+const FunctionItem = ({ dialogType }) => {
+  const [formData, setFormData] = useState({
+    name: dialogType === "end-call" ? "end_call" : "",
+    description: "",
+  });
+  const [callTransfer, setCallTransfer] = useState("cold-transfer");
+  const [displayNumber, setDisplayNumber] = useState("retell-agents");
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
-    <div className="w-full">
-      <div>
-        <p className="text-xs text-muted-foreground">
-          Enable your agent with capabilities such as calendar bookings, call
-          termination, etc.
-        </p>
-        <div className="flex items-center gap-2 w-full flex-col my-2">
-          <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <PhoneOutgoing className="w-4 h-4" />
-              <p>transfer_call</p>
-            </div>
-            <div>
-              <Button
-                variant={"ghost"}
-                size="icon"
-                className={"cursor-pointer text-green-800 hover:text-green-600"}
-              >
-                <SquarePen />
-              </Button>
-              <Button
-                variant={"ghost"}
-                size="icon"
-                className={"cursor-pointer text-red-800 hover:text-red-600"}
-              >
-                <Trash2 />
-              </Button>
-            </div>
+    <>
+      {dialogType && dialogType === "end-call" && (
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+            />
           </div>
-          <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <PhoneOutgoing className="w-4 h-4" />
-              <p>transfer_call</p>
+          <div className="grid gap-3">
+            <Label htmlFor="description">
+              Description{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Textarea
+              className={"min-h-[150px]"}
+              id="description"
+              name="description"
+              placeholder="Enter a description"
+              value={formData.description}
+              onChange={handleInputChange}
+            />
+          </div>
+        </div>
+      )}{" "}
+      {dialogType && dialogType === "call-transfer" && (
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+            <Label htmlFor="description">
+              Description{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Textarea
+              className={"min-h-[100px]"}
+              id="description"
+              name="description"
+              placeholder="Enter a description"
+              value={formData.description}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className="grid gap-3">
+            <Label>Transfer to</Label>
+            <Tabs defaultValue="static-number">
+              <TabsList>
+                <TabsTrigger value="static-number">Static Number</TabsTrigger>
+                <TabsTrigger value="dynamic-routing">
+                  Dynamic Routing
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="static-number">
+                <Input
+                  placeholder="+14154154155"
+                  className={"w-full"}
+                  defaultValue="+14154154155"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter a static phone number or dynamic variable.
+                </p>
+              </TabsContent>
+              <TabsContent value="dynamic-routing">
+                <Textarea
+                  placeholder="Enter prompt to infer the destinaton number. Use {{..}} to add variable"
+                  className={"w-full min-h-[100px]"}
+                  defaultValue="If the user wants to reach support, transfer to +1 (925) 222-2222; if the user wants to reach sales, transfer to +1 (925) 333-3333"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use a prompt to handle dynamic call transfer routing.
+                </p>
+              </TabsContent>
+            </Tabs>
+          </div>
+          <div className="grid gap-3">
+            <Label>Type</Label>
+            <RadioGroup
+              value={callTransfer}
+              onValueChange={setCallTransfer}
+              className={"flex flex-col w-full"}
+            >
+              <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                <Label htmlFor="cold-transfr" className={"flex items-center"}>
+                  Cold Transfer
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        AI transfers the call to the next agent without a
+                        debrief.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <RadioGroupItem
+                  value="cold-transfer"
+                  id="cold-transfr"
+                  className={"cursor-pointer"}
+                />
+              </div>
+              <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                <Label htmlFor="warm-transfer" className={"flex items-center"}>
+                  Warm Transfer
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        AI provides a debrief to the next agent after
+                        transferring the call.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Label>
+                <RadioGroupItem
+                  value="warm-transfer"
+                  id="warm-transfer"
+                  className={"cursor-pointer"}
+                />
+              </div>
+            </RadioGroup>
+          </div>
+
+          {callTransfer === "cold-transfer" && (
+            <div className="grid gap-3">
+              <Label>Displayed Phone Number</Label>
+              <RadioGroup
+                value={displayNumber}
+                onValueChange={setDisplayNumber}
+                className={"flex flex-col w-full"}
+              >
+                <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                  <Label
+                    htmlFor="retell-agents"
+                    className={"flex items-center"}
+                  >
+                    Retell Agent's Number
+                  </Label>
+                  <RadioGroupItem
+                    value="retell-agents"
+                    id="retell-agents"
+                    className={"cursor-pointer"}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                  <Label
+                    htmlFor="transfeer-number"
+                    className={"flex items-center"}
+                  >
+                    Transferee's Number
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Original Caller or Callee. If you are using custom
+                          telephony, enable SIP REFER and PSTN transfer, and set
+                          SIP REFER to show transferee's number.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <RadioGroupItem
+                    value="transfeer-number"
+                    id="transfeer-number"
+                    className={"cursor-pointer"}
+                  />
+                </div>
+              </RadioGroup>
             </div>
-            <div>
-              <Button
-                variant={"ghost"}
-                size="icon"
-                className={"cursor-pointer text-green-800 hover:text-green-600"}
-              >
-                <SquarePen />
-              </Button>
-              <Button
-                variant={"ghost"}
-                size="icon"
-                className={"cursor-pointer text-red-800 hover:text-red-600"}
-              >
-                <Trash2 />
-              </Button>
+          )}
+
+          {callTransfer === "warm-transfer" && (
+            <div className="grid gap-3">
+              <Label>Handoff message</Label>
+              <Tabs defaultValue="prompt">
+                <TabsList>
+                  <TabsTrigger value="prompt">Prompt</TabsTrigger>
+                  <TabsTrigger value="static-sentence">
+                    Static Sentence
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="prompt">
+                  <Textarea
+                    placeholder="Say hello to the agent and summarize the user problem to him"
+                    className={"min-h-[100px]"}
+                  />
+                </TabsContent>
+                <TabsContent value="static-sentence">
+                  <Textarea
+                    placeholder="Enter static message"
+                    className={"w-full min-h-[100px]"}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+        </div>
+      )}
+      {
+        dialogType && dialogType === "check-calender" || dialogType === "book-calender" && (
+          <div className="grid gap-4">
+<div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={"check_calendar_availability"}
+              // onChange={handleInputChange}
+            />
+          </div>
+                    <div className="grid gap-3">
+            <Label htmlFor="description">
+              Description{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Textarea
+              className={"min-h-[100px]"}
+              id="description"
+              name="description"
+              placeholder="Enter a description"
+              defaultValue={"When users ask for availability, check the calendar and provide available slots."}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+            <Label htmlFor="api-key">API Key (Cal.com)</Label>
+            <Input
+              id="api-key"
+              name="api-key"
+              defaultValue={"check_calendar_availability"}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+            <Label htmlFor="event-type-id">Event Type ID (Cal.com)</Label>
+            <Input
+              id="event-type-id"
+              name="event-type-id"
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+             <Label htmlFor="timezone">
+              Timezone{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Input
+              id="timezone"
+              name="timezone"
+              // onChange={handleInputChange}
+            />
+          </div>
+          </div>
+        )
+      }
+      {dialogType && dialogType === "press-digits" && (
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultName={"press_digit"}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+            <Label htmlFor="description">
+              Description{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Textarea
+              className={"min-h-[100px]"}
+              id="description"
+              name="description"
+              placeholder="Enter a description"
+              defaultValue={"Navigate to the human agent of sales department"}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+           <Label htmlFor="paush-detection">
+              Description{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+              <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Adds extra wait time after pauses to prevent pressing too early. Ensures digits are pressed only after the IVR fully finishes. Default: 1000ms
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+            </Label>
+            <div className=" flex items-center gap-3">
+            <Input
+              id="paush-detection"
+              name="paush-detection"
+              type={"number"}
+              placeholder="Enter a description"
+              value={1000}
+              className={"w-3/4"}
+              // onChange={handleInputChange}
+            />
+            <span>miliseconds</span>
             </div>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant={"outline"} className={"cursor-pointer"}>
-              <Plus /> Add
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className={"max-w-70"} align="start">
-            <DropdownMenuLabel>Select a type</DropdownMenuLabel>
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <PhoneOutgoing /> End Call
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <PhoneIncoming />
-                Call Transfer
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CalendarSearch />
-                Check Calendar Availability (Cal.com)
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CalendarPlus />
-                Book on the Calendar (Cal.com)
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Grid />
-                Press Digits (IVR Navigation)
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MessageCircleMore />
-                Send SMS
-              </DropdownMenuItem>
-              <Separator />
-              <DropdownMenuItem>
-                <AlignHorizontalDistributeCenter />
-                Custom Function
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      )}
+      {dialogType && dialogType==="send-sms" && (
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={"send_sms"}
+              // onChange={handleInputChange}
+            />
+          </div>
+           <div className="grid gap-3">
+            <Label htmlFor="description">
+              Description{" "}
+              <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Textarea
+              className={"min-h-[100px]"}
+              id="description"
+              name="description"
+              placeholder="Enter a description"
+              // defaultValue={formData.description}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+              <Label>SMS content
+
+</Label>
+              <Tabs defaultValue="prompt">
+                <TabsList>
+                  <TabsTrigger value="prompt">Prompt</TabsTrigger>
+                  <TabsTrigger value="static-sentence">
+                    Static Sentence
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="prompt">
+                  <Textarea
+                    placeholder="Say hello to the agent and summarize the user problem to him"
+                    className={"min-h-[100px]"}
+                  />
+                </TabsContent>
+                <TabsContent value="static-sentence">
+                  <Textarea
+                    placeholder="Enter static message"
+                    className={"w-full min-h-[100px]"}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+        </div>
+      )}
+      {dialogType && dialogType==="custom-function" && (
+        <div className="grid gap-4">
+          <div className="grid gap-3">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              defaultValue={"custom_function"}
+              // onChange={handleInputChange}
+            />
+          </div>
+           <div className="grid gap-3">
+            <Label htmlFor="description">
+              Description{" "}
+            </Label>
+            <Textarea
+              className={"min-h-[100px]"}
+              id="description"
+              name="description"
+              placeholder="Enter a description"
+              // defaultValue={formData.description}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-3">
+            <Label htmlFor="your-url">Your URL</Label>
+            <Input
+              id="your-url"
+              name="your-url"
+              placeholder="Enter the url of the custom function"
+              // defaultValue={"custom_function"}
+              // onChange={handleInputChange}
+            />
+          </div>
+           <div className=" flex items-center gap-3">
+            <Input
+              id="paush-detection"
+              name="paush-detection"
+              type={"number"}
+              placeholder="Enter a description"
+              value={1000}
+              className={"w-3/4"}
+              // onChange={handleInputChange}
+            />
+            <span>miliseconds</span>
+            </div>
+            <div className="grid gap-3">
+              <Label >Parameters (Optional)</Label>
+              <p className="text-sm text-muted-foreground">JSON schema that defines the format in which the LLM will return. Please refer to the docs.</p>
+              <Textarea
+                className={"min-h-[150px]"}
+                id="description"
+                name="description"
+                placeholder="Enter JSON schema here..."
+                // defaultValue={formData.description}
+                // onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3 w-2/5">
+              <Button size={"sm"} className={"cursor-pointer w-20"}>Example 1</Button>
+              <Button size={"sm"} className={"cursor-pointer w-20"}>Example 2</Button>
+              <Button size={"sm"} className={"cursor-pointer w-20"}>Example 3</Button>
+            </div>
+            <div className="grid gap-3">
+              <Button className={"cursor-pointer w-full"}>Format JSON</Button>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex items-start gap-3">
+        <Checkbox id="terms-2" defaultChecked />
+        <div className="grid gap-2">
+          <Label htmlFor="terms-2">Speak During Execution</Label>
+          <p className="text-muted-foreground text-sm">
+            If the function takes over 2 seconds, the agent can say something like: "Let me check that for you."
+          </p>
+        </div>
+        <Input placeholder="Enter the execution message description" />
       </div>
-    </div>
+            </div>
+            <div className="grid gap-3">
+              <div className="flex items-start gap-3">
+        <Checkbox id="terms-2" defaultChecked />
+        <div className="grid gap-2">
+          <Label htmlFor="terms-2">Speak During Execution</Label>
+          <p className="text-muted-foreground text-sm">
+            If the function takes over 2 seconds, the agent can say something like: "Let me check that for you."
+          </p>
+        </div>
+            </div>
+            </div>
+        </div>
+      )}
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button variant="outline" className={"cursor-pointer"}>
+            Cancel
+          </Button>
+        </DialogClose>
+        <Button type="submit" className={"cursor-pointer"} disabled>
+          Save changes
+        </Button>
+      </DialogFooter>
+    </>
   );
 };
 
