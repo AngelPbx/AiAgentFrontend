@@ -82,6 +82,8 @@ import {
 } from "@/globalFunctions/globalFunction";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
+import Loading from "@/components/commonComponents/Loading";
 
 const GlobalSettings = ({
   defaultName,
@@ -152,6 +154,7 @@ const GlobalSettings = ({
   const [model, setModel] = useState("gpt-4o");
   const [llmModels, setLlmModels] = useState([]);
   const [llmKnowlwdgeBaseIds, setLlmKnowlwdgeBaseIds] = useState([]);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/knowledgebase/all");
@@ -226,7 +229,9 @@ const GlobalSettings = ({
   },[agentData, newAgent]);
 
   async function handleSave() {
+    setLoading(true);
     if (newAgent) {
+      
       const llmParsedData = {
         model: model,
         model_temperature: model_temperature,
@@ -286,6 +291,16 @@ const GlobalSettings = ({
           "/agent/store",
           agentParsedData
         );
+        if(apiData.status){
+          console.log(apiData);
+          setLoading(false);
+        }else{
+          toast.error(apiData.error);
+          setLoading(false);
+        }
+      }else{
+        toast.error(llmData.error);
+        setLoading(false);
       }
     } else {
        const llmParsedData = {
@@ -298,7 +313,7 @@ const GlobalSettings = ({
       };
       const llmData = await generalPutFunction(`/llm/update-llm/${llm_id}`, llmParsedData);
       if (llmData.status) {
-        console.log(llmData);
+        // console.log(llmData);
         const agentParsedData = {
           response_engine: { type: "retell-llm", llm_id: llm_id },
           voice_id: voice_id,
@@ -347,6 +362,16 @@ const GlobalSettings = ({
           `/agent/update-agent/${agentData.agent_id}`,
           agentParsedData
         );
+        if(apiData.status){
+          console.log(apiData);
+          setLoading(false);
+        }else{
+          toast.error(apiData.error)
+          setLoading(false);
+        }
+      }else{
+        toast.error(llmData.error);
+        setLoading(false);
       }
     }
   }
@@ -360,6 +385,9 @@ const GlobalSettings = ({
   return (
     <>
       <div className="w-full">
+        {
+          loading && <Loading />
+        }
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="agent-settings">
             <AccordionTrigger>

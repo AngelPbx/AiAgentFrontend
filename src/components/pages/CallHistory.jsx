@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import {
   ArrowUpFromLine,
@@ -40,47 +40,8 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Separator } from "../ui/separator";
-
-const calls = [
-  {
-    id: 1,
-    time: "2023-01-01 15:21",
-    call_duration: "00:05:00",
-    type: "Incoming",
-    cost: "0.048",
-    call_id: "1234567890",
-    disconnect_reason: "User hangup",
-    call_status: "Completed",
-    user_sentiment: "Positive",
-    from: "",
-    to: "",
-    call_success: "Success",
-    latency: "Low",
-    question_1: "Yes",
-    question_2: "None of the above",
-    question_3: "Yes",
-    question_4: "0",
-  },
-  {
-    id: 2,
-    time: "2023-01-02 10:15",
-    call_duration: "00:05:00",
-    type: "Outgoing",
-    cost: "0.048",
-    call_id: "1234567890",
-    disconnect_reason: "User hangup",
-    call_status: "Completed",
-    user_sentiment: "Positive",
-    from: "",
-    to: "",
-    call_success: "Success",
-    latency: "Low",
-    question_1: "Yes",
-    question_2: "None of the above",
-    question_3: "Yes",
-    question_4: "0",
-  },
-];
+import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import Loading from "../commonComponents/Loading";
 
 const CallHistory = () => {
   const [date, setDate] = useState({
@@ -88,8 +49,51 @@ const CallHistory = () => {
     to: addDays(new Date(2022, 0, 20), 20),
   });
 
+  const [calls, setCalls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCall, setSelectedCall] = useState(null);
+  useEffect(() => {
+    async function getData() {
+      const apiData = await generalGetFunction("/call/all");
+      if (apiData.status) {
+        setCalls(apiData.data);
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    }
+    getData();
+  }, []);
+  function formatTimestampToDateTime(timestamp) {
+    const date = new Date(timestamp);
+
+    return date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  }
+
+  function formatDurationToTime(durationMs) {
+    const totalSeconds = Math.floor(durationMs / 1000);
+
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+      2,
+      "0"
+    );
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+    return `${hours}:${minutes}:${seconds}`;
+  }
+
   return (
     <>
+      {loading && <Loading />}
       <div className="flex flex-col gap-4 p-4">
         <h1 className="text-2xl font-bold">Call History</h1>
         <p className="text-gray-600">
@@ -160,87 +164,137 @@ const CallHistory = () => {
               <TableHeader className="bg-zinc-800">
                 <TableRow>
                   <TableHead>Time</TableHead>
-                  <TableHead>Call Duration</TableHead>
+                  <TableHead>Duration</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Cost</TableHead>
-                  <TableHead>Call ID</TableHead>
+                  <TableHead>Session ID</TableHead>
                   <TableHead>Disconnect Reason</TableHead>
-                  <TableHead>Call Status</TableHead>
+                  <TableHead>Session Status</TableHead>
                   <TableHead>User Sentiment</TableHead>
                   <TableHead>From</TableHead>
                   <TableHead>To</TableHead>
-                  <TableHead>Call Success</TableHead>
-                  <TableHead>Latency</TableHead>
-                  <TableHead>Question 1</TableHead>
+                  {/* <TableHead>Call Success</TableHead>
+                  <TableHead>Latency</TableHead> */}
+                  {/* <TableHead>Question 1</TableHead>
                   <TableHead>Question 2</TableHead>
                   <TableHead>Question 3</TableHead>
-                  <TableHead>Question 4</TableHead>
+                  <TableHead>Question 4</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {calls.map((call, index) => (
-                  <TableRow key={index} className="cursor-pointer">
-                    <TableCell className="p-0" colSpan={16}>
+                  <TableRow
+                    onClick={() => setSelectedCall(call)}
+                    key={index}
+                    className="cursor-pointer"
+                  >
+                    <TableCell className="p-0" >
                       <SheetTrigger className="w-full cursor-pointer">
-                        <div className="grid grid-cols-16 w-full">
+                        <div className="grid grid-cols-10 w-full">
                           <div className="p-4">
-                            {call.time ? call.time : "-"}
+                            {formatTimestampToDateTime(call?.start_timestamp)}
                           </div>
-                          <div className="p-4">
-                            {call.call_duration ? call.call_duration : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.type ? call.type : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.cost ? call.cost : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.call_id ? call.call_id : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.disconnect_reason
-                              ? call.disconnect_reason
-                              : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.call_status ? call.call_status : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.user_sentiment ? call.user_sentiment : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.from ? call.from : "-"}
-                          </div>
-                          <div className="p-4">{call.to ? call.to : "-"}</div>
-                          <div className="p-4">
-                            {call.call_success ? call.call_success : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.latency ? call.latency : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.question_1 ? call.question_1 : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.question_2 ? call.question_2 : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.question_3 ? call.question_3 : "-"}
-                          </div>
-                          <div className="p-4">
-                            {call.question_4 ? call.question_4 : "-"}
-                          </div>
+                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                          
+                          <div className="p-4">
+                            {formatDurationToTime(call?.duration_ms)}
+                          </div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                          
+                          <div className="p-4">{call?.call_type}</div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                          
+                          <div className="p-4">
+                            {call?.call_cost?.combined_cost}
+                          </div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                        
+                          <div className="p-4">{call?.call_id}</div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                         
+                          <div className="p-4">
+                            {call?.disconnection_reason?.split("_").join(" ")}
+                          </div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                          
+                          <div className="p-4">{call?.call_status}</div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                         
+                          <div className="p-4">
+                            {call?.call_analysis?.user_sentiment}
+                          </div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                          
+                          <div className="p-4">{call?.from_number}</div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                    <TableCell className="p-0" >
+                      <SheetTrigger className="w-full cursor-pointer">
+                        <div className="grid grid-cols-10 w-full">
+                          
+                          <div className="p-4">{call?.to_number}</div>
+                          
+                        </div>
+                      </SheetTrigger>
+                    </TableCell>
+                   
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
 
-          <SheetContent className="min-w-fit h-full overflow-y-auto px-3">
+          <SheetContent className="min-w-fit max-w-3/4 h-full overflow-y-auto px-3">
             <SheetHeader>
               <SheetTitle>Call history</SheetTitle>
               <SheetDescription>
@@ -248,45 +302,50 @@ const CallHistory = () => {
               </SheetDescription>
             </SheetHeader>
             <div className="flex justify-between items-center">
-              <p className="text-sm">04/03/2025 15:21 web_call</p>
+              <p className="text-sm">
+                {formatTimestampToDateTime(selectedCall?.start_timestamp)}{" "}
+                {selectedCall?.call_type}
+              </p>
               <Trash className="cursor-pointer h-4 w-4" />
             </div>
             <p className="text-xs">
               Agent:{" "}
               <span className="hover:underline cursor-pointer">
-                Patient Screening (from template)(age...b61)
+                {selectedCall?.agent_id}
               </span>
             </p>
             <p className="text-xs">
-              Duration: 04/03/2025 15:21 - 04/03/2025 15:22
+              Duration: {formatDurationToTime(selectedCall?.duration_ms)}
             </p>
-            <p className="text-xs">Cost: $0.048</p>
+            <p className="text-xs">
+              Cost: ${selectedCall?.call_cost?.combined_cost}
+            </p>
             <div className="flex items-center mt-2">
               <audio controls className="w-[300px] h-10">
-                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" />
+                <source src={selectedCall?.recording_url} />
                 Your browser does not support the audio element.
               </audio>
-              <Button
+              {/* <Button
                 variant="outline"
                 className="cursor-pointer ms-4"
                 size="icon"
               >
                 <Download />
-              </Button>
+              </Button> */}
             </div>
             <Separator />
             <p>Conversation Analysis</p>
             <p className="text-sm text-muted-foreground">Preset</p>
             <div class=" inline-flex items-start justify-start gap-2">
               <div class="mt-2 inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                <div class=" inline-flex items-center justify-start gap-2">
+                {/* <div class=" inline-flex items-center justify-start gap-2">
                   <div class="relative h-5 w-5 text-gray-500">
                     <SquareCheck className="h-4 w-4" />
                   </div>
                   <div class="text-sm font-normal leading-tight text-text-strong-950">
                     Call Successful
                   </div>
-                </div>
+                </div> */}
                 <div class=" inline-flex items-center justify-start gap-2">
                   <div class="relative h-5 w-5 text-gray-500">
                     <Headphones className="h-4 w-4" />
@@ -313,189 +372,79 @@ const CallHistory = () => {
                 </div>
               </div>
               <div class="mt-2 inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                <div class="inline-flex items-center justify-start gap-2">
+                {/* <div class="inline-flex items-center justify-start gap-2">
                   <Dot className="h-6 w-6 text-red-500" />
                   <div class="text-sm font-normal leading-tight text-text-sub-600">
-                    Unsuccessful
+                    {selectedCall?.call_status}
                   </div>
-                </div>
+                </div> */}
                 <div class=" inline-flex items-center justify-start gap-2">
                   <Dot className="h-6 w-6 text-white" />
                   <div class="text-sm font-normal leading-tight text-text-sub-600">
-                    Ended
+                    {selectedCall?.call_status}
                   </div>
                 </div>
                 <div class=" inline-flex items-center justify-start gap-2">
                   <Dot className="h-6 w-6 text-blue-500" />
                   <div class="text-sm font-normal leading-tight text-text-sub-600">
-                    Neutral
+                    {selectedCall?.call_analysis?.user_sentiment}
                   </div>
                 </div>
                 <div class=" inline-flex items-center justify-start gap-2">
                   <Dot className="h-6 w-6 text-green-500" />
                   <div class="text-sm font-normal leading-tight text-text-sub-600">
-                    User_hangup
+                    {selectedCall?.disconnection_reason?.split("_").join(" ")}
                   </div>
                 </div>
               </div>
             </div>
-            <div class="mt-2 inline-flex w-[280px] flex-col items-start justify-start gap-2">
-              <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1">
-                  <div class="pt-5 text-xs font-normal text-gray-500">
-                    Custom
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _do you feel safe in your current living situation?
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          Yes.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _do you have problems with any of the following in
-                          your home?
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          None of the above.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _do you currently have a steady place to live?
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          Yes.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _calculate the number of concerned questions
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          0
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _in the past 12 months, has lack of reliable
-                          transportation prevented you from:
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          None of the above.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _within the past 12 months, have you worried about
-                          running out of food before you had money to buy more?
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          Never true.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="inline-flex h-auto items-start justify-start gap-2">
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="relative h-5 w-5">
-                          <Text className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div class="text-sm font-normal leading-tight text-text-strong-950">
-                          _are you currently employed?
-                        </div>
-                      </div>
-                    </div>
-                    <div class="inline-flex w-[280px] flex-col items-start justify-start gap-2">
-                      <div class="inline-flex items-center justify-start gap-2">
-                        <div class="text-sm font-normal w-[248px] leading-tight text-text-sub-600">
-                          Yes, full-time.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <Separator />
+            <Separator className="my-4" />
             <div class="border-b border-stroke-sub-300-line p-4">
               <div class="text-sm font-medium leading-normal text-text-strong-950 mb-2">
                 Summary
               </div>
               <div class="text-sm font-normal leading-tight text-text-strong-950 w-[500px]">
-                The call was initiated by Anna, an AI representative from Retell
-                Healthcare, to assist Evie Wang in accessing her health service
-                portal. The conversation appears to be focused on providing
-                support for health services.
+                {selectedCall?.call_analysis?.call_summary}
               </div>
             </div>
+            <Separator className="my-4" />
+            <div class="mt-2 inline-flex w-[550px] flex-col items-start justify-start gap-2">
+              <div class="grid gap-4">
+                <div class="space-y-1">
+                  <div class="pt-5 text-xs font-normal text-gray-500">
+                    Custom
+                  </div>
+                  {selectedCall?.transcript_object.map((item, index) => {
+                    return (
+                      <div
+                        key={index}
+                        class="flex h-auto items-start justify-start gap-2 w-full"
+                      >
+                        <div class="flex flex-col items-start justify-start gap-2 ">
+                          <div class="flex items-center justify-start gap-2">
+                            {/* <div class="relative h-5 w-5">
+                              <Text className="h-5 w-5 text-muted-foreground" />
+                            </div> */}
+                            <div class="text-sm font-normal leading-tight text-text-strong-950">
+                              {item.role}:
+                            </div>
+                          </div>
+                        </div>
+                        <div class="flex  flex-col items-start justify-start gap-2 w-full ">
+                          <div class="flex items-center justify-start gap-2 w-full">
+                            <div class="text-sm font-normal  leading-tight text-text-sub-600">
+                              {item.content}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            {/* <Separator /> */}
+
             {/* <SheetFooter>
               <SheetClose asChild>
                 <Button type="submit">Save changes</Button>
