@@ -95,6 +95,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const GlobalSettings = ({
   defaultName,
+  setDefaultName,
   beginMessage,
   generalPrompt,
   newAgent,
@@ -107,7 +108,6 @@ const GlobalSettings = ({
   // Initializing all the states for agent creation
   const [llm_id, setLlmId] = useState(null);
   const [voice_id, setVoiceId] = useState(null);
-  const [agent_name, setAgentName] = useState(defaultName);
   const [voice_model, setVoiceModel] = useState("eleven_turbo_v2"); //The voice model to use for the agent. Default to eleven_turbo_v2.
   const [fallback_voice_ids, setFallbackVoiceIds] = useState(null);
   const [voice_temperature, setVoiceTemperature] = useState(1); //Controls how stable the voice is. Value ranging from [0,2]
@@ -186,7 +186,7 @@ const GlobalSettings = ({
     if (agentData && !newAgent) {
       setLlmId(agentData.response_engine.llm_id);
       setVoiceId(agentData.voice_id);
-      setAgentName(agentData.agent_name);
+      setDefaultName(agentData.agent_name);
       setVoiceModel(agentData.voice_model);
       setFallbackVoiceIds(agentData.fallback_voice_ids);
       setVoiceTemperature(agentData.voice_temperature);
@@ -251,7 +251,7 @@ const GlobalSettings = ({
         const agentParsedData = {
           response_engine: { type: "retell-llm", llm_id: llmData.llm_id },
           voice_id: voice_id,
-          agent_name: agent_name,
+          agent_name: defaultName,
           voice_model: voice_model,
           fallback_voice_ids: fallback_voice_ids,
           voice_temperature: voice_temperature,
@@ -315,7 +315,7 @@ const GlobalSettings = ({
         const agentParsedData = {
           response_engine: { type: "retell-llm", llm_id: llm_id },
           voice_id: voice_id,
-          agent_name: agent_name,
+          agent_name: defaultName,
           voice_model: voice_model,
           fallback_voice_ids: fallback_voice_ids,
           voice_temperature: voice_temperature,

@@ -164,6 +164,7 @@ export default function ConversationsFlow() {
               {true ? (
                 <SinglePrompt
                   defaultName={defaultName}
+                  setDefaultName={setDefaultName}
                   newAgent={locationState.unique}
                   saveClicked={saveClicked}
                   agentData={agentData}
