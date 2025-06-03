@@ -173,6 +173,39 @@ const GlobalSettings = ({
   const [llmModels, setLlmModels] = useState([]);
   const [llmKnowlwdgeBaseIds, setLlmKnowlwdgeBaseIds] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // LLm model Functions payload added to the agent
+  const [general_tools, setGeneralTools] = useState(null);
+  const [type, setType] = useState();
+  const [name, setName] = useState();
+  const [description, setDescription] = useState();
+  const [transfer_destination, setTransferDestination] = useState({});
+  const [transferType, setTransferType] = useState();
+  const [transferNumber, setTransferNumber] = useState();
+  const [transfer_options, setTransferOptions] = useState({});
+  const [transferOptionType, setTransferOptionType] = useState();
+  const [show_transferee_as_caller, setShowTransfereeAsCaller] =
+    useState(false);
+  const [public_handoff_option, setPublicHandoffOption] = useState({});
+  const [publicHandoffType, setPublicHandoffOptionType] = useState();
+  const [publicHandOffPrompt, setPublicHandOffPrompt] = useState("");
+  const [publicHandOffMessage, setPublicHandOffMessage] = useState("");
+  const [cal_api_key, setCalApiKey] = useState();
+  const [event_type_id, setEventTypeId] = useState();
+  const [timezone, setTimezone] = useState();
+  const [delay_ms, setDelayMs] = useState();
+  const [url, setUrl] = useState();
+  const [speak_during_execution, setSpeakDuringExecution] = useState(true);
+  const [speak_after_execution, setSpeakAfterExecution] = useState(true);
+  const [parameters, setParameters] = useState({});
+  const [execution_message_description, setExecutionMessageDescription] =
+    useState();
+  const [customTimeoutMs, setCustomTimeoutMs] = useState(120000);
+  const [parameterType, setParameterType] = useState();
+  const [parameterProperties, setParameterProperties] = useState({});
+  const [parameterRequired, setParameterRequired] = useState([]);
+  const [propertiesKey, setPropertiesKey] = useState();
+
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/knowledgebase/all");
@@ -401,6 +434,24 @@ const GlobalSettings = ({
       handleSave();
     }
   }, [saveClicked]);
+  const [formData, setFormData] = useState({
+    // name: dialogType === "end-call" ? "end_call" : "",
+    name: "",
+    description: "",
+  });
+  const [callTransfer, setCallTransfer] = useState("cold-transfer");
+  const [displayNumber, setDisplayNumber] = useState("retell-agents");
+  // const [speakDuringExecution, setSpeakDuringExecution] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  console.log("General Tools: ", general_tools);
   return (
     <>
       <div className="w-full">
@@ -448,32 +499,7 @@ const GlobalSettings = ({
                         </Button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <PhoneOutgoing className="w-4 h-4" />
-                        <p>transfer_call</p>
-                      </div>
-                      <div>
-                        <Button
-                          variant={"ghost"}
-                          size="icon"
-                          className={
-                            "cursor-pointer text-green-800 hover:text-green-600"
-                          }
-                        >
-                          <SquarePen />
-                        </Button>
-                        <Button
-                          variant={"ghost"}
-                          size="icon"
-                          className={
-                            "cursor-pointer text-red-800 hover:text-red-600"
-                          }
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    </div>
+                    
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -486,7 +512,7 @@ const GlobalSettings = ({
                       <DropdownMenuGroup>
                         <DropdownMenuItem>
                           <Dialog>
-                            <DialogTrigger asChild>
+                            <DialogTrigger onClick={()=>{setType("end-call");setName(null);setDescription(null);}} asChild>
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -509,7 +535,62 @@ const GlobalSettings = ({
                                   <PhoneOff /> End call
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"end-call"} />
+                              {/* <FunctionItem dialogType={"end-call"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    value={name}
+                                    onChange={(e)=>setName(e.target.value)}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[150px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    value={description}
+                                    onChange={(e)=>setDescription(e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  onClick={()=>{
+                                    if(name){
+                                      setGeneralTools((prev) => [
+                                        ...prev,
+                                        {
+                                          type: "end-call",
+                                          name: name,
+                                          description: description,
+                                        }
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -538,7 +619,224 @@ const GlobalSettings = ({
                                   <PhoneIncoming /> Call Transfer
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"call-transfer"} />
+                              {/* <FunctionItem dialogType={"call-transfer"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[100px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                  />
+                                </div>
+
+                                <div className="grid gap-3">
+                                  <Label>Transfer to</Label>
+                                  <Tabs defaultValue="static-number">
+                                    <TabsList>
+                                      <TabsTrigger value="static-number">
+                                        Static Number
+                                      </TabsTrigger>
+                                      <TabsTrigger value="dynamic-routing">
+                                        Dynamic Routing
+                                      </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="static-number">
+                                      <Input
+                                        placeholder="+14154154155"
+                                        className={"w-full"}
+                                        defaultValue="+14154154155"
+                                      />
+                                      <p className="text-xs text-muted-foreground">
+                                        Enter a static phone number or dynamic
+                                        variable.
+                                      </p>
+                                    </TabsContent>
+                                    <TabsContent value="dynamic-routing">
+                                      <Textarea
+                                        placeholder="Enter prompt to infer the destinaton number. Use {{..}} to add variable"
+                                        className={"w-full min-h-[100px]"}
+                                        defaultValue="If the user wants to reach support, transfer to +1 (925) 222-2222; if the user wants to reach sales, transfer to +1 (925) 333-3333"
+                                      />
+                                      <p className="text-xs text-muted-foreground">
+                                        Use a prompt to handle dynamic call
+                                        transfer routing.
+                                      </p>
+                                    </TabsContent>
+                                  </Tabs>
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label>Type</Label>
+                                  <RadioGroup
+                                    value={callTransfer}
+                                    onValueChange={setCallTransfer}
+                                    className={"flex flex-col w-full"}
+                                  >
+                                    <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                                      <Label
+                                        htmlFor="cold-transfr"
+                                        className={"flex items-center"}
+                                      >
+                                        Cold Transfer
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>
+                                              AI transfers the call to the next
+                                              agent without a debrief.
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </Label>
+                                      <RadioGroupItem
+                                        value="cold-transfer"
+                                        id="cold-transfr"
+                                        className={"cursor-pointer"}
+                                      />
+                                    </div>
+                                    <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                                      <Label
+                                        htmlFor="warm-transfer"
+                                        className={"flex items-center"}
+                                      >
+                                        Warm Transfer
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Info className="w-4 h-4 text-muted-foreground" />
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>
+                                              AI provides a debrief to the next
+                                              agent after transferring the call.
+                                            </p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </Label>
+                                      <RadioGroupItem
+                                        value="warm-transfer"
+                                        id="warm-transfer"
+                                        className={"cursor-pointer"}
+                                      />
+                                    </div>
+                                  </RadioGroup>
+                                </div>
+
+                                {callTransfer === "cold-transfer" && (
+                                  <div className="grid gap-3">
+                                    <Label>Displayed Phone Number</Label>
+                                    <RadioGroup
+                                      value={displayNumber}
+                                      onValueChange={setDisplayNumber}
+                                      className={"flex flex-col w-full"}
+                                    >
+                                      <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                                        <Label
+                                          htmlFor="retell-agents"
+                                          className={"flex items-center"}
+                                        >
+                                          Retell Agent's Number
+                                        </Label>
+                                        <RadioGroupItem
+                                          value="retell-agents"
+                                          id="retell-agents"
+                                          className={"cursor-pointer"}
+                                        />
+                                      </div>
+                                      <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                                        <Label
+                                          htmlFor="transfeer-number"
+                                          className={"flex items-center"}
+                                        >
+                                          Transferee's Number
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Info className="w-4 h-4 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>
+                                                Original Caller or Callee. If
+                                                you are using custom telephony,
+                                                enable SIP REFER and PSTN
+                                                transfer, and set SIP REFER to
+                                                show transferee's number.
+                                              </p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </Label>
+                                        <RadioGroupItem
+                                          value="transfeer-number"
+                                          id="transfeer-number"
+                                          className={"cursor-pointer"}
+                                        />
+                                      </div>
+                                    </RadioGroup>
+                                  </div>
+                                )}
+
+                                {callTransfer === "warm-transfer" && (
+                                  <div className="grid gap-3">
+                                    <Label>Handoff message</Label>
+                                    <Tabs defaultValue="prompt">
+                                      <TabsList>
+                                        <TabsTrigger value="prompt">
+                                          Prompt
+                                        </TabsTrigger>
+                                        <TabsTrigger value="static-sentence">
+                                          Static Sentence
+                                        </TabsTrigger>
+                                      </TabsList>
+                                      <TabsContent value="prompt">
+                                        <Textarea
+                                          placeholder="Say hello to the agent and summarize the user problem to him"
+                                          className={"min-h-[100px]"}
+                                        />
+                                      </TabsContent>
+                                      <TabsContent value="static-sentence">
+                                        <Textarea
+                                          placeholder="Enter static message"
+                                          className={"w-full min-h-[100px]"}
+                                        />
+                                      </TabsContent>
+                                    </Tabs>
+                                  </div>
+                                )}
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  disabled
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -569,7 +867,87 @@ const GlobalSettings = ({
                                   Check Calendar Availability (Cal.com)
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"check-calender"} />
+                              {/* <FunctionItem dialogType={"check-calender"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    defaultValue={"check_calendar_availability"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[100px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    defaultValue={
+                                      "When users ask for availability, check the calendar and provide available slots."
+                                    }
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="api-key">
+                                    API Key (Cal.com)
+                                  </Label>
+                                  <Input
+                                    id="api-key"
+                                    name="api-key"
+                                    defaultValue={"check_calendar_availability"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="event-type-id">
+                                    Event Type ID (Cal.com)
+                                  </Label>
+                                  <Input
+                                    id="event-type-id"
+                                    name="event-type-id"
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="timezone">
+                                    Timezone{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Input
+                                    id="timezone"
+                                    name="timezone"
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  disabled
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -600,7 +978,87 @@ const GlobalSettings = ({
                                   Book on the Calendar (Cal.com)
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"book-calender"} />
+                              {/* <FunctionItem dialogType={"book-calender"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    defaultValue={"check_calendar_availability"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[100px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    defaultValue={
+                                      "When users ask for availability, check the calendar and provide available slots."
+                                    }
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="api-key">
+                                    API Key (Cal.com)
+                                  </Label>
+                                  <Input
+                                    id="api-key"
+                                    name="api-key"
+                                    defaultValue={"check_calendar_availability"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="event-type-id">
+                                    Event Type ID (Cal.com)
+                                  </Label>
+                                  <Input
+                                    id="event-type-id"
+                                    name="event-type-id"
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="timezone">
+                                    Timezone{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Input
+                                    id="timezone"
+                                    name="timezone"
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  disabled
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -631,7 +1089,86 @@ const GlobalSettings = ({
                                   Press Digits (IVR Navigation)
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"press-digits"} />
+                              {/* <FunctionItem dialogType={"press-digits"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    defaultName={"press_digit"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[100px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    defaultValue={
+                                      "Navigate to the human agent of sales department"
+                                    }
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="paush-detection">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="w-4 h-4 text-muted-foreground" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>
+                                          Adds extra wait time after pauses to
+                                          prevent pressing too early. Ensures
+                                          digits are pressed only after the IVR
+                                          fully finishes. Default: 1000ms
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </Label>
+                                  <div className=" flex items-center gap-3">
+                                    <Input
+                                      id="paush-detection"
+                                      name="paush-detection"
+                                      type={"number"}
+                                      placeholder="Enter a description"
+                                      value={1000}
+                                      className={"w-3/4"}
+                                      // onChange={handleInputChange}
+                                    />
+                                    <span>miliseconds</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  disabled
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -662,7 +1199,76 @@ const GlobalSettings = ({
                                   Send SMS
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"send-sms"} />
+                              {/* <FunctionItem dialogType={"send-sms"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    defaultValue={"send_sms"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                    <span className="text-muted-foreground text-xs">
+                                      (Optional)
+                                    </span>
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[100px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    // defaultValue={formData.description}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label>SMS content</Label>
+                                  <Tabs defaultValue="prompt">
+                                    <TabsList>
+                                      <TabsTrigger value="prompt">
+                                        Prompt
+                                      </TabsTrigger>
+                                      <TabsTrigger value="static-sentence">
+                                        Static Sentence
+                                      </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="prompt">
+                                      <Textarea
+                                        placeholder="Say hello to the agent and summarize the user problem to him"
+                                        className={"min-h-[100px]"}
+                                      />
+                                    </TabsContent>
+                                    <TabsContent value="static-sentence">
+                                      <Textarea
+                                        placeholder="Enter static message"
+                                        className={"w-full min-h-[100px]"}
+                                      />
+                                    </TabsContent>
+                                  </Tabs>
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  disabled
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -694,7 +1300,152 @@ const GlobalSettings = ({
                                   Custom Function
                                 </DialogTitle>
                               </DialogHeader>
-                              <FunctionItem dialogType={"custom-function"} />
+                              {/* <FunctionItem dialogType={"custom-function"} /> */}
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input
+                                    id="name"
+                                    name="name"
+                                    defaultValue={"custom_function"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="description">
+                                    Description{" "}
+                                  </Label>
+                                  <Textarea
+                                    className={"min-h-[100px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter a description"
+                                    // defaultValue={formData.description}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label htmlFor="your-url">Your URL</Label>
+                                  <Input
+                                    id="your-url"
+                                    name="your-url"
+                                    placeholder="Enter the url of the custom function"
+                                    // defaultValue={"custom_function"}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className=" flex items-center gap-3">
+                                  <Input
+                                    id="paush-detection"
+                                    name="paush-detection"
+                                    type={"number"}
+                                    placeholder="Enter a description"
+                                    value={1000}
+                                    className={"w-3/4"}
+                                    // onChange={handleInputChange}
+                                  />
+                                  <span>miliseconds</span>
+                                </div>
+                                <div className="grid gap-3">
+                                  <Label>Parameters (Optional)</Label>
+                                  <p className="text-sm text-muted-foreground">
+                                    JSON schema that defines the format in which
+                                    the LLM will return. Please refer to the
+                                    docs.
+                                  </p>
+                                  <Textarea
+                                    className={"min-h-[150px]"}
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter JSON schema here..."
+                                    // defaultValue={formData.description}
+                                    // onChange={handleInputChange}
+                                  />
+                                </div>
+                                <div className="grid grid-cols-3 gap-3 w-2/5">
+                                  <Button
+                                    size={"sm"}
+                                    className={"cursor-pointer w-20"}
+                                  >
+                                    Example 1
+                                  </Button>
+                                  <Button
+                                    size={"sm"}
+                                    className={"cursor-pointer w-20"}
+                                  >
+                                    Example 2
+                                  </Button>
+                                  <Button
+                                    size={"sm"}
+                                    className={"cursor-pointer w-20"}
+                                  >
+                                    Example 3
+                                  </Button>
+                                </div>
+                                <div className="grid gap-3">
+                                  <Button className={"cursor-pointer w-full"}>
+                                    Format JSON
+                                  </Button>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3">
+                                  <div className="flex items-start gap-3">
+                                    <Checkbox
+                                      id="terms-2"
+                                      defaultChecked={speak_during_execution}
+                                      onClick={() =>
+                                        setSpeakDuringExecution(
+                                          !speak_during_execution
+                                        )
+                                      }
+                                    />
+                                    <div className="grid gap-2">
+                                      <Label htmlFor="terms-2">
+                                        Speak During Execution
+                                      </Label>
+                                      <p className="text-muted-foreground text-sm">
+                                        If the function takes over 2 seconds,
+                                        the agent can say something like: "Let
+                                        me check that for you."
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {speak_during_execution && (
+                                    <Input placeholder="Enter the execution message description" />
+                                  )}
+                                </div>
+                                <div className="grid gap-3">
+                                  <div className="flex items-start gap-3">
+                                    <Checkbox id="terms-2" defaultChecked />
+                                    <div className="grid gap-2">
+                                      <Label htmlFor="terms-2">
+                                        Speak After Execution
+                                      </Label>
+                                      <p className="text-muted-foreground text-sm">
+                                        Unselect if you want to run the function
+                                        silently, such as uploading the call
+                                        result to the server silently.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <DialogFooter>
+                                <DialogClose asChild>
+                                  <Button
+                                    variant="outline"
+                                    className={"cursor-pointer"}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </DialogClose>
+                                <Button
+                                  type="submit"
+                                  className={"cursor-pointer"}
+                                  disabled
+                                >
+                                  Save changes
+                                </Button>
+                              </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
@@ -1048,7 +1799,10 @@ const GlobalSettings = ({
                 <div className=" flex flex-col gap-2">
                   {llmKnowlwdgeBaseIds.map((item, index) => {
                     return (
-                      <div className="flex items-center  py-2 ps-2 rounded-md gap-2 bg-zinc-800" key={index}>
+                      <div
+                        className="flex items-center  py-2 ps-2 rounded-md gap-2 bg-zinc-800"
+                        key={index}
+                      >
                         <Book className="size-4 text-muted-foreground4" />{" "}
                         <p>
                           {
@@ -1860,527 +2614,6 @@ const GlobalSettings = ({
 
 export default GlobalSettings;
 
-const FunctionItem = ({ dialogType }) => {
-  const [formData, setFormData] = useState({
-    name: dialogType === "end-call" ? "end_call" : "",
-    description: "",
-  });
-  const [callTransfer, setCallTransfer] = useState("cold-transfer");
-  const [displayNumber, setDisplayNumber] = useState("retell-agents");
-  const [speakDuringExecution, setSpeakDuringExecution] = useState(false);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  return (
-    <>
-      {dialogType && dialogType === "end-call" && (
-        <div className="grid gap-4">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="description">
-              Description{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-            </Label>
-            <Textarea
-              className={"min-h-[150px]"}
-              id="description"
-              name="description"
-              placeholder="Enter a description"
-              value={formData.description}
-              onChange={handleInputChange}
-            />
-          </div>
-        </div>
-      )}{" "}
-      {dialogType && dialogType === "call-transfer" && (
-        <div className="grid gap-4">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="description">
-              Description{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-            </Label>
-            <Textarea
-              className={"min-h-[100px]"}
-              id="description"
-              name="description"
-              placeholder="Enter a description"
-              value={formData.description}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="grid gap-3">
-            <Label>Transfer to</Label>
-            <Tabs defaultValue="static-number">
-              <TabsList>
-                <TabsTrigger value="static-number">Static Number</TabsTrigger>
-                <TabsTrigger value="dynamic-routing">
-                  Dynamic Routing
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="static-number">
-                <Input
-                  placeholder="+14154154155"
-                  className={"w-full"}
-                  defaultValue="+14154154155"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter a static phone number or dynamic variable.
-                </p>
-              </TabsContent>
-              <TabsContent value="dynamic-routing">
-                <Textarea
-                  placeholder="Enter prompt to infer the destinaton number. Use {{..}} to add variable"
-                  className={"w-full min-h-[100px]"}
-                  defaultValue="If the user wants to reach support, transfer to +1 (925) 222-2222; if the user wants to reach sales, transfer to +1 (925) 333-3333"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Use a prompt to handle dynamic call transfer routing.
-                </p>
-              </TabsContent>
-            </Tabs>
-          </div>
-          <div className="grid gap-3">
-            <Label>Type</Label>
-            <RadioGroup
-              value={callTransfer}
-              onValueChange={setCallTransfer}
-              className={"flex flex-col w-full"}
-            >
-              <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                <Label htmlFor="cold-transfr" className={"flex items-center"}>
-                  Cold Transfer
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        AI transfers the call to the next agent without a
-                        debrief.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </Label>
-                <RadioGroupItem
-                  value="cold-transfer"
-                  id="cold-transfr"
-                  className={"cursor-pointer"}
-                />
-              </div>
-              <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                <Label htmlFor="warm-transfer" className={"flex items-center"}>
-                  Warm Transfer
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        AI provides a debrief to the next agent after
-                        transferring the call.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </Label>
-                <RadioGroupItem
-                  value="warm-transfer"
-                  id="warm-transfer"
-                  className={"cursor-pointer"}
-                />
-              </div>
-            </RadioGroup>
-          </div>
-
-          {callTransfer === "cold-transfer" && (
-            <div className="grid gap-3">
-              <Label>Displayed Phone Number</Label>
-              <RadioGroup
-                value={displayNumber}
-                onValueChange={setDisplayNumber}
-                className={"flex flex-col w-full"}
-              >
-                <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                  <Label
-                    htmlFor="retell-agents"
-                    className={"flex items-center"}
-                  >
-                    Retell Agent's Number
-                  </Label>
-                  <RadioGroupItem
-                    value="retell-agents"
-                    id="retell-agents"
-                    className={"cursor-pointer"}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                  <Label
-                    htmlFor="transfeer-number"
-                    className={"flex items-center"}
-                  >
-                    Transferee's Number
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          Original Caller or Callee. If you are using custom
-                          telephony, enable SIP REFER and PSTN transfer, and set
-                          SIP REFER to show transferee's number.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
-                  <RadioGroupItem
-                    value="transfeer-number"
-                    id="transfeer-number"
-                    className={"cursor-pointer"}
-                  />
-                </div>
-              </RadioGroup>
-            </div>
-          )}
-
-          {callTransfer === "warm-transfer" && (
-            <div className="grid gap-3">
-              <Label>Handoff message</Label>
-              <Tabs defaultValue="prompt">
-                <TabsList>
-                  <TabsTrigger value="prompt">Prompt</TabsTrigger>
-                  <TabsTrigger value="static-sentence">
-                    Static Sentence
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="prompt">
-                  <Textarea
-                    placeholder="Say hello to the agent and summarize the user problem to him"
-                    className={"min-h-[100px]"}
-                  />
-                </TabsContent>
-                <TabsContent value="static-sentence">
-                  <Textarea
-                    placeholder="Enter static message"
-                    className={"w-full min-h-[100px]"}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
-        </div>
-      )}
-      {dialogType &&
-        (dialogType === "check-calender" || dialogType === "book-calender") && (
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={"check_calendar_availability"}
-                // onChange={handleInputChange}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="description">
-                Description{" "}
-                <span className="text-muted-foreground text-xs">
-                  (Optional)
-                </span>
-              </Label>
-              <Textarea
-                className={"min-h-[100px]"}
-                id="description"
-                name="description"
-                placeholder="Enter a description"
-                defaultValue={
-                  "When users ask for availability, check the calendar and provide available slots."
-                }
-                // onChange={handleInputChange}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="api-key">API Key (Cal.com)</Label>
-              <Input
-                id="api-key"
-                name="api-key"
-                defaultValue={"check_calendar_availability"}
-                // onChange={handleInputChange}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="event-type-id">Event Type ID (Cal.com)</Label>
-              <Input
-                id="event-type-id"
-                name="event-type-id"
-                // onChange={handleInputChange}
-              />
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="timezone">
-                Timezone{" "}
-                <span className="text-muted-foreground text-xs">
-                  (Optional)
-                </span>
-              </Label>
-              <Input
-                id="timezone"
-                name="timezone"
-                // onChange={handleInputChange}
-              />
-            </div>
-          </div>
-        )}
-      {dialogType && dialogType === "press-digits" && (
-        <div className="grid gap-4">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultName={"press_digit"}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="description">
-              Description{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-            </Label>
-            <Textarea
-              className={"min-h-[100px]"}
-              id="description"
-              name="description"
-              placeholder="Enter a description"
-              defaultValue={"Navigate to the human agent of sales department"}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="paush-detection">
-              Description{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Adds extra wait time after pauses to prevent pressing too
-                    early. Ensures digits are pressed only after the IVR fully
-                    finishes. Default: 1000ms
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <div className=" flex items-center gap-3">
-              <Input
-                id="paush-detection"
-                name="paush-detection"
-                type={"number"}
-                placeholder="Enter a description"
-                value={1000}
-                className={"w-3/4"}
-                // onChange={handleInputChange}
-              />
-              <span>miliseconds</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {dialogType && dialogType === "send-sms" && (
-        <div className="grid gap-4">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={"send_sms"}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="description">
-              Description{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-            </Label>
-            <Textarea
-              className={"min-h-[100px]"}
-              id="description"
-              name="description"
-              placeholder="Enter a description"
-              // defaultValue={formData.description}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label>SMS content</Label>
-            <Tabs defaultValue="prompt">
-              <TabsList>
-                <TabsTrigger value="prompt">Prompt</TabsTrigger>
-                <TabsTrigger value="static-sentence">
-                  Static Sentence
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="prompt">
-                <Textarea
-                  placeholder="Say hello to the agent and summarize the user problem to him"
-                  className={"min-h-[100px]"}
-                />
-              </TabsContent>
-              <TabsContent value="static-sentence">
-                <Textarea
-                  placeholder="Enter static message"
-                  className={"w-full min-h-[100px]"}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      )}
-      {dialogType && dialogType === "custom-function" && (
-        <div className="grid gap-4">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={"custom_function"}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="description">Description </Label>
-            <Textarea
-              className={"min-h-[100px]"}
-              id="description"
-              name="description"
-              placeholder="Enter a description"
-              // defaultValue={formData.description}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="your-url">Your URL</Label>
-            <Input
-              id="your-url"
-              name="your-url"
-              placeholder="Enter the url of the custom function"
-              // defaultValue={"custom_function"}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className=" flex items-center gap-3">
-            <Input
-              id="paush-detection"
-              name="paush-detection"
-              type={"number"}
-              placeholder="Enter a description"
-              value={1000}
-              className={"w-3/4"}
-              // onChange={handleInputChange}
-            />
-            <span>miliseconds</span>
-          </div>
-          <div className="grid gap-3">
-            <Label>Parameters (Optional)</Label>
-            <p className="text-sm text-muted-foreground">
-              JSON schema that defines the format in which the LLM will return.
-              Please refer to the docs.
-            </p>
-            <Textarea
-              className={"min-h-[150px]"}
-              id="description"
-              name="description"
-              placeholder="Enter JSON schema here..."
-              // defaultValue={formData.description}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-3 w-2/5">
-            <Button size={"sm"} className={"cursor-pointer w-20"}>
-              Example 1
-            </Button>
-            <Button size={"sm"} className={"cursor-pointer w-20"}>
-              Example 2
-            </Button>
-            <Button size={"sm"} className={"cursor-pointer w-20"}>
-              Example 3
-            </Button>
-          </div>
-          <div className="grid gap-3">
-            <Button className={"cursor-pointer w-full"}>Format JSON</Button>
-          </div>
-          <div className="grid grid-cols-1 gap-3">
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="terms-2"
-                defaultChecked={speakDuringExecution}
-                onClick={() => setSpeakDuringExecution(!speakDuringExecution)}
-              />
-              <div className="grid gap-2">
-                <Label htmlFor="terms-2">Speak During Execution</Label>
-                <p className="text-muted-foreground text-sm">
-                  If the function takes over 2 seconds, the agent can say
-                  something like: "Let me check that for you."
-                </p>
-              </div>
-            </div>
-            {speakDuringExecution && (
-              <Input placeholder="Enter the execution message description" />
-            )}
-          </div>
-          <div className="grid gap-3">
-            <div className="flex items-start gap-3">
-              <Checkbox id="terms-2" defaultChecked />
-              <div className="grid gap-2">
-                <Label htmlFor="terms-2">Speak After Execution</Label>
-                <p className="text-muted-foreground text-sm">
-                  Unselect if you want to run the function silently, such as
-                  uploading the call result to the server silently.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="outline" className={"cursor-pointer"}>
-            Cancel
-          </Button>
-        </DialogClose>
-        <Button type="submit" className={"cursor-pointer"} disabled>
-          Save changes
-        </Button>
-      </DialogFooter>
-    </>
-  );
-};
-
 const countryData = [
   {
     language: "English (US)",
@@ -2571,275 +2804,6 @@ const countryData = [
     locale: "sw-KE",
   }, // Not supported, placeholder
 ];
-
-// Agent settings model content
-const AgentSettings = () => {
-  const [voiceModel, setVoiceModel] = useState("auto");
-  const [voice_speed, setVoiceSpeed] = useState([]);
-  const [voiceTemprature, setVoiceTemprature] = useState([20]);
-  const [voiceVolume, setVolume] = useState([60]);
-
-  return (
-    <div className="w-full">
-      {/* voice and language  */}
-      <div>
-        <p className="mb-2">Voice & Language</p>
-        <div className="text-sm text-muted-foreground flex items-center justify-between">
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Language</SelectLabel>
-                {countryData.map((country) => (
-                  <SelectItem key={country.locale} value={country.locale}>
-                    <Avatar>
-                      <AvatarImage
-                        src={`https://flagsapi.com/${country.country_code}/flat/64.png`}
-                        alt={`${country.language} - ${country.country}`}
-                      />
-                    </Avatar>
-                    {`${country.language} - ${country.country}`}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={"!border-r-0 max-w-[180px] cursor-pointer"}
-                >
-                  <Avatar>
-                    <AvatarImage
-                      src={`https://flagsapi.com/${countryData[0].country_code}/flat/64.png`}
-                      alt={`${countryData[0].language} - ${countryData[0].country}`}
-                    />
-                  </Avatar>{" "}
-                  Adam watson
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="min-w-2/3">
-                <DialogHeader>
-                  <DialogTitle>Select Voice</DialogTitle>
-                </DialogHeader>
-                <SelectVoice allVoices={allVoices} />
-              </DialogContent>
-            </Dialog>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button
-                  variant="outline"
-                  size={"icon"}
-                  asChild
-                  className={"cursor-pointer"}
-                >
-                  <Settings className="w-7 h-7" />
-                </Button>
-                <DropdownMenuContent className="w-fit">
-                  <DropdownMenuLabel>Voice Model</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={voiceModel}
-                    onValueChange={setVoiceModel}
-                  >
-                    <DropdownMenuRadioItem
-                      className="cursor-pointer"
-                      value="auto"
-                    >
-                      <div className="flex flex-col">
-                        <p>Auto(Elevenlabs Turbo V2)</p>
-                        <p className="text-xs text-muted-foreground">
-                          English only, fast, high quality
-                        </p>
-                      </div>
-                    </DropdownMenuRadioItem>
-                    <Separator />
-                    <DropdownMenuRadioItem
-                      className="cursor-pointer"
-                      value="turbo-v2"
-                    >
-                      <div className="flex flex-col">
-                        <p>Elevenlabs Turbo V2</p>
-                        <p className="text-xs text-muted-foreground">
-                          English only, fast, high quality
-                        </p>
-                      </div>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      className="cursor-pointer"
-                      value="flash-v2"
-                    >
-                      <div className="flex flex-col">
-                        <p>Elevenlabs Flash V2</p>
-                        <p className="text-xs text-muted-foreground">
-                          English only, fastest, medium quality
-                        </p>
-                      </div>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      className="cursor-pointer"
-                      value="turbo-v2-5"
-                    >
-                      <div className="flex flex-col">
-                        <p>Elevenlabs Turbo V2.5</p>
-                        <p className="text-xs text-muted-foreground">
-                          Multilingual, fast, high quality
-                        </p>
-                      </div>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      className="cursor-pointer"
-                      value="flash-v2-5"
-                    >
-                      <div className="flex flex-col">
-                        <p>Elevenlabs Flash V2.5</p>
-                        <p className="text-xs text-muted-foreground">
-                          Multilingual, fastest, medium quality
-                        </p>
-                      </div>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem
-                      className="cursor-pointer"
-                      value="multilang-v2"
-                    >
-                      <div className="flex flex-col">
-                        <p>Elevenlabs Multilingual v2</p>
-                        <p className="text-xs text-muted-foreground">
-                          Multilingual, slow, highest quality
-                        </p>
-                      </div>
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 mb-2">
-                    <p>Voice Speed</p>
-                    <div className="flex items-center justify-between">
-                      <Slider
-                        defaultValue={voice_speed}
-                        max={100}
-                        step={1}
-                        className={cn("w-[80%]", "cursor-pointer")}
-                        onValueChange={(value) => {
-                          setVoiceSpeed(value);
-                        }}
-                        //   {...props}
-                      />{" "}
-                      {voice_speed}
-                    </div>
-                  </div>
-                  <div className="px-2 mb-2">
-                    <p>Voice Temperature</p>
-                    <div className="flex items-center justify-between">
-                      <Slider
-                        defaultValue={voiceTemprature}
-                        max={100}
-                        step={1}
-                        className={cn("w-[80%]", "cursor-pointer")}
-                        onValueChange={(value) => {
-                          setVoiceTemprature(value);
-                        }}
-                        //   {...props}
-                      />{" "}
-                      {voiceTemprature}
-                    </div>
-                  </div>
-                  <div className="px-2 mb-2">
-                    <p>Voice Volume</p>
-                    <div className="flex items-center justify-between">
-                      <Slider
-                        defaultValue={voiceVolume}
-                        max={100}
-                        step={1}
-                        className={cn("w-[80%]", "cursor-pointer")}
-                        onValueChange={(value) => {
-                          setVolume(value);
-                        }}
-                        //   {...props}
-                      />{" "}
-                      {voiceVolume}
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-center justify-center">
-                    <Button className="w-full cursor-pointer">Save</Button>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenuTrigger>
-            </DropdownMenu>
-          </div>
-        </div>
-        <p className="my-2">Global Prompt</p>
-        <div className="flex">
-          <Select>
-            <SelectTrigger className="w-[180px] cursor-pointer">
-              <SelectValue placeholder="Select a voice" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="elevelabs">Elevenlabs</SelectItem>
-              <SelectItem value="playht">PlayHT</SelectItem>
-              <SelectItem value="openai">OpenAI</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant={"outline"} className={"cursor-pointer"}>
-                <Settings className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className={"w-[350px] p-3"}>
-              <div>
-                <p className="text-xl">LLM Temperature</p>
-                <p className="text-xs text-muted-foreground">
-                  Lower value yields better function call results.
-                </p>
-                <div className="flex items-center justify-between">
-                  <Slider
-                    defaultValue={voiceTemprature}
-                    max={100}
-                    step={1}
-                    className={cn("w-[80%]", "cursor-pointer")}
-                    onValueChange={(value) => {
-                      setVoiceTemprature(value);
-                    }}
-                    //   {...props}
-                  />{" "}
-                  {voiceTemprature}
-                </div>
-              </div>
-              <div className="mt-4">
-                <p className="text-xl">Structured Output</p>
-                <p className="text-xs text-muted-foreground">
-                  Always generate responses that adhere to your supplied JSON
-                  Schema. This will make functions longer to save or update.
-                </p>
-                <div class="flex items-center justify-between">
-                  <Switch className={"cursor-pointer mt-4"} />
-                </div>
-              </div>
-              <div className="mt-4">
-                <p className="text-xl">High Priority</p>
-                <p className="text-xs text-muted-foreground">
-                  Use more dedicated resource pool to ensure lower and more
-                  consistent latency. This feature incurs a higher cost.
-                </p>
-                <div class="flex items-center justify-between">
-                  <Switch className={"cursor-pointer mt-4"} />
-                </div>
-              </div>
-              <Separator className={"my-4"} />
-              <Button className={"w-full"} disabled>
-                Save
-              </Button>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // select voice modal content
 const SelectVoice = ({ allVoices, setVoiceId }) => {
