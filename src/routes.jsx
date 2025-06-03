@@ -12,6 +12,8 @@ import ProviderKeys from "./components/pages/ProviderKeys";
 import Squads from "./components/pages/Squads";
 import PhoneNumberRetell from "./components/pages/PhoneNumberRetell";
 import BatchCall from "./components/pages/BatchCalls";
+import Signup from "./components/pages/Signup";
+import Signin from "./components/pages/Signin";
 // import CustomLLM from "@/components/pages/agents/CustomLLM";
 
 export function AppRoutes() {
@@ -19,6 +21,9 @@ export function AppRoutes() {
     <Routes>
       {/* Redirect root to agents/list */}
       <Route path="/" element={<Navigate to="/agents/list" replace />} />
+      <Route path="/sign-up" element={<Signup />} />
+      <Route path="/sign-in" element={<Signin />} />
+      
 
       <Route path="/" element={<Dashboard />}>
         {/* Agents Routes */}

@@ -100,6 +100,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import Loading from "@/components/commonComponents/Loading";
 
 const GlobalSettings = ({
   defaultName,
@@ -170,6 +172,7 @@ const GlobalSettings = ({
   const [model, setModel] = useState("gpt-4o");
   const [llmModels, setLlmModels] = useState([]);
   const [llmKnowlwdgeBaseIds, setLlmKnowlwdgeBaseIds] = useState([]);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/knowledgebase/all");
@@ -244,6 +247,7 @@ const GlobalSettings = ({
   }, [agentData, newAgent]);
 
   async function handleSave() {
+    setLoading(true);
     if (newAgent) {
       const llmParsedData = {
         model: model,
@@ -304,6 +308,16 @@ const GlobalSettings = ({
           "/agent/store",
           agentParsedData
         );
+        if (apiData.status) {
+          console.log(apiData);
+          setLoading(false);
+        } else {
+          toast.error(apiData.error);
+          setLoading(false);
+        }
+      } else {
+        toast.error(llmData.error);
+        setLoading(false);
       }
     } else {
       const llmParsedData = {
@@ -319,7 +333,7 @@ const GlobalSettings = ({
         llmParsedData
       );
       if (llmData.status) {
-        console.log(llmData);
+        // console.log(llmData);
         const agentParsedData = {
           response_engine: { type: "retell-llm", llm_id: llm_id },
           voice_id: voice_id,
@@ -368,6 +382,16 @@ const GlobalSettings = ({
           `/agent/update-agent/${agentData.agent_id}`,
           agentParsedData
         );
+        if (apiData.status) {
+          console.log(apiData);
+          setLoading(false);
+        } else {
+          toast.error(apiData.error);
+          setLoading(false);
+        }
+      } else {
+        toast.error(llmData.error);
+        setLoading(false);
       }
     }
   }
@@ -380,6 +404,7 @@ const GlobalSettings = ({
   return (
     <>
       <div className="w-full">
+        {loading && <Loading />}
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="functions">
             <AccordionTrigger>
@@ -527,7 +552,7 @@ const GlobalSettings = ({
                                 className="flex items-center gap-2"
                               >
                                 <CalendarSearch />
-                          Check Calendar Availability (Cal.com)
+                                Check Calendar Availability (Cal.com)
                               </span>
                             </DialogTrigger>
                             <DialogContent
@@ -540,8 +565,8 @@ const GlobalSettings = ({
                                 <DialogTitle
                                   className={"flex items-center gap-2"}
                                 >
-                                 <CalendarSearch />
-                          Check Calendar Availability (Cal.com)
+                                  <CalendarSearch />
+                                  Check Calendar Availability (Cal.com)
                                 </DialogTitle>
                               </DialogHeader>
                               <FunctionItem dialogType={"check-calender"} />
@@ -557,8 +582,8 @@ const GlobalSettings = ({
                                 }}
                                 className="flex items-center gap-2"
                               >
-                                 <CalendarPlus />
-                          Book on the Calendar (Cal.com)
+                                <CalendarPlus />
+                                Book on the Calendar (Cal.com)
                               </span>
                             </DialogTrigger>
                             <DialogContent
@@ -572,7 +597,7 @@ const GlobalSettings = ({
                                   className={"flex items-center gap-2"}
                                 >
                                   <CalendarPlus />
-                          Book on the Calendar (Cal.com)
+                                  Book on the Calendar (Cal.com)
                                 </DialogTitle>
                               </DialogHeader>
                               <FunctionItem dialogType={"book-calender"} />
@@ -580,7 +605,7 @@ const GlobalSettings = ({
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                             <Dialog>
+                          <Dialog>
                             <DialogTrigger asChild>
                               <span
                                 onClick={(e) => {
@@ -589,7 +614,7 @@ const GlobalSettings = ({
                                 className="flex items-center gap-2"
                               >
                                 <Grid />
-                          Press Digits (IVR Navigation)
+                                Press Digits (IVR Navigation)
                               </span>
                             </DialogTrigger>
                             <DialogContent
@@ -602,8 +627,8 @@ const GlobalSettings = ({
                                 <DialogTitle
                                   className={"flex items-center gap-2"}
                                 >
-                                <Grid />
-                          Press Digits (IVR Navigation)
+                                  <Grid />
+                                  Press Digits (IVR Navigation)
                                 </DialogTitle>
                               </DialogHeader>
                               <FunctionItem dialogType={"press-digits"} />
@@ -611,7 +636,7 @@ const GlobalSettings = ({
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                         <Dialog>
+                          <Dialog>
                             <DialogTrigger asChild>
                               <span
                                 onClick={(e) => {
@@ -619,8 +644,8 @@ const GlobalSettings = ({
                                 }}
                                 className="flex items-center gap-2"
                               >
-                               <MessageCircleMore />
-                          Send SMS
+                                <MessageCircleMore />
+                                Send SMS
                               </span>
                             </DialogTrigger>
                             <DialogContent
@@ -633,8 +658,8 @@ const GlobalSettings = ({
                                 <DialogTitle
                                   className={"flex items-center gap-2"}
                                 >
-                                <MessageCircleMore />
-                          Send SMS
+                                  <MessageCircleMore />
+                                  Send SMS
                                 </DialogTitle>
                               </DialogHeader>
                               <FunctionItem dialogType={"send-sms"} />
@@ -643,7 +668,7 @@ const GlobalSettings = ({
                         </DropdownMenuItem>
                         <Separator />
                         <DropdownMenuItem>
-                           <Dialog>
+                          <Dialog>
                             <DialogTrigger asChild>
                               <span
                                 onClick={(e) => {
@@ -651,8 +676,8 @@ const GlobalSettings = ({
                                 }}
                                 className="flex items-center gap-2"
                               >
-                               <AlignHorizontalDistributeCenter />
-                          Custom Function
+                                <AlignHorizontalDistributeCenter />
+                                Custom Function
                               </span>
                             </DialogTrigger>
                             <DialogContent
@@ -665,8 +690,8 @@ const GlobalSettings = ({
                                 <DialogTitle
                                   className={"flex items-center gap-2"}
                                 >
-                               <AlignHorizontalDistributeCenter />
-                          Custom Function
+                                  <AlignHorizontalDistributeCenter />
+                                  Custom Function
                                 </DialogTitle>
                               </DialogHeader>
                               <FunctionItem dialogType={"custom-function"} />
@@ -1021,9 +1046,9 @@ const GlobalSettings = ({
                   Add knowledge base to provide context to the agent.
                 </p>
                 <div className=" flex flex-col gap-2">
-                  {llmKnowlwdgeBaseIds.map((item, key) => {
+                  {llmKnowlwdgeBaseIds.map((item, index) => {
                     return (
-                      <div className="flex items-center  py-2 ps-2 rounded-md gap-2 bg-zinc-800">
+                      <div className="flex items-center  py-2 ps-2 rounded-md gap-2 bg-zinc-800" key={index}>
                         <Book className="size-4 text-muted-foreground4" />{" "}
                         <p>
                           {
@@ -1842,6 +1867,7 @@ const FunctionItem = ({ dialogType }) => {
   });
   const [callTransfer, setCallTransfer] = useState("cold-transfer");
   const [displayNumber, setDisplayNumber] = useState("retell-agents");
+  const [speakDuringExecution, setSpeakDuringExecution] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -2066,63 +2092,68 @@ const FunctionItem = ({ dialogType }) => {
           )}
         </div>
       )}
-      {
-        dialogType && dialogType === "check-calender" || dialogType === "book-calender" && (
+      {dialogType &&
+        (dialogType === "check-calender" || dialogType === "book-calender") && (
           <div className="grid gap-4">
-<div className="grid gap-3">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              defaultValue={"check_calendar_availability"}
-              // onChange={handleInputChange}
-            />
+            <div className="grid gap-3">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                name="name"
+                defaultValue={"check_calendar_availability"}
+                // onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="description">
+                Description{" "}
+                <span className="text-muted-foreground text-xs">
+                  (Optional)
+                </span>
+              </Label>
+              <Textarea
+                className={"min-h-[100px]"}
+                id="description"
+                name="description"
+                placeholder="Enter a description"
+                defaultValue={
+                  "When users ask for availability, check the calendar and provide available slots."
+                }
+                // onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="api-key">API Key (Cal.com)</Label>
+              <Input
+                id="api-key"
+                name="api-key"
+                defaultValue={"check_calendar_availability"}
+                // onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="event-type-id">Event Type ID (Cal.com)</Label>
+              <Input
+                id="event-type-id"
+                name="event-type-id"
+                // onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="timezone">
+                Timezone{" "}
+                <span className="text-muted-foreground text-xs">
+                  (Optional)
+                </span>
+              </Label>
+              <Input
+                id="timezone"
+                name="timezone"
+                // onChange={handleInputChange}
+              />
+            </div>
           </div>
-                    <div className="grid gap-3">
-            <Label htmlFor="description">
-              Description{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-            </Label>
-            <Textarea
-              className={"min-h-[100px]"}
-              id="description"
-              name="description"
-              placeholder="Enter a description"
-              defaultValue={"When users ask for availability, check the calendar and provide available slots."}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="api-key">API Key (Cal.com)</Label>
-            <Input
-              id="api-key"
-              name="api-key"
-              defaultValue={"check_calendar_availability"}
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-            <Label htmlFor="event-type-id">Event Type ID (Cal.com)</Label>
-            <Input
-              id="event-type-id"
-              name="event-type-id"
-              // onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-3">
-             <Label htmlFor="timezone">
-              Timezone{" "}
-              <span className="text-muted-foreground text-xs">(Optional)</span>
-            </Label>
-            <Input
-              id="timezone"
-              name="timezone"
-              // onChange={handleInputChange}
-            />
-          </div>
-          </div>
-        )
-      }
+        )}
       {dialogType && dialogType === "press-digits" && (
         <div className="grid gap-4">
           <div className="grid gap-3">
@@ -2149,36 +2180,38 @@ const FunctionItem = ({ dialogType }) => {
             />
           </div>
           <div className="grid gap-3">
-           <Label htmlFor="paush-detection">
+            <Label htmlFor="paush-detection">
               Description{" "}
               <span className="text-muted-foreground text-xs">(Optional)</span>
               <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        Adds extra wait time after pauses to prevent pressing too early. Ensures digits are pressed only after the IVR fully finishes. Default: 1000ms
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    Adds extra wait time after pauses to prevent pressing too
+                    early. Ensures digits are pressed only after the IVR fully
+                    finishes. Default: 1000ms
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             </Label>
             <div className=" flex items-center gap-3">
-            <Input
-              id="paush-detection"
-              name="paush-detection"
-              type={"number"}
-              placeholder="Enter a description"
-              value={1000}
-              className={"w-3/4"}
-              // onChange={handleInputChange}
-            />
-            <span>miliseconds</span>
+              <Input
+                id="paush-detection"
+                name="paush-detection"
+                type={"number"}
+                placeholder="Enter a description"
+                value={1000}
+                className={"w-3/4"}
+                // onChange={handleInputChange}
+              />
+              <span>miliseconds</span>
             </div>
           </div>
         </div>
       )}
-      {dialogType && dialogType==="send-sms" && (
+      {dialogType && dialogType === "send-sms" && (
         <div className="grid gap-4">
           <div className="grid gap-3">
             <Label htmlFor="name">Name</Label>
@@ -2189,7 +2222,7 @@ const FunctionItem = ({ dialogType }) => {
               // onChange={handleInputChange}
             />
           </div>
-           <div className="grid gap-3">
+          <div className="grid gap-3">
             <Label htmlFor="description">
               Description{" "}
               <span className="text-muted-foreground text-xs">(Optional)</span>
@@ -2204,33 +2237,31 @@ const FunctionItem = ({ dialogType }) => {
             />
           </div>
           <div className="grid gap-3">
-              <Label>SMS content
-
-</Label>
-              <Tabs defaultValue="prompt">
-                <TabsList>
-                  <TabsTrigger value="prompt">Prompt</TabsTrigger>
-                  <TabsTrigger value="static-sentence">
-                    Static Sentence
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="prompt">
-                  <Textarea
-                    placeholder="Say hello to the agent and summarize the user problem to him"
-                    className={"min-h-[100px]"}
-                  />
-                </TabsContent>
-                <TabsContent value="static-sentence">
-                  <Textarea
-                    placeholder="Enter static message"
-                    className={"w-full min-h-[100px]"}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
+            <Label>SMS content</Label>
+            <Tabs defaultValue="prompt">
+              <TabsList>
+                <TabsTrigger value="prompt">Prompt</TabsTrigger>
+                <TabsTrigger value="static-sentence">
+                  Static Sentence
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="prompt">
+                <Textarea
+                  placeholder="Say hello to the agent and summarize the user problem to him"
+                  className={"min-h-[100px]"}
+                />
+              </TabsContent>
+              <TabsContent value="static-sentence">
+                <Textarea
+                  placeholder="Enter static message"
+                  className={"w-full min-h-[100px]"}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       )}
-      {dialogType && dialogType==="custom-function" && (
+      {dialogType && dialogType === "custom-function" && (
         <div className="grid gap-4">
           <div className="grid gap-3">
             <Label htmlFor="name">Name</Label>
@@ -2241,10 +2272,8 @@ const FunctionItem = ({ dialogType }) => {
               // onChange={handleInputChange}
             />
           </div>
-           <div className="grid gap-3">
-            <Label htmlFor="description">
-              Description{" "}
-            </Label>
+          <div className="grid gap-3">
+            <Label htmlFor="description">Description </Label>
             <Textarea
               className={"min-h-[100px]"}
               id="description"
@@ -2264,7 +2293,7 @@ const FunctionItem = ({ dialogType }) => {
               // onChange={handleInputChange}
             />
           </div>
-           <div className=" flex items-center gap-3">
+          <div className=" flex items-center gap-3">
             <Input
               id="paush-detection"
               name="paush-detection"
@@ -2275,50 +2304,67 @@ const FunctionItem = ({ dialogType }) => {
               // onChange={handleInputChange}
             />
             <span>miliseconds</span>
-            </div>
-            <div className="grid gap-3">
-              <Label >Parameters (Optional)</Label>
-              <p className="text-sm text-muted-foreground">JSON schema that defines the format in which the LLM will return. Please refer to the docs.</p>
-              <Textarea
-                className={"min-h-[150px]"}
-                id="description"
-                name="description"
-                placeholder="Enter JSON schema here..."
-                // defaultValue={formData.description}
-                // onChange={handleInputChange}
+          </div>
+          <div className="grid gap-3">
+            <Label>Parameters (Optional)</Label>
+            <p className="text-sm text-muted-foreground">
+              JSON schema that defines the format in which the LLM will return.
+              Please refer to the docs.
+            </p>
+            <Textarea
+              className={"min-h-[150px]"}
+              id="description"
+              name="description"
+              placeholder="Enter JSON schema here..."
+              // defaultValue={formData.description}
+              // onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-3 w-2/5">
+            <Button size={"sm"} className={"cursor-pointer w-20"}>
+              Example 1
+            </Button>
+            <Button size={"sm"} className={"cursor-pointer w-20"}>
+              Example 2
+            </Button>
+            <Button size={"sm"} className={"cursor-pointer w-20"}>
+              Example 3
+            </Button>
+          </div>
+          <div className="grid gap-3">
+            <Button className={"cursor-pointer w-full"}>Format JSON</Button>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="terms-2"
+                defaultChecked={speakDuringExecution}
+                onClick={() => setSpeakDuringExecution(!speakDuringExecution)}
               />
+              <div className="grid gap-2">
+                <Label htmlFor="terms-2">Speak During Execution</Label>
+                <p className="text-muted-foreground text-sm">
+                  If the function takes over 2 seconds, the agent can say
+                  something like: "Let me check that for you."
+                </p>
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-3 w-2/5">
-              <Button size={"sm"} className={"cursor-pointer w-20"}>Example 1</Button>
-              <Button size={"sm"} className={"cursor-pointer w-20"}>Example 2</Button>
-              <Button size={"sm"} className={"cursor-pointer w-20"}>Example 3</Button>
+            {speakDuringExecution && (
+              <Input placeholder="Enter the execution message description" />
+            )}
+          </div>
+          <div className="grid gap-3">
+            <div className="flex items-start gap-3">
+              <Checkbox id="terms-2" defaultChecked />
+              <div className="grid gap-2">
+                <Label htmlFor="terms-2">Speak After Execution</Label>
+                <p className="text-muted-foreground text-sm">
+                  Unselect if you want to run the function silently, such as
+                  uploading the call result to the server silently.
+                </p>
+              </div>
             </div>
-            <div className="grid gap-3">
-              <Button className={"cursor-pointer w-full"}>Format JSON</Button>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-start gap-3">
-        <Checkbox id="terms-2" defaultChecked />
-        <div className="grid gap-2">
-          <Label htmlFor="terms-2">Speak During Execution</Label>
-          <p className="text-muted-foreground text-sm">
-            If the function takes over 2 seconds, the agent can say something like: "Let me check that for you."
-          </p>
-        </div>
-        <Input placeholder="Enter the execution message description" />
-      </div>
-            </div>
-            <div className="grid gap-3">
-              <div className="flex items-start gap-3">
-        <Checkbox id="terms-2" defaultChecked />
-        <div className="grid gap-2">
-          <Label htmlFor="terms-2">Speak During Execution</Label>
-          <p className="text-muted-foreground text-sm">
-            If the function takes over 2 seconds, the agent can say something like: "Let me check that for you."
-          </p>
-        </div>
-            </div>
-            </div>
+          </div>
         </div>
       )}
       <DialogFooter>
