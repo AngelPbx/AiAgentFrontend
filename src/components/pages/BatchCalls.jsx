@@ -8,13 +8,7 @@ import {
   DrawerTrigger,
 } from "../ui/drawer";
 import { DialogHeader } from "../ui/dialog";
-import {
-  CalendarIcon,
-  CloudUpload,
-  Download,
-  Info,
-  Trash2,
-} from "lucide-react";
+import { CloudUpload, Download, Info, Trash2 } from "lucide-react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import {
@@ -28,10 +22,6 @@ import {
 } from "../ui/select";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import timeZone from "../../lib/timeZone.json";
-// import { cn } from "@/lib/utils";
-// import { format } from "date-fns";
-// import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-// import { Calendar } from "../ui/calendar";
 import { DateTimePicker } from "../ui/date-time-picker";
 import { toast } from "sonner";
 import Papa from "papaparse";
@@ -44,6 +34,12 @@ import {
   TableRow,
 } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
+import {
+  generalGetFunction,
+  generalPostFunction,
+} from "@/globalFunctions/globalFunction";
+import ErrorMessage from "../commonComponents/ErrorMessage";
+import { useForm, Controller } from "react-hook-form";
 // import templatecsv from "../../assets/template/template.csv";
 
 const BatchCalls = () => {
@@ -85,20 +81,51 @@ const BatchCalls = () => {
 };
 
 const BatchCallsConfig = () => {
-  const [date, setDate] = useState(new Date());
-  const [timeSchedule, setTimeSchedule] = useState("send-now");
-  const [timeZoneValue, setTimeZoneValue] = useState("");
+  const {
+    control,
+    register,
+    watch,
+    formState: { errors, isValid },
+    trigger,
+    reset,
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      batchCallName: "",
+      fromNumber: "",
+      timeSchedule: "send-now",
+      date: null,
+      timeZoneValue: "",
+    },
+  });
+
+  const [availableNumbers, setAvailableNumbers] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentFile, setCurrentFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  console.log("selectedFile: ", selectedFile);
+  const timeSchedule = watch("timeSchedule");
 
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
+  useEffect(() => {
+    fetchAvailableNumbers();
+  }, []);
+
+  useEffect(() => {
+    if (timeSchedule === "schedule") {
+      trigger(["date", "timeZoneValue"]);
+    }
+  }, [timeSchedule]);
+
+  const fetchAvailableNumbers = async () => {
+    const res = await generalGetFunction("/phonenumber/all");
+    if (res.status) {
+      setAvailableNumbers(res.data);
+    } else {
+      console.error("Failed to fetch available phone numbers");
+    }
+  };
 
   const handleFileChange = (event) => {
-    // check the file type csv and size under the 50 MB
     const file = event.target.files[0];
 
     if (!file) {
@@ -106,37 +133,29 @@ const BatchCallsConfig = () => {
       return;
     }
 
-    // Check file type
     if (file.type !== "text/csv") {
       toast.error("Only CSV files are allowed.");
       return;
     }
 
-    // Check file size (50MB = 50 * 1024 * 1024 bytes)
     if (file.size > 50 * 1024 * 1024) {
       toast.error("File size must be under 50MB.");
       return;
     }
 
-    // Parse CSV file
     Papa.parse(file, {
       complete: (result) => {
         const rows = result.data;
-
-        // Ensure first row contains headers
         const headers = rows[0];
         if (
           !headers.includes("phone number") ||
           !headers.includes("dynamic variable1") ||
           !headers.includes("dynamic variable2")
         ) {
-          toast.error(
-            "CSV format is incorrect. Required headers: phone number, dynamic variable1, dynamic variable2."
-          );
+          toast.error("CSV format is incorrect.");
           return;
         }
 
-        // Extract data
         const formattedData = rows.slice(1).map((row) => ({
           phoneNumber: row[headers.indexOf("phone number")],
           dynamicVariable1: row[headers.indexOf("dynamic variable1")],
@@ -144,57 +163,111 @@ const BatchCallsConfig = () => {
         }));
 
         setSelectedFile(formattedData);
+        setCurrentFile(file);
       },
       error: (err) => {
         toast.error("Error parsing CSV file: " + err.message);
       },
-      header: false, // Keep this `false` to process manually
+      header: false,
     });
-
-    setCurrentFile(file);
   };
 
+  const onSubmit = async (data) => {
+    if (!selectedFile) {
+      toast.error("CSV file is required.");
+      return;
+    }
+
+    const payload = {
+      from_number: data.fromNumber,
+      name: data.batchCallName,
+      tasks: selectedFile.map((item) => {
+        return {
+          to_number: item.phoneNumber,
+        };
+      }),
+      timezone: data.timeZone,
+      trigger_timestamp: data.date.getTime(),
+    };
+
+    setIsLoading(true);
+    const res = await generalPostFunction("/batchcall/store", payload);
+    if (res.status) {
+      reset();
+      setIsLoading(false);
+      toast.success("Batch call created successfully!");
+    } else {
+      setIsLoading(false);
+      toast.error("Failed to create batch call!");
+    }
+  };
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
   return (
-    <>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        trigger().then((valid) => valid && onSubmit(watch()));
+      }}
+    >
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full mt-4">
         <div className="h-full flex flex-col md:flex-row items-start justify-between gap-2">
-          {/* All the input fields  */}
-          <div className=" rounded-md shadow-md p-4 flex-1 max-w-2xl h-full">
+          <div className="rounded-md shadow-md p-4 flex-1 max-w-2xl h-full">
             <div className="w-full h-full flex flex-col gap-4">
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="batch-call">Batch Call Name</Label>
                 <Input
-                  type="text"
                   id="batch-call"
-                  placeholder="Enter batch call name"
+                  {...register("batchCallName", {
+                    required: "Batch call name is required",
+                  })}
                 />
+                {errors.batchCallName && (
+                  <span className="text-red-500 text-sm">
+                    {errors.batchCallName.message}
+                  </span>
+                )}
               </div>
+
               <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="from-number">From number</Label>
-                <Select>
-                  <SelectTrigger className="w-full" id="from-number">
-                    <SelectValue placeholder="Select a number" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Select a number</SelectLabel>
-                      <SelectItem value="apple">Apple</SelectItem>
-                      <SelectItem value="banana">Banana</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="fromNumber"
+                  control={control}
+                  rules={{ required: "Please select a number" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      onValueChange={(val) => field.onChange(val)}
+                    >
+                      <SelectTrigger className="w-full" id="from-number">
+                        <SelectValue placeholder="Select a number" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Select a number</SelectLabel>
+                          {availableNumbers.map((number, index) => (
+                            <SelectItem key={index} value={number.phone_number}>
+                              {number.phone_number_pretty}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.fromNumber && (
+                  <span className="text-red-500 text-sm">
+                    {errors.fromNumber.message}
+                  </span>
+                )}
               </div>
+
               <div className="grid w-full items-center gap-1.5">
                 <Label>Upload Recipients</Label>
-                <Button
-                  variant={"outline"}
-                  className={"cursor-pointer"}
-                  // onClick={() => {
-                  //   console.log("sample: ", templatecsv);
-                  // }}
-                >
-                  <Download /> Download the template
-                </Button>
                 {currentFile ? (
                   <div className="w-full py-2 px-2 flex items-center justify-between rounded-md bg-zinc-800">
                     <span className="flex items-center gap-2">
@@ -204,11 +277,9 @@ const BatchCallsConfig = () => {
                       </p>
                     </span>
                     <Button
-                      variant={"ghost"}
-                      className={
-                        "cursor-pointer text-red-800 hover:text-red-600"
-                      }
-                      size={"icon"}
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-800 hover:text-red-600"
                       onClick={() => {
                         setSelectedFile(null);
                         setCurrentFile(null);
@@ -221,129 +292,150 @@ const BatchCallsConfig = () => {
                   <div className="grid w-full items-center gap-1.5 py-4">
                     <Label
                       htmlFor="fileInput"
-                      className="group relative flex cursor-pointer flex-col justify-center rounded-lg border-2 border-dashed transition-colors dark:border-white/20 dark:hover:bg-black/20 border-stroke-soft-200 hover:border-primary hover:bg-bg-weak-50 h-[150px] items-center"
+                      className="group flex flex-col items-center justify-center h-[150px] cursor-pointer border-2 border-dashed rounded-lg"
                     >
                       <CloudUpload />
-                      <p className="mb-1 text-sm text-gray-900 dark:text-white">
-                        Choose a file or drag &amp; drop it here
-                      </p>
-                      <p className="text-xs text-text-sub-600 dark:text-white/70">
-                        Only CSV format files are supported
-                      </p>
-                      <p className="text-xs text-text-sub-600 dark:text-white/70">
-                        Upto 50 MB
-                      </p>
+                      <p>Choose a file or drag & drop it here</p>
+                      <p className="text-xs">Only CSV format | Up to 50 MB</p>
                     </Label>
                     <Input
                       id="fileInput"
                       accept=".csv"
-                      className="hidden"
                       type="file"
+                      className="hidden"
                       onChange={handleFileChange}
                     />
                   </div>
                 )}
+                {!selectedFile && (
+                  <span className="text-red-500 text-sm">
+                    CSV file is required
+                  </span>
+                )}
               </div>
+
               <div className="grid w-full items-center gap-1.5">
                 <Label>When to send the calls</Label>
-                <RadioGroup
-                  value={timeSchedule}
-                  onValueChange={setTimeSchedule}
-                  className={"flex w-full"}
-                >
-                  <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 w-1/2">
-                    <Label htmlFor="r1">Send Now</Label>
-                    <RadioGroupItem
-                      value="send-now"
-                      id="r1"
-                      className={"cursor-pointer"}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 w-1/2">
-                    <Label htmlFor="r2">Schedule</Label>
-                    <RadioGroupItem
-                      value="schedule"
-                      id="r2"
-                      className={"cursor-pointer"}
-                    />
-                  </div>
-                </RadioGroup>
+                <Controller
+                  name="timeSchedule"
+                  control={control}
+                  render={({ field }) => (
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                      }}
+                      className="flex w-full gap-4"
+                    >
+                      <div className="flex items-center text-xl space-x-2 border rounded-md p-4 w-1/2">
+                        <Label htmlFor="r1">Send Now</Label>
+                        <RadioGroupItem value="send-now" id="r1" />
+                      </div>
+                      <div className="flex items-center text-xl space-x-2 border rounded-md p-4 w-1/2">
+                        <Label htmlFor="r2">Schedule</Label>
+                        <RadioGroupItem value="schedule" id="r2" />
+                      </div>
+                    </RadioGroup>
+                  )}
+                />
               </div>
 
               {timeSchedule === "schedule" && (
                 <div className="grid grid-cols-2 items-center gap-1.5">
-                  <div className="">
-                    <DateTimePicker onChange={setDate} minDate={tomorrow} />
+                  <div className="flex flex-col">
+                    <Controller
+                      name="date"
+                      control={control}
+                      rules={{ required: "Please select a date" }}
+                      render={({ field }) => (
+                        <DateTimePicker
+                          {...field}
+                          onChange={field.onChange}
+                          minDate={tomorrow}
+                        />
+                      )}
+                    />
+                    {errors.date && (
+                      <span className="text-red-500 text-sm">
+                        {errors.date.message}
+                      </span>
+                    )}
                   </div>
-                  <div className="">
-                    <Select
-                      className="w-full"
-                      value={timeZoneValue}
-                      onValueChange={setTimeZoneValue}
-                    >
-                      <SelectTrigger className="w-full" id="from-number">
-                        <SelectValue placeholder="Select a timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Select a timezone</SelectLabel>
-                          {timeZone?.map((time, index) => (
-                            <SelectItem key={index} value={time.zone}>
-                              {time.zone}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                  <div className="flex flex-col">
+                    <Controller
+                      name="timeZoneValue"
+                      control={control}
+                      rules={{ required: "Timezone is required" }}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          onValueChange={(val) => field.onChange(val)}
+                        >
+                          <SelectTrigger className="w-full" id="timezone">
+                            <SelectValue placeholder="Select a timezone" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Select a timezone</SelectLabel>
+                              {timeZone?.map((time, index) => (
+                                <SelectItem key={index} value={time.zone}>
+                                  {time.zone}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.timeZoneValue && (
+                      <span className="text-red-500 text-sm">
+                        {errors.timeZoneValue.message}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
-              <div className="">
-                <Button
-                  className={"cursor-pointer w-full"}
-                  size={"lg"}
-                  variant={"default"}
-                  disabled
-                >
-                  Save
-                </Button>
-              </div>
+
+              <Button
+                type="submit"
+                className="w-full cursor-pointer"
+                size="lg"
+                disabled={!isValid || !selectedFile || isLoading}
+              >
+                Save
+              </Button>
             </div>
           </div>
 
-          {/* Data table to show the imported batch calls  */}
-          <div className="bg-white dark:bg-zinc-900 rounded-md shadow-md p-4 flex-1 w-full h-full flex">
-            {selectedFile && (
-              <div className="w-full min-h-full">
-                <ScrollArea className={"w-full h-[500px]"}>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>phone number</TableHead>
-                        <TableHead>dynamic variable1</TableHead>
-                        <TableHead>dynamic variable2</TableHead>
+          {selectedFile && (
+            <div className="bg-white dark:bg-zinc-900 rounded-md shadow-md p-4 flex-1 w-full h-full flex">
+              <ScrollArea className="w-full h-[500px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>phone number</TableHead>
+                      <TableHead>dynamic variable1</TableHead>
+                      <TableHead>dynamic variable2</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedFile.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{index}</TableCell>
+                        <TableCell>{item.phoneNumber}</TableCell>
+                        <TableCell>{item.dynamicVariable1}</TableCell>
+                        <TableCell>{item.dynamicVariable2}</TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedFile &&
-                        selectedFile.map((item, index) => (
-                          <TableRow>
-                            <TableCell key={index}>{index}</TableCell>
-                            <TableCell>{item.phoneNumber}</TableCell>
-                            <TableCell>{item.dynamicVariable1}</TableCell>
-                            <TableCell>{item.dynamicVariable2}</TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </div>
-            )}
-          </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </form>
   );
 };
 
