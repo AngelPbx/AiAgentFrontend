@@ -1,8 +1,6 @@
 import {
   ArrowRightLeft,
-  Bot,
   BotIcon,
-  Brackets,
   ChartCandlestick,
   ChevronDown,
   CloudUpload,
@@ -12,7 +10,6 @@ import {
   Loader,
   PhoneOutgoing,
   Plus,
-  RotateCcwSquare,
   Trash2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -26,7 +23,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "../../ui/separator";
 import {
   Table,
   TableBody,
@@ -59,9 +55,12 @@ import { generalGetFunction } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
 
 const AgentsList = () => {
-  const [allAgents, setAllAgents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const [allAgents, setAllAgents] = useState([]);
+  const [availableNumbers, setAvailableNumbers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/agent/all");
@@ -73,7 +72,27 @@ const AgentsList = () => {
       }
     }
     getData();
+    fetchAvailableNumbers();
   }, []);
+
+  const fetchAvailableNumbers = async () => {
+    const res = await generalGetFunction("/phonenumber/all");
+    if (res.status) {
+      setAvailableNumbers(res.data);
+    } else {
+      console.error("Failed to fetch available phone numbers");
+    }
+  };
+
+  const finePhoneNumber = (agentId) => {
+    const number = availableNumbers.find(
+      (number) =>
+        number.inbound_agent_id === agentId ||
+        number.outbound_agent_id === agentId
+    );
+
+    return number?.phone_number || "-";
+  };
 
   async function handleEditClick(item) {
     setLoading(true);
@@ -168,6 +187,7 @@ const AgentsList = () => {
               <TableRow className="h-10">
                 <TableHead>Agent Name</TableHead>
                 <TableHead>Agent Type</TableHead>
+                <TableHead>Phone number</TableHead>
                 <TableHead>Language</TableHead>
                 <TableHead>Voice</TableHead>
                 {/* <TableHead>Edited By</TableHead>
@@ -195,6 +215,11 @@ const AgentsList = () => {
                       <TableCell>
                         <Badge variant="secondary">
                           {item.response_engine?.["type"]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {item?.agent_id && finePhoneNumber(item.agent_id)}
                         </Badge>
                       </TableCell>
                       <TableCell className="flex items-center">

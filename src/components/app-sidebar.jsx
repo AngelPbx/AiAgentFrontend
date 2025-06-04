@@ -152,11 +152,11 @@ const data = {
       url: "/agents/list",
       icon: Bot,
     },
-    {
-      name: "Conversations Flow",
-      url: "/agents/conversations-flow",
-      icon: Waypoints,
-    },
+    // {
+    //   name: "Conversations Flow",
+    //   url: "/agents/conversations-flow",
+    //   icon: Waypoints,
+    // },
     {
       name: "Knowledge Base",
       url: "/agents/knowledge-base",
@@ -167,11 +167,11 @@ const data = {
       url: "/agents/squads",
       icon: Users,
     },
-    {
-      name: "Phone Numbers",
-      url: "/agents/phone-numbers",
-      icon: Phone,
-    },
+    // {
+    //   name: "Phone Numbers",
+    //   url: "/agents/phone-numbers",
+    //   icon: Phone,
+    // },
     {
       name: "Number Retell",
       url: "/agents/number-retell",
