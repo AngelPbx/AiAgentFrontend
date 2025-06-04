@@ -10,8 +10,5 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-  },
-  optimizeDeps: {
-    include: ['sortablejs'], // optional, Vite usually does this automatically
-  },
+  }
 });

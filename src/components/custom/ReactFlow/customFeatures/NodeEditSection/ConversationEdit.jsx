@@ -54,7 +54,7 @@ import {
   Users,
 } from "lucide-react";
 import React, { useState } from "react";
-import { ReactSortable } from "react-sortablejs";
+// import { ReactSortable } from "react-sortablejs";
 
 const ConversationEdit = () => {
   const [items, setItems] = useState([
@@ -175,23 +175,21 @@ const ConversationEdit = () => {
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="w-full">
-                        <ReactSortable
+                        {/* <ReactSortable
                           list={items}
                           setList={setItems}
-                          handle=".drag-handle" // Only this part is draggable
+                          handle=".drag-handle" 
                           animation={150}
-                          onEnd={handleOnEnd} // Tracks the new position after moving
+                          onEnd={handleOnEnd} 
                         >
                           {items.map((item) => (
                             <div
                               key={item.id}
                               className="flex items-center mb-4 border p-4 rounded-md"
                             >
-                              {/* Drag Handle */}
                               <span className="drag-handle cursor-grab me-2 p-2">
                                 <Move />
                               </span>
-                              {/* Item Content */}
                               <span className="me-4 text-muted-foreground">
                                 {item.name}
                               </span>
@@ -209,7 +207,7 @@ const ConversationEdit = () => {
                               </Button>
                             </div>
                           ))}
-                        </ReactSortable>
+                        </ReactSortable> */}
                       </div>
                     </CardContent>
                     <CardFooter className={"p-0"}>
@@ -250,7 +248,7 @@ const ConversationEdit = () => {
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="w-full">
-                        <ReactSortable
+                        {/* <ReactSortable
                           list={items}
                           setList={setItems}
                           handle=".drag-handle" // Only this part is draggable
@@ -262,11 +260,10 @@ const ConversationEdit = () => {
                               key={item.id}
                               className="flex items-center mb-4 border p-4 rounded-md"
                             >
-                              {/* Drag Handle */}
                               <span className="drag-handle cursor-grab me-2 p-2">
                                 <Move />
                               </span>
-                              {/* Item Content */}
+                              
                               <span className="me-4 text-muted-foreground">
                                 {item.name}
                               </span>
@@ -284,7 +281,7 @@ const ConversationEdit = () => {
                               </Button>
                             </div>
                           ))}
-                        </ReactSortable>
+                        </ReactSortable> */}
                       </div>
                     </CardContent>
                     {/* <div className={"p-0 "}> */}
