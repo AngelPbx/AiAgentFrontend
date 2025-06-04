@@ -71,19 +71,26 @@ const PhoneNumberRetell = () => {
     const res = await generalGetFunction("/agent/all");
     if (res.status) {
       setAvailableAgents(res.data);
-      setInboundCallAgent(res.data[0]?.agent_id);
-      setOutboundCallAgent(res.data[0]?.agent_id);
+      // setInboundCallAgent(res.data[0]?.agent_id);
+      // setOutboundCallAgent(res.data[0]?.agent_id);
     } else {
       console.error("Failed to fetch available LLMs");
     }
   };
-
   const fetchAvailableNumbers = async () => {
     const res = await generalGetFunction("/phonenumber/all");
     if (res.status) {
       setAvailableNumbers(res.data);
-      setSelectedNumber(res.data[0]?.phone_number);
-      setDefaultName(res.data[0]?.nickname || res.data[0]?.phone_number || "");
+      if (res.data[0]) {
+        const firstNumber = res.data[0];
+        setSelectedNumber(firstNumber.phone_number);
+        setDefaultName(firstNumber.nickname || firstNumber.phone_number || "");
+        setAreaCode(firstNumber.area_code || "");
+        setWebhookUrl(firstNumber.inbound_webhook_url || "");
+        setInboundCallAgent(firstNumber.inbound_agent_id || "");
+        setOutboundCallAgent(firstNumber.outbound_agent_id || "");
+        setNumberProvider(firstNumber.number_provider || "twilio");
+      }
     } else {
       console.error("Failed to fetch available phone numbers");
     }
@@ -92,17 +99,23 @@ const PhoneNumberRetell = () => {
   const selectedAgent = (agentId) => {
     return availableAgents.find((agent) => agent.agent_id === agentId);
   };
-
   const handleCreateNumber = async () => {
     const inboundAgent = selectedAgent(inboundCallAgent);
     const outboundAgent = selectedAgent(outboundCallAgent);
+
+    // Convert area code to integer or null if empty/invalid
+    const parsedAreaCode = areaCode ? parseInt(areaCode, 10) : null;
+    if (areaCode && isNaN(parsedAreaCode)) {
+      toast.error("Area code must be a valid number");
+      return;
+    }
 
     const payload = {
       inbound_agent_id: inboundAgent ? inboundAgent.agent_id : null,
       inbound_agent_name: inboundAgent ? inboundAgent.agent_name : null,
       inbound_agent_version: inboundAgent ? inboundAgent.version : null,
       outbound_agent_id: outboundAgent ? outboundAgent.agent_id : null,
-      area_code: areaCode ? areaCode : null,
+      area_code: parsedAreaCode,
       nickname: defaultName ? defaultName : null,
       inbound_webhook_url: webhookUrl ? webhookUrl : null,
       number_provider: numberProvider ? numberProvider : "twilio",
@@ -130,54 +143,58 @@ const PhoneNumberRetell = () => {
 
     setLoading(false);
   };
-
-  const handleUpdateNumber = async () => {
+  const handleUpdateNumber = async (updatedData = {}) => {
     if (!selectedNumber) {
       toast.error("Please select a phone number to update.");
       return;
     }
 
-    const inboundAgent = selectedAgent(inboundCallAgent);
-    const outboundAgent = selectedAgent(outboundCallAgent);
+    const inboundAgent = selectedAgent(
+      updatedData.inboundCallAgent || inboundCallAgent
+    );
+    const outboundAgent = selectedAgent(
+      updatedData.outboundCallAgent || outboundCallAgent
+    );
+
+    // Prepare the payload with all required fields
+    const newAreaCode = updatedData.areaCode || areaCode;
+    const parsedAreaCode = newAreaCode ? parseInt(newAreaCode, 10) : null;
+    if (newAreaCode && isNaN(parsedAreaCode)) {
+      toast.error("Area code must be a valid number");
+      return;
+    }
 
     const payload = {
       phone_number: selectedNumber,
       inbound_agent_id: inboundAgent ? inboundAgent.agent_id : null,
-      inbound_agent_name: inboundAgent ? inboundAgent.agent_name : null,
-      inbound_agent_version: inboundAgent ? inboundAgent.version : null,
       outbound_agent_id: outboundAgent ? outboundAgent.agent_id : null,
-      area_code: areaCode ? areaCode : null,
-      nickname: defaultName ? defaultName : null,
-      inbound_webhook_url: webhookUrl ? webhookUrl : null,
-      number_provider: numberProvider ? numberProvider : "twilio",
+      inbound_agent_version: inboundAgent ? inboundAgent.version : null,
+      outbound_agent_version: outboundAgent ? outboundAgent.version : null,
+      area_code: parsedAreaCode,
+      nickname: updatedData.defaultName || defaultName || null,
+      inbound_webhook_url: updatedData.webhookUrl || webhookUrl || null,
+      number_provider: updatedData.numberProvider || numberProvider || "twilio",
     };
 
     setLoading(true);
-    const res = await generalPutFunction(
-      `/phonenumber/update/${selectedNumber}`,
-      payload
-    );
-    if (res.status) {
-      setAvailableNumbers(
-        availableNumbers.map((num) =>
-          num.phone_number === selectedNumber ? res.data : num
-        )
+    try {
+      const res = await generalPutFunction(
+        `/phonenumber/update/${selectedNumber}`,
+        payload
       );
-      setDefaultName(res?.data?.nickname || "");
-      setAreaCode("");
-      setWebhookUrl("");
-      setInboundCallAgent("");
-      setOutboundCallAgent("");
-      setNumberProvider("twilio");
-      setShowUrlField(false);
-      // fetchAvailableAgents();
-      // fetchAvailableNumbers();
-      toast.success("Phone number updated successfully!");
-    } else {
-      console.error("Failed to update phone number: ", res);
+      if (res.status) {
+        await Promise.all([fetchAvailableAgents(), fetchAvailableNumbers()]);
+        toast.success("Phone number updated successfully!");
+      } else {
+        console.error("Failed to update phone number: ", res);
+        toast.error("Failed to update phone number. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error updating phone number:", error);
       toast.error("Failed to update phone number. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteNumber = async () => {
@@ -260,13 +277,17 @@ const PhoneNumberRetell = () => {
                         </div>
                       </RadioGroup>
                       <div className="grid w-full max-w-fullitems-center gap-1.5">
-                        <Label htmlFor="area-code">Area Code (Optional)</Label>
+                        <Label htmlFor="area-code">Area Code (Optional)</Label>{" "}
                         <Input
                           type="text"
                           id="area-code"
                           placeholder="e.g. 650"
                           value={areaCode}
-                          onChange={(e) => setAreaCode(e.target.value)}
+                          onChange={(e) => {
+                            // Only allow numbers
+                            const value = e.target.value.replace(/[^0-9]/g, "");
+                            setAreaCode(value);
+                          }}
                         />
                       </div>
                       <div className="flex items-center gap-2 bg-zinc-800 p-3 rounded-md text-muted-foreground">
@@ -311,6 +332,7 @@ const PhoneNumberRetell = () => {
                       }
                     )}
                     onClick={() => {
+                      // Update all state values when selecting a number
                       setSelectedNumber(number?.phone_number);
                       setDefaultName(
                         number?.nickname || number?.phone_number || ""
@@ -320,6 +342,7 @@ const PhoneNumberRetell = () => {
                       setInboundCallAgent(number?.inbound_agent_id || "");
                       setOutboundCallAgent(number?.outbound_agent_id || "");
                       setNumberProvider(number?.number_provider || "twilio");
+                      setShowUrlField(!!number?.inbound_webhook_url);
                     }}
                   >
                     <span>{number?.phone_number}</span>
@@ -336,20 +359,20 @@ const PhoneNumberRetell = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex gap-2 items-center">
+                      {" "}
                       {isEdit ? (
                         <Input
                           className={"w-[300px]"}
-                          defaultValue={defaultName}
+                          value={defaultName}
                           onChange={(e) => setDefaultName(e.target.value)}
                           onBlur={() => {
                             setIsEdit(false);
-                            handleUpdateNumber();
+                            handleUpdateNumber({ defaultName });
                           }}
                         />
                       ) : (
                         <h1 className="text-xl">{defaultName}</h1>
                       )}
-
                       <Button
                         variant={"outline"}
                         size={"icon"}
@@ -383,7 +406,7 @@ const PhoneNumberRetell = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button className="cursor-pointer">
+                    <Button className="cursor-pointer" disabled>
                       <Phone /> Make an outbound call
                     </Button>
                     <Dialog asChild>
@@ -429,12 +452,12 @@ const PhoneNumberRetell = () => {
                 <Separator className="my-2 bg-zinc-500" />
                 <div className="flex flex-col gap-4 max-w-2/4 w-full">
                   <div>
-                    <Label className={"mb-2 "}>Inbound call agent</Label>
+                    <Label className={"mb-2 "}>Inbound call agent</Label>{" "}
                     <Select
                       value={inboundCallAgent}
                       onValueChange={(value) => {
                         setInboundCallAgent(value);
-                        handleUpdateNumber();
+                        handleUpdateNumber({ inboundCallAgent: value });
                       }}
                     >
                       <SelectTrigger className="w-full">
@@ -472,7 +495,7 @@ const PhoneNumberRetell = () => {
                   </div>
                   {showUrlField && (
                     <div className="grid w-full items-center gap-1.5">
-                      <Label htmlFor="url-field">Enter url</Label>
+                      <Label htmlFor="url-field">Enter url</Label>{" "}
                       <Input
                         type="text"
                         id="url-field"
@@ -480,20 +503,18 @@ const PhoneNumberRetell = () => {
                         value={webhookUrl}
                         onChange={(e) => setWebhookUrl(e.target.value)}
                         onBlur={() => {
-                          handleUpdateNumber();
+                          handleUpdateNumber({ webhookUrl });
                         }}
-                        defaultValue={webhookUrl}
                       />
                     </div>
                   )}
                   <div>
-                    <Label className={"mb-2 "}>Outbound call agent</Label>
+                    <Label className={"mb-2 "}>Outbound call agent</Label>{" "}
                     <Select
                       value={outboundCallAgent}
                       onValueChange={(value) => {
-                        console.log("Selected value: ", value);
                         setOutboundCallAgent(value);
-                        handleUpdateNumber();
+                        handleUpdateNumber({ outboundCallAgent: value });
                       }}
                     >
                       <SelectTrigger className="w-full">
