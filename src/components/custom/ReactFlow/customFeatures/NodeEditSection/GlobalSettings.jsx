@@ -175,19 +175,20 @@ const GlobalSettings = ({
   const [loading, setLoading] = useState(false);
 
   // LLm model Functions payload added to the agent
-  const [general_tools, setGeneralTools] = useState(null);
+  const [general_tools, setGeneralTools] = useState([]);
   const [type, setType] = useState();
   const [name, setName] = useState();
   const [description, setDescription] = useState();
   const [transfer_destination, setTransferDestination] = useState({});
-  const [transferType, setTransferType] = useState();
+  const [transferType, setTransferType] = useState("predefined");
   const [transferNumber, setTransferNumber] = useState();
+  const [transferPrompt, setTransferPrompt] = useState("");
   const [transfer_options, setTransferOptions] = useState({});
   const [transferOptionType, setTransferOptionType] = useState();
   const [show_transferee_as_caller, setShowTransfereeAsCaller] =
     useState(false);
   const [public_handoff_option, setPublicHandoffOption] = useState({});
-  const [publicHandoffType, setPublicHandoffOptionType] = useState();
+  const [publicHandoffType, setPublicHandoffOptionType] = useState("prompt");
   const [publicHandOffPrompt, setPublicHandOffPrompt] = useState("");
   const [publicHandOffMessage, setPublicHandOffMessage] = useState("");
   const [cal_api_key, setCalApiKey] = useState();
@@ -289,6 +290,7 @@ const GlobalSettings = ({
         general_prompt: generalPrompt,
         begin_message: beginMessage,
         knowledge_base_ids: llmKnowlwdgeBaseIds,
+        general_tools: general_tools.length > 0 ? general_tools : null,
       };
       const llmData = await generalPostFunction("/llm/store", llmParsedData);
       if (llmData.status) {
@@ -360,6 +362,7 @@ const GlobalSettings = ({
         general_prompt: generalPrompt,
         begin_message: beginMessage,
         knowledge_base_ids: llmKnowlwdgeBaseIds,
+        general_tools: general_tools.length > 0 ? general_tools : null,
       };
       const llmData = await generalPutFunction(
         `/llm/update-llm/${llm_id}`,
@@ -439,7 +442,7 @@ const GlobalSettings = ({
     name: "",
     description: "",
   });
-  const [callTransfer, setCallTransfer] = useState("cold-transfer");
+  const [callTransfer, setCallTransfer] = useState("cold_transfer");
   const [displayNumber, setDisplayNumber] = useState("retell-agents");
   // const [speakDuringExecution, setSpeakDuringExecution] = useState(false);
 
@@ -472,11 +475,14 @@ const GlobalSettings = ({
                     Enable your agent with capabilities such as calendar
                     bookings, call termination, etc.
                   </p>
-                  <div className="flex items-center gap-2 w-full flex-col my-2">
+                  {
+                    general_tools.length > 0 && general_tools.map((item,key)=>{
+                      return(
+                          <div className="flex items-center gap-2 w-full flex-col my-2">
                     <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <PhoneOutgoing className="w-4 h-4" />
-                        <p>transfer_call</p>
+                        <p>{item.type}</p>
                       </div>
                       <div>
                         <Button
@@ -494,13 +500,21 @@ const GlobalSettings = ({
                           className={
                             "cursor-pointer text-red-800 hover:text-red-600"
                           }
+                          onClick={() => {
+                            setGeneralTools((prev) =>
+                              prev.filter((tool,index) => key !== index)
+                            );  
+                          }}
                         >
                           <Trash2 />
                         </Button>
                       </div>
                     </div>
-                    
                   </div>
+                      )
+                    })
+                  }
+                
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant={"outline"} className={"cursor-pointer"}>
@@ -511,8 +525,15 @@ const GlobalSettings = ({
                       <DropdownMenuLabel>Select a type</DropdownMenuLabel>
                       <DropdownMenuGroup>
                         <DropdownMenuItem>
-                          <Dialog>
-                            <DialogTrigger onClick={()=>{setType("end-call");setName(null);setDescription(null);}} asChild>
+                          <Dialog >
+                            <DialogTrigger
+                              onClick={() => {
+                                setType("end-call");
+                                setName(null);
+                                setDescription(null);
+                              }}
+                              asChild
+                            >
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -543,7 +564,7 @@ const GlobalSettings = ({
                                     id="name"
                                     name="name"
                                     value={name}
-                                    onChange={(e)=>setName(e.target.value)}
+                                    onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -559,7 +580,9 @@ const GlobalSettings = ({
                                     name="description"
                                     placeholder="Enter a description"
                                     value={description}
-                                    onChange={(e)=>setDescription(e.target.value)}
+                                    onChange={(e) =>
+                                      setDescription(e.target.value)
+                                    }
                                   />
                                 </div>
                               </div>
@@ -572,31 +595,48 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <Button
-                                  type="submit"
-                                  className={"cursor-pointer"}
-                                  onClick={()=>{
-                                    if(name){
-                                      setGeneralTools((prev) => [
-                                        ...prev,
-                                        {
-                                          type: "end-call",
-                                          name: name,
-                                          description: description,
-                                        }
-                                      ]);
-                                    }
-                                  }}
-                                >
-                                  Save changes
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="submit"
+                                    className={"cursor-pointer"}
+                                    onClick={() => {
+                                      if (name) {
+                                        setGeneralTools((prev) => [
+                                          ...prev,
+                                          {
+                                            type: "end-call",
+                                            name: name,
+                                            description: description,
+                                          },
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    Save changes
+                                  </Button>
+                                </DialogClose>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Dialog>
-                            <DialogTrigger asChild>
+                            <DialogTrigger
+                              asChild
+                              onClick={() => {
+                                setType("transfer_call");
+                                setName(null);
+                                setDescription(null);
+                                setTransferType("predefined");
+                                setTransferNumber("");
+                                setTransferPrompt("");
+                                setCallTransfer("cold_transfer");
+                                setShowTransfereeAsCaller(false);
+                                setPublicHandoffOptionType(null);
+                                setPublicHandOffPrompt("");
+                                setPublicHandOffMessage("");
+                              }}
+                            >
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -626,8 +666,8 @@ const GlobalSettings = ({
                                   <Input
                                     id="name"
                                     name="name"
-                                    value={formData.name}
-                                    onChange={handleInputChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -642,38 +682,49 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter a description"
-                                    value={formData.description}
-                                    onChange={handleInputChange}
+                                    value={description}
+                                    onChange={(e) =>
+                                      setDescription(e.target.value)
+                                    }
                                   />
                                 </div>
 
                                 <div className="grid gap-3">
                                   <Label>Transfer to</Label>
-                                  <Tabs defaultValue="static-number">
+                                  <Tabs
+                                    defaultValue={transferType}
+                                    onValueChange={setTransferType}
+                                  >
                                     <TabsList>
-                                      <TabsTrigger value="static-number">
+                                      <TabsTrigger value="predefined">
                                         Static Number
                                       </TabsTrigger>
-                                      <TabsTrigger value="dynamic-routing">
+                                      <TabsTrigger value="inferred">
                                         Dynamic Routing
                                       </TabsTrigger>
                                     </TabsList>
-                                    <TabsContent value="static-number">
+                                    <TabsContent value="predefined">
                                       <Input
-                                        placeholder="+14154154155"
+                                        placeholder="+1xxxxxxxxxx"
                                         className={"w-full"}
-                                        defaultValue="+14154154155"
+                                        value={transferNumber}
+                                        onChange={(e) =>
+                                          setTransferNumber(e.target.value)
+                                        }
                                       />
                                       <p className="text-xs text-muted-foreground">
                                         Enter a static phone number or dynamic
                                         variable.
                                       </p>
                                     </TabsContent>
-                                    <TabsContent value="dynamic-routing">
+                                    <TabsContent value="inferred">
                                       <Textarea
-                                        placeholder="Enter prompt to infer the destinaton number. Use {{..}} to add variable"
+                                        placeholder="Enter prompt to infer the destinaton number."
                                         className={"w-full min-h-[100px]"}
-                                        defaultValue="If the user wants to reach support, transfer to +1 (925) 222-2222; if the user wants to reach sales, transfer to +1 (925) 333-3333"
+                                        value={transferPrompt}
+                                        onChange={(e) =>
+                                          setTransferPrompt(e.target.value)
+                                        }
                                       />
                                       <p className="text-xs text-muted-foreground">
                                         Use a prompt to handle dynamic call
@@ -691,7 +742,7 @@ const GlobalSettings = ({
                                   >
                                     <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
                                       <Label
-                                        htmlFor="cold-transfr"
+                                        htmlFor="cold_transfer"
                                         className={"flex items-center"}
                                       >
                                         Cold Transfer
@@ -708,14 +759,14 @@ const GlobalSettings = ({
                                         </Tooltip>
                                       </Label>
                                       <RadioGroupItem
-                                        value="cold-transfer"
-                                        id="cold-transfr"
+                                        value="cold_transfer"
+                                        id="cold_transfer"
                                         className={"cursor-pointer"}
                                       />
                                     </div>
                                     <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
                                       <Label
-                                        htmlFor="warm-transfer"
+                                        htmlFor="warm_transfer"
                                         className={"flex items-center"}
                                       >
                                         Warm Transfer
@@ -732,35 +783,22 @@ const GlobalSettings = ({
                                         </Tooltip>
                                       </Label>
                                       <RadioGroupItem
-                                        value="warm-transfer"
-                                        id="warm-transfer"
+                                        value="warm_transfer"
+                                        id="warm_transfer"
                                         className={"cursor-pointer"}
                                       />
                                     </div>
                                   </RadioGroup>
                                 </div>
 
-                                {callTransfer === "cold-transfer" && (
+                                {callTransfer === "cold_transfer" && (
                                   <div className="grid gap-3">
                                     <Label>Displayed Phone Number</Label>
-                                    <RadioGroup
-                                      value={displayNumber}
-                                      onValueChange={setDisplayNumber}
+                                    {/* <RadioGroup
+                                      value={show_transferee_as_caller}
+                                      onValueChange={setShowTransfereeAsCaller}
                                       className={"flex flex-col w-full"}
                                     >
-                                      <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                                        <Label
-                                          htmlFor="retell-agents"
-                                          className={"flex items-center"}
-                                        >
-                                          Retell Agent's Number
-                                        </Label>
-                                        <RadioGroupItem
-                                          value="retell-agents"
-                                          id="retell-agents"
-                                          className={"cursor-pointer"}
-                                        />
-                                      </div>
                                       <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
                                         <Label
                                           htmlFor="transfeer-number"
@@ -788,19 +826,32 @@ const GlobalSettings = ({
                                           className={"cursor-pointer"}
                                         />
                                       </div>
-                                    </RadioGroup>
+                                    </RadioGroup> */}
+                                    <div className="mt-4">
+                                      <p>Show transferee's number</p>
+                                      <Switch
+                                        checked={show_transferee_as_caller}
+                                        onCheckedChange={
+                                          setShowTransfereeAsCaller
+                                        }
+                                        className={"mt-2 cursor-pointer"}
+                                      />
+                                    </div>
                                   </div>
                                 )}
 
-                                {callTransfer === "warm-transfer" && (
+                                {callTransfer === "warm_transfer" && (
                                   <div className="grid gap-3">
                                     <Label>Handoff message</Label>
-                                    <Tabs defaultValue="prompt">
+                                    <Tabs
+                                      value={publicHandoffType}
+                                      onValueChange={setPublicHandoffOptionType}
+                                    >
                                       <TabsList>
                                         <TabsTrigger value="prompt">
                                           Prompt
                                         </TabsTrigger>
-                                        <TabsTrigger value="static-sentence">
+                                        <TabsTrigger value="static_message">
                                           Static Sentence
                                         </TabsTrigger>
                                       </TabsList>
@@ -808,12 +859,24 @@ const GlobalSettings = ({
                                         <Textarea
                                           placeholder="Say hello to the agent and summarize the user problem to him"
                                           className={"min-h-[100px]"}
+                                          value={publicHandOffPrompt}
+                                          onChange={(e) =>
+                                            setPublicHandOffPrompt(
+                                              e.target.value
+                                            )
+                                          }
                                         />
                                       </TabsContent>
-                                      <TabsContent value="static-sentence">
+                                      <TabsContent value="static_message">
                                         <Textarea
                                           placeholder="Enter static message"
                                           className={"w-full min-h-[100px]"}
+                                          value={publicHandOffMessage}
+                                          onChange={(e) =>
+                                            setPublicHandOffMessage(
+                                              e.target.value
+                                            )
+                                          }
                                         />
                                       </TabsContent>
                                     </Tabs>
@@ -829,20 +892,77 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <Button
-                                  type="submit"
-                                  className={"cursor-pointer"}
-                                  disabled
-                                >
-                                  Save changes
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="submit"
+                                    className={"cursor-pointer"}
+                                    onClick={() => {
+                                      if (name) {
+                                        setGeneralTools((prev) => [
+                                          ...prev,
+                                          {
+                                            type: "transfer_call",
+                                            name: name,
+                                            description: description,
+                                            transfer_destination:
+                                              transferType === "predefined"
+                                                ? {
+                                                    type: "predefined",
+                                                    number: transferNumber,
+                                                  }
+                                                : {
+                                                    type: "inferred",
+                                                    prompt: transferPrompt,
+                                                  },
+                                            transfer_option:
+                                              transferOptionType ===
+                                              "cold_transfer"
+                                                ? {
+                                                    type: "cold_transfer",
+                                                    show_transferee_as_caller:
+                                                      show_transferee_as_caller,
+                                                  }
+                                                : {
+                                                    type: "warm_transfer",
+                                                    public_handoff_option:
+                                                      publicHandoffType ===
+                                                      "prompt"
+                                                        ? {
+                                                            type: "prompt",
+                                                            prompt:
+                                                              publicHandOffPrompt,
+                                                          }
+                                                        : {
+                                                            type: "static_message",
+                                                            message:
+                                                              publicHandOffMessage,
+                                                          },
+                                                  },
+                                          },
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    Save changes
+                                  </Button>
+                                </DialogClose>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Dialog>
-                            <DialogTrigger asChild>
+                            <DialogTrigger
+                              asChild
+                              onClick={() => {
+                                setType("check_availability_cal");
+                                setName("");
+                                setDescription("");
+                                setCalApiKey("");
+                                setEventTypeId("");
+                                setTimezone("");
+                              }}
+                            >
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -874,8 +994,8 @@ const GlobalSettings = ({
                                   <Input
                                     id="name"
                                     name="name"
-                                    defaultValue={"check_calendar_availability"}
-                                    // onChange={handleInputChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -890,8 +1010,9 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter a description"
-                                    defaultValue={
-                                      "When users ask for availability, check the calendar and provide available slots."
+                                    value={description}
+                                    onChange={(e) =>
+                                      setDescription(e.target.value)
                                     }
                                     // onChange={handleInputChange}
                                   />
@@ -903,8 +1024,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="api-key"
                                     name="api-key"
-                                    defaultValue={"check_calendar_availability"}
-                                    // onChange={handleInputChange}
+                                    value={cal_api_key}
+                                    onChange={(e) =>
+                                      setCalApiKey(e.target.value)
+                                    }
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -914,7 +1037,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="event-type-id"
                                     name="event-type-id"
-                                    // onChange={handleInputChange}
+                                    value={event_type_id}
+                                    onChange={(e) =>
+                                      setEventTypeId(e.target.value)
+                                    }
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -927,7 +1053,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="timezone"
                                     name="timezone"
-                                    // onChange={handleInputChange}
+                                    value={timezone}
+                                    onChange={(e) =>
+                                      setTimezone(e.target.value)
+                                    }
                                   />
                                 </div>
                               </div>
@@ -940,20 +1069,46 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <Button
-                                  type="submit"
-                                  className={"cursor-pointer"}
-                                  disabled
-                                >
-                                  Save changes
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="submit"
+                                    className={"cursor-pointer"}
+                                    onClick={() => {
+                                      if (name) {
+                                        setGeneralTools((prev) => [
+                                          ...prev,
+                                          {
+                                            type: "check_availability_cal",
+                                            name: name,
+                                            description: description,
+                                            cal_api_key: cal_api_key,
+                                            event_type_id: event_type_id,
+                                            timezone: timezone,
+                                          },
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    Save changes
+                                  </Button>
+                                </DialogClose>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Dialog>
-                            <DialogTrigger asChild>
+                            <DialogTrigger
+                              asChild
+                              onClick={() => {
+                                setType("book_appointment_cal ");
+                                setName("");
+                                setDescription("");
+                                setCalApiKey("");
+                                setEventTypeId("");
+                                setTimezone("");
+                              }}
+                            >
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -985,8 +1140,8 @@ const GlobalSettings = ({
                                   <Input
                                     id="name"
                                     name="name"
-                                    defaultValue={"check_calendar_availability"}
-                                    // onChange={handleInputChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1001,10 +1156,10 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter a description"
-                                    defaultValue={
-                                      "When users ask for availability, check the calendar and provide available slots."
+                                    value={description}
+                                    onChange={(e) =>
+                                      setDescription(e.target.value)
                                     }
-                                    // onChange={handleInputChange}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1014,8 +1169,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="api-key"
                                     name="api-key"
-                                    defaultValue={"check_calendar_availability"}
-                                    // onChange={handleInputChange}
+                                    value={cal_api_key}
+                                    onChange={(e) =>
+                                      setCalApiKey(e.target.value)
+                                    }
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1025,7 +1182,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="event-type-id"
                                     name="event-type-id"
-                                    // onChange={handleInputChange}
+                                    value={event_type_id}
+                                    onChange={(e) =>
+                                      setEventTypeId(e.target.value)
+                                    }
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1038,7 +1198,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="timezone"
                                     name="timezone"
-                                    // onChange={handleInputChange}
+                                    value={timezone}
+                                    onChange={(e) =>
+                                      setTimezone(e.target.value)
+                                    }
                                   />
                                 </div>
                               </div>
@@ -1051,20 +1214,44 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <Button
-                                  type="submit"
-                                  className={"cursor-pointer"}
-                                  disabled
-                                >
-                                  Save changes
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="submit"
+                                    className={"cursor-pointer"}
+                                    onClick={() => {
+                                      if (name) {
+                                        setGeneralTools((prev) => [
+                                          ...prev,
+                                          {
+                                            type: "book_appointment_cal",
+                                            name: name,
+                                            description: description,
+                                            cal_api_key: cal_api_key,
+                                            event_type_id: event_type_id,
+                                            timezone: timezone,
+                                          },
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    Save changes
+                                  </Button>
+                                </DialogClose>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Dialog>
-                            <DialogTrigger asChild>
+                            <DialogTrigger
+                              asChild
+                              onClick={() => {
+                                setType("press_digits");
+                                setName("");
+                                setDescription("");
+                                setDelayMs(1000);
+                              }}
+                            >
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1096,8 +1283,8 @@ const GlobalSettings = ({
                                   <Input
                                     id="name"
                                     name="name"
-                                    defaultName={"press_digit"}
-                                    // onChange={handleInputChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1112,10 +1299,10 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter a description"
-                                    defaultValue={
-                                      "Navigate to the human agent of sales department"
+                                    value={description}
+                                    onChange={(e) =>
+                                      setDescription(e.target.value)
                                     }
-                                    // onChange={handleInputChange}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1143,10 +1330,11 @@ const GlobalSettings = ({
                                       id="paush-detection"
                                       name="paush-detection"
                                       type={"number"}
-                                      placeholder="Enter a description"
-                                      value={1000}
+                                      value={delay_ms}
+                                      onChange={(e) =>
+                                        setDelayMs(e.target.value)
+                                      }
                                       className={"w-3/4"}
-                                      // onChange={handleInputChange}
                                     />
                                     <span>miliseconds</span>
                                   </div>
@@ -1161,18 +1349,32 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <Button
-                                  type="submit"
-                                  className={"cursor-pointer"}
-                                  disabled
-                                >
-                                  Save changes
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="submit"
+                                    className={"cursor-pointer"}
+                                    onClick={(e) => {
+                                      if (name) {
+                                        setGeneralTools((prev) => [
+                                          ...prev,
+                                          {
+                                            type: "press_digits",
+                                            name: name,
+                                            description: description,
+                                            delay_ms: delay_ms,
+                                          },
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    Save changes
+                                  </Button>
+                                </DialogClose>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        {/* <DropdownMenuItem>
                           <Dialog>
                             <DialogTrigger asChild>
                               <span
@@ -1199,7 +1401,6 @@ const GlobalSettings = ({
                                   Send SMS
                                 </DialogTitle>
                               </DialogHeader>
-                              {/* <FunctionItem dialogType={"send-sms"} /> */}
                               <div className="grid gap-4">
                                 <div className="grid gap-3">
                                   <Label htmlFor="name">Name</Label>
@@ -1207,7 +1408,6 @@ const GlobalSettings = ({
                                     id="name"
                                     name="name"
                                     defaultValue={"send_sms"}
-                                    // onChange={handleInputChange}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1222,8 +1422,6 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter a description"
-                                    // defaultValue={formData.description}
-                                    // onChange={handleInputChange}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1271,11 +1469,21 @@ const GlobalSettings = ({
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <Separator />
                         <DropdownMenuItem>
                           <Dialog>
-                            <DialogTrigger asChild>
+                            <DialogTrigger
+                              asChild
+                              onClick={() => {
+                                setType("custom");
+                                setName("");
+                                setDescription("");
+                                setUrl("");
+                                setTimeoutMs(1000);
+                                setParameters("");
+                              }}
+                            >
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1307,8 +1515,8 @@ const GlobalSettings = ({
                                   <Input
                                     id="name"
                                     name="name"
-                                    defaultValue={"custom_function"}
-                                    // onChange={handleInputChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1320,8 +1528,10 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter a description"
-                                    // defaultValue={formData.description}
-                                    // onChange={handleInputChange}
+                                    value={description}
+                                    onChange={(e) =>
+                                      setDescription(e.target.value)
+                                    }
                                   />
                                 </div>
                                 <div className="grid gap-3">
@@ -1330,8 +1540,8 @@ const GlobalSettings = ({
                                     id="your-url"
                                     name="your-url"
                                     placeholder="Enter the url of the custom function"
-                                    // defaultValue={"custom_function"}
-                                    // onChange={handleInputChange}
+                                    value={url}
+                                    onChange={(e) => setUrl(e.target.value)}
                                   />
                                 </div>
                                 <div className=" flex items-center gap-3">
@@ -1340,9 +1550,11 @@ const GlobalSettings = ({
                                     name="paush-detection"
                                     type={"number"}
                                     placeholder="Enter a description"
-                                    value={1000}
+                                    value={timeout_ms}
+                                    onChange={(e) =>
+                                      setTimeoutMs(e.target.value)
+                                    }
                                     className={"w-3/4"}
-                                    // onChange={handleInputChange}
                                   />
                                   <span>miliseconds</span>
                                 </div>
@@ -1358,11 +1570,13 @@ const GlobalSettings = ({
                                     id="description"
                                     name="description"
                                     placeholder="Enter JSON schema here..."
-                                    // defaultValue={formData.description}
-                                    // onChange={handleInputChange}
+                                    value={parameters}
+                                    onChange={(e) =>
+                                      setParameters(e.target.value)
+                                    }
                                   />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3 w-2/5">
+                                {/* <div className="grid grid-cols-3 gap-3 w-2/5">
                                   <Button
                                     size={"sm"}
                                     className={"cursor-pointer w-20"}
@@ -1381,7 +1595,7 @@ const GlobalSettings = ({
                                   >
                                     Example 3
                                   </Button>
-                                </div>
+                                </div> */}
                                 <div className="grid gap-3">
                                   <Button className={"cursor-pointer w-full"}>
                                     Format JSON
@@ -1410,12 +1624,28 @@ const GlobalSettings = ({
                                     </div>
                                   </div>
                                   {speak_during_execution && (
-                                    <Input placeholder="Enter the execution message description" />
+                                    <Input
+                                      placeholder="Enter the execution message description"
+                                      value={execution_message_description}
+                                      onChange={(e) =>
+                                        setExecutionMessageDescription(
+                                          e.target.value
+                                        )
+                                      }
+                                    />
                                   )}
                                 </div>
                                 <div className="grid gap-3">
                                   <div className="flex items-start gap-3">
-                                    <Checkbox id="terms-2" defaultChecked />
+                                    <Checkbox
+                                      id="terms-2"
+                                      checked={speak_after_execution}
+                                      onClick={() =>
+                                        setSpeakAfterExecution(
+                                          !speak_after_execution
+                                        )
+                                      }
+                                    />
                                     <div className="grid gap-2">
                                       <Label htmlFor="terms-2">
                                         Speak After Execution
@@ -1438,13 +1668,35 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <Button
-                                  type="submit"
-                                  className={"cursor-pointer"}
-                                  disabled
-                                >
-                                  Save changes
-                                </Button>
+                                <DialogClose asChild>
+                                  <Button
+                                    type="submit"
+                                    className={"cursor-pointer"}
+                                    onClick={() => {
+                                      if (name) {
+                                        setGeneralTools((prev) => [
+                                          ...prev,
+                                          {
+                                            type: "custom",
+                                            name: name,
+                                            description: description,
+                                            url: url,
+                                            timeout_ms: timeout_ms,
+                                            speak_during_execution:
+                                              speak_during_execution,
+                                            execution_message_description:
+                                              execution_message_description,
+                                            speak_after_execution:
+                                              speak_after_execution,
+                                            parameters: parameters,
+                                          },
+                                        ]);
+                                      }
+                                    }}
+                                  >
+                                    Save changes
+                                  </Button>
+                                </DialogClose>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
