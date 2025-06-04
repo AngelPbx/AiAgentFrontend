@@ -66,13 +66,14 @@ const PhoneNumberRetell = () => {
     fetchAvailableAgents();
     fetchAvailableNumbers();
   }, []);
+  console.log("inboundcallAgent: ", inboundCallAgent);
 
   const fetchAvailableAgents = async () => {
     const res = await generalGetFunction("/agent/all");
     if (res.status) {
       setAvailableAgents(res.data);
-      setInboundCallAgent(res.data[0]?.agent_id);
-      setOutboundCallAgent(res.data[0]?.agent_id);
+      // setInboundCallAgent(res.data[0]?.agent_id);
+      // setOutboundCallAgent(res.data[0]?.agent_id);
     } else {
       console.error("Failed to fetch available LLMs");
     }
@@ -151,32 +152,33 @@ const PhoneNumberRetell = () => {
       inbound_webhook_url: webhookUrl ? webhookUrl : null,
       number_provider: numberProvider ? numberProvider : "twilio",
     };
+    console.log("put payload: ", payload);
 
-    setLoading(true);
-    const res = await generalPutFunction(
-      `/phonenumber/update/${selectedNumber}`,
-      payload
-    );
-    if (res.status) {
-      setAvailableNumbers(
-        availableNumbers.map((num) =>
-          num.phone_number === selectedNumber ? res.data : num
-        )
-      );
-      setDefaultName(res?.data?.nickname || "");
-      setAreaCode("");
-      setWebhookUrl("");
-      setInboundCallAgent("");
-      setOutboundCallAgent("");
-      setNumberProvider("twilio");
-      setShowUrlField(false);
-      // fetchAvailableAgents();
-      // fetchAvailableNumbers();
-      toast.success("Phone number updated successfully!");
-    } else {
-      console.error("Failed to update phone number: ", res);
-      toast.error("Failed to update phone number. Please try again.");
-    }
+    // setLoading(true);
+    // const res = await generalPutFunction(
+    //   `/phonenumber/update/${selectedNumber}`,
+    //   payload
+    // );
+    // if (res.status) {
+    //   setAvailableNumbers(
+    //     availableNumbers.map((num) =>
+    //       num.phone_number === selectedNumber ? res.data : num
+    //     )
+    //   );
+    //   setDefaultName(res?.data?.nickname || "");
+    //   setAreaCode("");
+    //   setWebhookUrl("");
+    //   setInboundCallAgent("");
+    //   setOutboundCallAgent("");
+    //   setNumberProvider("twilio");
+    //   setShowUrlField(false);
+    //   // fetchAvailableAgents();
+    //   // fetchAvailableNumbers();
+    //   toast.success("Phone number updated successfully!");
+    // } else {
+    //   console.error("Failed to update phone number: ", res);
+    //   toast.error("Failed to update phone number. Please try again.");
+    // }
     setLoading(false);
   };
 
@@ -383,7 +385,7 @@ const PhoneNumberRetell = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button className="cursor-pointer">
+                    <Button className="cursor-pointer" disabled>
                       <Phone /> Make an outbound call
                     </Button>
                     <Dialog asChild>
