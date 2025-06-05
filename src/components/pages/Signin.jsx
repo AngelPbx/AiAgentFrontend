@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form";
 import RequiredIndicator from "../commonComponents/RequiredIndicator";
 import { requiredValidator } from "@/validation/valication";
 import ErrorMessage from "../commonComponents/ErrorMessage";
-import { generalPostFunction } from "@/globalFunctions/globalFunction";
+import { pythonPostFunction } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
 
 const Signin = () => {
@@ -38,9 +38,10 @@ const Signin = () => {
     };
 
     try {
-      const res = await generalPostFunction("/login", payload);
+      const res = await pythonPostFunction("https://localhost:8000/login", payload);
       if (res.status) {
-        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("token", res.data.retall_api_key);
+        localStorage.setItem("auth", res.data.token);
         setIsLoading(false);
         toast.success("User logged in successfully!");
         navigate("/agents/list");

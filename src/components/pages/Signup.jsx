@@ -23,8 +23,7 @@ import {
   passwordValidator,
 } from "@/validation/valication";
 import RequiredIndicator from "../commonComponents/RequiredIndicator";
-import { generalPostFunction } from "@/globalFunctions/globalFunction";
-import { Toaster } from "../ui/sonner";
+import {  pythonPostFunction } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
 import UsernameAvailable from "../commonComponents/UsernameAvailable";
 
@@ -58,7 +57,7 @@ const Signup = () => {
 
     const payload = { username };
     try {
-      const res = await generalPostFunction("/check-username", payload);
+      const res = await pythonPostFunction("https://localhost:8000/check-username", payload);
       return res.status;
     } catch (error) {
       console.error("Error checking username:", error);
@@ -76,7 +75,7 @@ const Signup = () => {
     };
 
     try {
-      const res = await generalPostFunction("/signup", payload);
+      const res = await pythonPostFunction("https://localhost:8000/signup", payload);
       if (res.status) {
         setIsLoading(false);
         toast.success(res?.message || "User created successfully!");

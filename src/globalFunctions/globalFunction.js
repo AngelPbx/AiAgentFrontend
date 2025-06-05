@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const apiBaseUrl = "https://ai.webvio.in/backend/backend";
-const token = "key_fefba4090316b557a67e930307bf"
+// const token = "key_fefba4090316b557a67e930307bf"
+const token = localStorage.getItem("token");
 // const apiBaseUrl = process.env.BACKEND_BASE_URL;
 
 const axiosInstance = axios.create({
@@ -11,6 +12,17 @@ const axiosInstance = axios.create({
     "Authorization": `Bearer ${token}`,
   },
 });
+
+// python POST method
+export const pythonPostFunction = async(endpoint, data) =>{
+  try {
+    const response = await axios.post(endpoint, data);
+    return response.data;
+  } catch (error) {
+    // console.error("Error: ", error);
+    return error.response.data;
+  }
+}
 
 // General Get function
 export const generalGetFunction = async (endpoint) => {
