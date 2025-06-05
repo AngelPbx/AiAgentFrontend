@@ -178,7 +178,7 @@ const GlobalSettings = ({
   const [general_tools, setGeneralTools] = useState([]);
   const [type, setType] = useState();
   const [name, setName] = useState();
-  const [description, setDescription] = useState();
+  const [description, setDescription] = useState("");
   const [transfer_destination, setTransferDestination] = useState({});
   const [transferType, setTransferType] = useState("predefined");
   const [transferNumber, setTransferNumber] = useState();
@@ -198,7 +198,7 @@ const GlobalSettings = ({
   const [url, setUrl] = useState();
   const [speak_during_execution, setSpeakDuringExecution] = useState(true);
   const [speak_after_execution, setSpeakAfterExecution] = useState(true);
-  const [parameters, setParameters] = useState({});
+  const [parameters, setParameters] = useState();
   const [execution_message_description, setExecutionMessageDescription] =
     useState();
   const [customTimeoutMs, setCustomTimeoutMs] = useState(120000);
@@ -277,6 +277,7 @@ const GlobalSettings = ({
       setGeneralPrompt(llmData.general_prompt);
       setBeginMessage(llmData.begin_message);
       setLlmKnowlwdgeBaseIds(llmData.knowledge_base_ids || []);
+      setGeneralTools(llmData.general_tools || []);
     }
   }, [agentData, newAgent]);
 
@@ -438,7 +439,7 @@ const GlobalSettings = ({
     }
   }, [saveClicked]);
   const [formData, setFormData] = useState({
-    // name: dialogType === "end-call" ? "end_call" : "",
+    // name: dialogType === "end_call" ? "end_call" : "",
     name: "",
     description: "",
   });
@@ -454,6 +455,9 @@ const GlobalSettings = ({
     }));
   };
 
+  const [openTrigger, setOpenTrigger] = useState(null);
+  const [editableKey, setEditableKey] = useState(null);
+  const [jsonError, setJsonError] = useState(null); // just for error feedback
   console.log("General Tools: ", general_tools);
   return (
     <>
@@ -475,49 +479,154 @@ const GlobalSettings = ({
                     Enable your agent with capabilities such as calendar
                     bookings, call termination, etc.
                   </p>
-                  {
-                    general_tools.length > 0 && general_tools.map((item,key)=>{
-                      return(
-                          <div className="flex items-center gap-2 w-full flex-col my-2">
-                    <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <PhoneOutgoing className="w-4 h-4" />
-                        <p>{item.type}</p>
-                      </div>
-                      <div>
-                        <Button
-                          variant={"ghost"}
-                          size="icon"
-                          className={
-                            "cursor-pointer text-green-800 hover:text-green-600"
-                          }
-                        >
-                          <SquarePen />
-                        </Button>
-                        <Button
-                          variant={"ghost"}
-                          size="icon"
-                          className={
-                            "cursor-pointer text-red-800 hover:text-red-600"
-                          }
-                          onClick={() => {
-                            setGeneralTools((prev) =>
-                              prev.filter((tool,index) => key !== index)
-                            );  
-                          }}
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                      )
-                    })
-                  }
-                
-                  <DropdownMenu>
+                  {general_tools.length > 0 &&
+                    general_tools.map((item, key) => {
+                      return (
+                        <div className="flex items-center gap-2 w-full flex-col my-2">
+                          <div className="flex items-center justify-between bg-zinc-800 px-2 py-1 rounded-md w-full">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <PhoneOutgoing className="w-4 h-4" />
+                              <p>{item.type}</p>
+                            </div>
+                            <div>
+                              <Button
+                                variant={"ghost"}
+                                size="icon"
+                                className={
+                                  "cursor-pointer text-green-800 hover:text-green-600"
+                                }
+                                onClick={() => {
+                                  setOpenTrigger(item.type);
+                                  setEditableKey(key);
+                                  if (item.type === "end_call") {
+                                    setType("end_call");
+                                    setName(item.name);
+                                    setDescription(item.description);
+                                  } else if (item.type === "transfer_call") {
+                                    setType("transfer_call");
+                                    setName(item.name);
+                                    setDescription(item.description);
+                                    if (
+                                      item.transfer_destination.type ===
+                                      "inferred"
+                                    ) {
+                                      setTransferType("inferred");
+                                      setTransferPrompt(
+                                        item.transfer_destination.prompt
+                                      );
+                                    } else {
+                                      setTransferType("predefined");
+                                      setTransferNumber(
+                                        item.transfer_destination.number
+                                      );
+                                    }
+                                    if (
+                                      item.transfer_option.type ===
+                                      "cold_transfer"
+                                    ) {
+                                      setTransferOptionType("cold_transfer");
+                                      setShowTransfereeAsCaller(
+                                        item.transfer_option
+                                          .show_transferee_as_caller
+                                      );
+                                    } else {
+                                      setTransferOptionType("warm_transfer");
+                                      if (
+                                        item.transfer_option
+                                          .public_handoff_option.type ===
+                                        "prompt"
+                                      ) {
+                                        setPublicHandoffOptionType("prompt");
+                                        setPublicHandOffPrompt(
+                                          item.transfer_option
+                                            .public_handoff_option.prompt
+                                        );
+                                      } else {
+                                        setPublicHandoffOptionType(
+                                          "static_message"
+                                        );
+                                        setPublicHandOffMessage(
+                                          item.transfer_option
+                                            .public_handoff_option.message
+                                        );
+                                      }
+                                    }
+                                  } else if (
+                                    item.type === "check_availability_cal"
+                                  ) {
+                                    setType("check_availability_cal");
+                                    setName(item.name);
+                                    setDescription(item.description);
+                                    setCalApiKey(item.cal_api_key);
+                                    setEventTypeId(Number(item.event_type_id));
+                                    setTimezone(item.timezone);
+                                  } else if (
+                                    item.type === "book_appointment_cal"
+                                  ) {
+                                    setType("book_appointment_cal");
+                                    setName(item.name);
+                                    setDescription(item.description);
+                                    setCalApiKey(item.cal_api_key);
+                                    setEventTypeId(Number(item.event_type_id));
+                                    setTimezone(item.timezone);
+                                  } else if (item.type === "press_digit") {
+                                    setType("press_digit");
+                                    setName(item.name);
+                                    setDescription(item.description);
+                                    setDelayMs(item.delay_ms);
+                                  } else if (item.type === "custom") {
+                                    setType("custom");
+                                    setName(item.name);
+                                    setDescription(item.description);
+                                    setUrl(item.url);
+                                    setSpeakDuringExecution(
+                                      item.speak_during_execution
+                                    );
+                                    setSpeakAfterExecution(
+                                      item.speak_after_execution
+                                    );
+                                    setParameters(JSON.stringify(item.parameters) || {});
+                                    setExecutionMessageDescription(
+                                      item.execution_message_description
+                                    );
+                                    setCustomTimeoutMs(item.custom_timeout_ms);
+                                  }
+                                }}
+                              >
+                                <SquarePen />
+                              </Button>
+                              <Button
+                                variant={"ghost"}
+                                size="icon"
+                                className={
+                                  "cursor-pointer text-red-800 hover:text-red-600"
+                                }
+                                onClick={() => {
+                                  setGeneralTools((prev) =>
+                                    prev.filter((tool, index) => key !== index)
+                                  );
+                                }}
+                              >
+                                <Trash2 />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  <DropdownMenu
+                    {...(openTrigger != null ? { open: openTrigger } : {})}
+                  >
                     <DropdownMenuTrigger asChild>
-                      <Button variant={"outline"} className={"cursor-pointer"}>
+                      <Button
+                        variant={"outline"}
+                        className={"cursor-pointer"}
+                        onClick={() => {
+                          setOpenTrigger("test");
+                          setEditableKey(null);
+                        }}
+                      >
                         <Plus /> Add
                       </Button>
                     </DropdownMenuTrigger>
@@ -525,12 +634,17 @@ const GlobalSettings = ({
                       <DropdownMenuLabel>Select a type</DropdownMenuLabel>
                       <DropdownMenuGroup>
                         <DropdownMenuItem>
-                          <Dialog >
+                          <Dialog
+                            {...(openTrigger != null
+                              ? { open: openTrigger === "end_call" }
+                              : {})}
+                          >
                             <DialogTrigger
                               onClick={() => {
-                                setType("end-call");
+                                setType("end_call");
                                 setName(null);
-                                setDescription(null);
+                                setDescription("");
+                                setEditableKey(null);
                               }}
                               asChild
                             >
@@ -556,7 +670,7 @@ const GlobalSettings = ({
                                   <PhoneOff /> End call
                                 </DialogTitle>
                               </DialogHeader>
-                              {/* <FunctionItem dialogType={"end-call"} /> */}
+                              {/* <FunctionItem dialogType={"end_call"} /> */}
                               <div className="grid gap-4">
                                 <div className="grid gap-3">
                                   <Label htmlFor="name">Name</Label>
@@ -587,7 +701,10 @@ const GlobalSettings = ({
                                 </div>
                               </div>
                               <DialogFooter>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     variant="outline"
                                     className={"cursor-pointer"}
@@ -595,20 +712,40 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     type="submit"
                                     className={"cursor-pointer"}
                                     onClick={() => {
+                                      setOpenTrigger(null);
+                                      console.log(editableKey);
                                       if (name) {
-                                        setGeneralTools((prev) => [
-                                          ...prev,
-                                          {
-                                            type: "end-call",
-                                            name: name,
-                                            description: description,
-                                          },
-                                        ]);
+                                        setGeneralTools((prev) => {
+                                          if (
+                                            editableKey !== null &&
+                                            editableKey !== undefined
+                                          ) {
+                                            // Update existing item
+                                            return prev.map((tool, index) =>
+                                              index === editableKey
+                                                ? { ...tool, name, description }
+                                                : tool
+                                            );
+                                          } else {
+                                            // Add new item
+                                            return [
+                                              ...prev,
+                                              {
+                                                type: "end_call",
+                                                name,
+                                                description,
+                                              },
+                                            ];
+                                          }
+                                        });
                                       }
                                     }}
                                   >
@@ -620,13 +757,17 @@ const GlobalSettings = ({
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Dialog>
+                          <Dialog
+                            {...(openTrigger != null
+                              ? { open: openTrigger === "transfer_call" }
+                              : {})}
+                          >
                             <DialogTrigger
                               asChild
                               onClick={() => {
                                 setType("transfer_call");
                                 setName(null);
-                                setDescription(null);
+                                setDescription("");
                                 setTransferType("predefined");
                                 setTransferNumber("");
                                 setTransferPrompt("");
@@ -635,6 +776,7 @@ const GlobalSettings = ({
                                 setPublicHandoffOptionType(null);
                                 setPublicHandOffPrompt("");
                                 setPublicHandOffMessage("");
+                                setEditableKey(null);
                               }}
                             >
                               <span
@@ -651,6 +793,7 @@ const GlobalSettings = ({
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}
+                              setOpenTrigger={setOpenTrigger}
                             >
                               <DialogHeader>
                                 <DialogTitle
@@ -884,7 +1027,12 @@ const GlobalSettings = ({
                                 )}
                               </div>
                               <DialogFooter>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => {
+                                    setOpenTrigger(null);
+                                  }}
+                                  asChild
+                                >
                                   <Button
                                     variant="outline"
                                     className={"cursor-pointer"}
@@ -897,10 +1045,10 @@ const GlobalSettings = ({
                                     type="submit"
                                     className={"cursor-pointer"}
                                     onClick={() => {
+                                      setOpenTrigger(null);
                                       if (name) {
-                                        setGeneralTools((prev) => [
-                                          ...prev,
-                                          {
+                                        setGeneralTools((prev) => {
+                                          const newTool = {
                                             type: "transfer_call",
                                             name: name,
                                             description: description,
@@ -938,8 +1086,23 @@ const GlobalSettings = ({
                                                               publicHandOffMessage,
                                                           },
                                                   },
-                                          },
-                                        ]);
+                                          };
+
+                                          if (
+                                            editableKey !== null &&
+                                            editableKey !== undefined
+                                          ) {
+                                            // Update existing item
+                                            return prev.map((tool, index) =>
+                                              index === editableKey
+                                                ? { ...tool, ...newTool }
+                                                : tool
+                                            );
+                                          } else {
+                                            // Add new item
+                                            return [...prev, newTool];
+                                          }
+                                        });
                                       }
                                     }}
                                   >
@@ -951,7 +1114,14 @@ const GlobalSettings = ({
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Dialog>
+                          <Dialog
+                            {...(openTrigger != null
+                              ? {
+                                  open:
+                                    openTrigger === "check_availability_cal",
+                                }
+                              : {})}
+                          >
                             <DialogTrigger
                               asChild
                               onClick={() => {
@@ -959,8 +1129,9 @@ const GlobalSettings = ({
                                 setName("");
                                 setDescription("");
                                 setCalApiKey("");
-                                setEventTypeId("");
+                                setEventTypeId();
                                 setTimezone("");
+                                setEditableKey(null);
                               }}
                             >
                               <span
@@ -1036,10 +1207,11 @@ const GlobalSettings = ({
                                   </Label>
                                   <Input
                                     id="event-type-id"
+                                    type={"number"}
                                     name="event-type-id"
                                     value={event_type_id}
                                     onChange={(e) =>
-                                      setEventTypeId(e.target.value)
+                                      setEventTypeId(Number(e.target.value))
                                     }
                                   />
                                 </div>
@@ -1061,7 +1233,10 @@ const GlobalSettings = ({
                                 </div>
                               </div>
                               <DialogFooter>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     variant="outline"
                                     className={"cursor-pointer"}
@@ -1069,23 +1244,40 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     type="submit"
                                     className={"cursor-pointer"}
                                     onClick={() => {
                                       if (name) {
-                                        setGeneralTools((prev) => [
-                                          ...prev,
-                                          {
+                                        setGeneralTools((prev) => {
+                                          const newTool = {
                                             type: "check_availability_cal",
-                                            name: name,
-                                            description: description,
-                                            cal_api_key: cal_api_key,
-                                            event_type_id: event_type_id,
-                                            timezone: timezone,
-                                          },
-                                        ]);
+                                            name,
+                                            description,
+                                            cal_api_key,
+                                            event_type_id,
+                                            timezone,
+                                          };
+
+                                          if (
+                                            editableKey !== null &&
+                                            editableKey !== undefined
+                                          ) {
+                                            // Update existing item
+                                            return prev.map((tool, index) =>
+                                              index === editableKey
+                                                ? { ...tool, ...newTool }
+                                                : tool
+                                            );
+                                          } else {
+                                            // Add new item
+                                            return [...prev, newTool];
+                                          }
+                                        });
                                       }
                                     }}
                                   >
@@ -1097,7 +1289,11 @@ const GlobalSettings = ({
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Dialog>
+                          <Dialog
+                            {...(openTrigger != null
+                              ? { open: openTrigger === "book_appointment_cal" }
+                              : {})}
+                          >
                             <DialogTrigger
                               asChild
                               onClick={() => {
@@ -1105,8 +1301,9 @@ const GlobalSettings = ({
                                 setName("");
                                 setDescription("");
                                 setCalApiKey("");
-                                setEventTypeId("");
+                                setEventTypeId();
                                 setTimezone("");
+                                setEditableKey(null);
                               }}
                             >
                               <span
@@ -1182,9 +1379,10 @@ const GlobalSettings = ({
                                   <Input
                                     id="event-type-id"
                                     name="event-type-id"
+                                    type={"number"}
                                     value={event_type_id}
                                     onChange={(e) =>
-                                      setEventTypeId(e.target.value)
+                                      setEventTypeId(Number(e.target.value))
                                     }
                                   />
                                 </div>
@@ -1206,7 +1404,10 @@ const GlobalSettings = ({
                                 </div>
                               </div>
                               <DialogFooter>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     variant="outline"
                                     className={"cursor-pointer"}
@@ -1214,23 +1415,40 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     type="submit"
                                     className={"cursor-pointer"}
                                     onClick={() => {
                                       if (name) {
-                                        setGeneralTools((prev) => [
-                                          ...prev,
-                                          {
+                                        setGeneralTools((prev) => {
+                                          const newTool = {
                                             type: "book_appointment_cal",
-                                            name: name,
-                                            description: description,
-                                            cal_api_key: cal_api_key,
-                                            event_type_id: event_type_id,
-                                            timezone: timezone,
-                                          },
-                                        ]);
+                                            name,
+                                            description,
+                                            cal_api_key,
+                                            event_type_id,
+                                            timezone,
+                                          };
+
+                                          if (
+                                            editableKey !== null &&
+                                            editableKey !== undefined
+                                          ) {
+                                            // Update existing item
+                                            return prev.map((tool, index) =>
+                                              index === editableKey
+                                                ? { ...tool, ...newTool }
+                                                : tool
+                                            );
+                                          } else {
+                                            // Add new item
+                                            return [...prev, newTool];
+                                          }
+                                        });
                                       }
                                     }}
                                   >
@@ -1242,14 +1460,19 @@ const GlobalSettings = ({
                           </Dialog>
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          <Dialog>
+                          <Dialog
+                            {...(openTrigger != null
+                              ? { open: openTrigger === "press_digit" }
+                              : {})}
+                          >
                             <DialogTrigger
                               asChild
                               onClick={() => {
-                                setType("press_digits");
+                                setType("press_digit");
                                 setName("");
                                 setDescription("");
                                 setDelayMs(1000);
+                                setEditableKey(null);
                               }}
                             >
                               <span
@@ -1341,7 +1564,10 @@ const GlobalSettings = ({
                                 </div>
                               </div>
                               <DialogFooter>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     variant="outline"
                                     className={"cursor-pointer"}
@@ -1349,21 +1575,38 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     type="submit"
                                     className={"cursor-pointer"}
                                     onClick={(e) => {
                                       if (name) {
-                                        setGeneralTools((prev) => [
-                                          ...prev,
-                                          {
-                                            type: "press_digits",
-                                            name: name,
-                                            description: description,
-                                            delay_ms: delay_ms,
-                                          },
-                                        ]);
+                                        setGeneralTools((prev) => {
+                                          const newTool = {
+                                            type: "press_digit",
+                                            name,
+                                            description,
+                                            delay_ms,
+                                          };
+
+                                          if (
+                                            editableKey !== null &&
+                                            editableKey !== undefined
+                                          ) {
+                                            // Update existing item
+                                            return prev.map((tool, index) =>
+                                              index === editableKey
+                                                ? { ...tool, ...newTool }
+                                                : tool
+                                            );
+                                          } else {
+                                            // Add new item
+                                            return [...prev, newTool];
+                                          }
+                                        });
                                       }
                                     }}
                                   >
@@ -1472,7 +1715,11 @@ const GlobalSettings = ({
                         </DropdownMenuItem> */}
                         <Separator />
                         <DropdownMenuItem>
-                          <Dialog>
+                          <Dialog
+                            {...(openTrigger != null
+                              ? { open: openTrigger === "custom" }
+                              : {})}
+                          >
                             <DialogTrigger
                               asChild
                               onClick={() => {
@@ -1481,7 +1728,8 @@ const GlobalSettings = ({
                                 setDescription("");
                                 setUrl("");
                                 setTimeoutMs(1000);
-                                setParameters("");
+                                setParameters();
+                                setEditableKey(null);
                               }}
                             >
                               <span
@@ -1571,10 +1819,24 @@ const GlobalSettings = ({
                                     name="description"
                                     placeholder="Enter JSON schema here..."
                                     value={parameters}
-                                    onChange={(e) =>
-                                      setParameters(e.target.value)
-                                    }
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      setParameters(value);
+
+                                      try {
+                                        JSON.parse(value); // Just validate it
+                                        console.log(JSON.parse(value));
+                                        setJsonError(null);
+                                      } catch (err) {
+                                        setJsonError("Invalid JSON");
+                                      }
+                                    }}
                                   />
+                                  {jsonError && (
+                                    <p className="text-red-500 text-sm mt-1">
+                                      {jsonError}
+                                    </p>
+                                  )}
                                 </div>
                                 {/* <div className="grid grid-cols-3 gap-3 w-2/5">
                                   <Button
@@ -1596,11 +1858,11 @@ const GlobalSettings = ({
                                     Example 3
                                   </Button>
                                 </div> */}
-                                <div className="grid gap-3">
+                                {/* <div className="grid gap-3">
                                   <Button className={"cursor-pointer w-full"}>
                                     Format JSON
                                   </Button>
-                                </div>
+                                </div> */}
                                 <div className="grid grid-cols-1 gap-3">
                                   <div className="flex items-start gap-3">
                                     <Checkbox
@@ -1660,7 +1922,10 @@ const GlobalSettings = ({
                                 </div>
                               </div>
                               <DialogFooter>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     variant="outline"
                                     className={"cursor-pointer"}
@@ -1668,29 +1933,43 @@ const GlobalSettings = ({
                                     Cancel
                                   </Button>
                                 </DialogClose>
-                                <DialogClose asChild>
+                                <DialogClose
+                                  onClick={() => setOpenTrigger(null)}
+                                  asChild
+                                >
                                   <Button
                                     type="submit"
                                     className={"cursor-pointer"}
                                     onClick={() => {
                                       if (name) {
-                                        setGeneralTools((prev) => [
-                                          ...prev,
-                                          {
+                                        setGeneralTools((prev) => {
+                                          const newTool = {
                                             type: "custom",
-                                            name: name,
-                                            description: description,
-                                            url: url,
-                                            timeout_ms: timeout_ms,
-                                            speak_during_execution:
-                                              speak_during_execution,
-                                            execution_message_description:
-                                              execution_message_description,
-                                            speak_after_execution:
-                                              speak_after_execution,
-                                            parameters: parameters,
-                                          },
-                                        ]);
+                                            name,
+                                            description,
+                                            url,
+                                            timeout_ms,
+                                            speak_during_execution,
+                                            execution_message_description,
+                                            speak_after_execution,
+                                            parameters:!jsonError?JSON.parse(parameters):{},
+                                          };
+
+                                          if (
+                                            editableKey !== null &&
+                                            editableKey !== undefined
+                                          ) {
+                                            // Update existing item
+                                            return prev.map((tool, index) =>
+                                              index === editableKey
+                                                ? { ...tool, ...newTool }
+                                                : tool
+                                            );
+                                          } else {
+                                            // Add new item
+                                            return [...prev, newTool];
+                                          }
+                                        });
                                       }
                                     }}
                                   >
