@@ -182,7 +182,7 @@ const CallHistory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {calls.map((call, index) => (
+                {calls?.map((call, index) => (
                   <TableRow
                     onClick={() => setSelectedCall(call)}
                     key={index}
@@ -414,7 +414,7 @@ const CallHistory = () => {
                   <div class="pt-5 text-xs font-normal text-gray-500">
                     Custom
                   </div>
-                  {selectedCall?.transcript_object.map((item, index) => {
+                  {selectedCall?.transcript_object?.map((item, index) => {
                     return (
                       <div
                         key={index}

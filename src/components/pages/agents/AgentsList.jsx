@@ -53,6 +53,7 @@ import {
 import { useDispatch } from "react-redux";
 import { generalGetFunction } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
+import Loading from "@/components/commonComponents/Loading";
 
 const AgentsList = () => {
   const navigate = useNavigate();
@@ -113,6 +114,10 @@ const AgentsList = () => {
         });
       }
     }
+  }
+
+  if (loading) {
+    return <Loading />;
   }
   return (
     <>
@@ -196,10 +201,7 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <Loader />
-              ) : (
-                <>
+              
                   {allAgents.map((item) => (
                     <TableRow
                       key={item.agent_id}
@@ -281,8 +283,7 @@ const AgentsList = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                </>
-              )}
+              
             </TableBody>
           </Table>
         </div>
