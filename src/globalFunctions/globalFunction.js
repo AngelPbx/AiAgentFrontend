@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// const apiBaseUrl = "https://ai.webvio.in/backend/backend";
-const apiBaseUrl = "http://localhost:8000/backend";
-const token = "key_fefba4090316b557a67e930307bf"
+const apiBaseUrl = "https://ai.webvio.in/backend/backend";
+// const apiBaseUrl = "http://localhost:8000/backend";
+const token = "key_f3f8d64a285120a16182f6add20d"
 // const apiBaseUrl = process.env.BACKEND_BASE_URL;
 
 const axiosInstance = axios.create({
