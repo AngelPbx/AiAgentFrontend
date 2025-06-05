@@ -173,8 +173,8 @@ const data = {
     //   icon: Phone,
     // },
     {
-      name: "Number Retell",
-      url: "/agents/number-retell",
+      name: "Number",
+      url: "/agents/number",
       icon: PhoneCall,
     },
     {

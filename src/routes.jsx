@@ -33,7 +33,7 @@ export function AppRoutes() {
           <Route path="knowledge-base" element={<KnowledgeBase />} />
           <Route path="squads" element={<Squads />} />
           <Route path="phone-numbers" element={<PhoneNumber />} />
-          <Route path="number-retell" element={<PhoneNumberRetell />} />
+          <Route path="number" element={<PhoneNumberRetell />} />
           <Route path="batch-calls" element={<BatchCall />} />
           <Route path="call-history" element={<CallHistory />} />
           <Route path="billing" element={<Billing />} />
