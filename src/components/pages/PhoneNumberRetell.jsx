@@ -15,6 +15,7 @@ import {
   CopyIcon,
   Dot,
   Info,
+  Loader2,
   PencilLine,
   Phone,
   Plus,
