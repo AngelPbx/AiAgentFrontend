@@ -91,7 +91,7 @@ const AgentsList = () => {
         number.outbound_agent_id === agentId
     );
 
-    return number?.phone_number || "-";
+    return number?.phone_number;
   };
 
   async function handleEditClick(item) {
@@ -218,9 +218,14 @@ const AgentsList = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
-                          {item?.agent_id && finePhoneNumber(item.agent_id)}
-                        </Badge>
+                        {item?.agent_id &&
+                          (finePhoneNumber(item.agent_id)?.length > 0 ? (
+                            <Badge variant="secondary">
+                              {finePhoneNumber(item.agent_id)}
+                            </Badge>
+                          ) : (
+                            "-"
+                          ))}
                       </TableCell>
                       <TableCell className="flex items-center">
                         {item.language}
