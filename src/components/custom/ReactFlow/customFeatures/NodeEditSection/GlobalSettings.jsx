@@ -114,10 +114,11 @@ const GlobalSettings = ({
   llmData,
   setBeginMessage,
   setGeneralPrompt,
+  setAgentId,
 }) => {
   // Initializing all the states for agent creation
   const [llm_id, setLlmId] = useState(null);
-  const [voice_id, setVoiceId] = useState(null);
+  const [voice_id, setVoiceId] = useState("11labs-Lily");
   const [voice_model, setVoiceModel] = useState("eleven_turbo_v2"); //The voice model to use for the agent. Default to eleven_turbo_v2.
   const [fallback_voice_ids, setFallbackVoiceIds] = useState(null);
   const [voice_temperature, setVoiceTemperature] = useState(1); //Controls how stable the voice is. Value ranging from [0,2]
@@ -347,6 +348,8 @@ const GlobalSettings = ({
         if (apiData.status) {
           console.log(apiData);
           setLoading(false);
+          setAgentId(apiData.data.agent_id);
+          toast.success("Agent created successfully!");
         } else {
           toast.error(apiData.error);
           setLoading(false);
@@ -459,6 +462,8 @@ const GlobalSettings = ({
   const [editableKey, setEditableKey] = useState(null);
   const [jsonError, setJsonError] = useState(null); // just for error feedback
   console.log("General Tools: ", general_tools);
+  
+  
   return (
     <>
       <div className="w-full">
