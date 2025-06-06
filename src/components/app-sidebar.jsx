@@ -47,11 +47,11 @@ import {
 
 // This is sample data.
 const data = {
-  user: {
-    name: "AngexPBX",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+  // user: {
+  //   name: "AngexPBX",
+  //   email: "m@example.com",
+  //   avatar: "/avatars/shadcn.jpg",
+  // },
   teams: [
     {
       name: "user2@mail.com",
@@ -219,9 +219,9 @@ export function AppSidebar({ ...props }) {
   return (
     <Sidebar collapsible="icon" {...props}>
       {/* <SidebarTrigger className="-ml-1" /> */}
-      <SidebarHeader>
+      {/* <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
+      </SidebarHeader> */}
       <SidebarContent>
         {/* <NavMain items={data.navMain} /> */}
         <NavProjects projects={data.projects} />

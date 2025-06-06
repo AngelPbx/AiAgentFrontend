@@ -277,7 +277,10 @@ const CallHistory = () => {
             </Table>
           </div>
 
-          <SheetContent className="min-w-fit max-w-3/4 h-full overflow-y-auto px-3">
+          <SheetContent
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            className="min-w-fit max-w-3/4 h-full overflow-y-auto px-3"
+          >
             <SheetHeader>
               <SheetTitle>Call history</SheetTitle>
               <SheetDescription>

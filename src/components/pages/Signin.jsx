@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { GalleryVerticalEnd, Loader2 } from "lucide-react";
+import { AlertCircleIcon, GalleryVerticalEnd, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,18 +10,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import RequiredIndicator from "../commonComponents/RequiredIndicator";
-import { requiredValidator } from "@/validation/valication";
+import { emailValidator, requiredValidator } from "@/validation/valication";
 import ErrorMessage from "../commonComponents/ErrorMessage";
 import { pythonPostFunction } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { useDispatch } from "react-redux";
 
 const Signin = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
+  const [checkRetellKey, setCheckRetellKey] = useState(false);
   const {
     register,
     handleSubmit,
@@ -30,24 +34,39 @@ const Signin = () => {
     mode: "onChange",
   });
 
+  // check is user already login
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/list");
+    }
+  }, []);
+
   const handleFormSubmit = async (data) => {
     setIsLoading(true);
     const payload = {
-      username: data.username,
+      email: data.email,
       password: data.password,
     };
 
     try {
-      const res = await pythonPostFunction("https://localhost:8000/login", payload);
+      const res = await pythonPostFunction("login", payload);
       if (res.status) {
-        localStorage.setItem("token", res.data.retall_api_key);
-        localStorage.setItem("auth", res.data.token);
+        localStorage.setItem("auth", res.data.retall_api_key);
         setIsLoading(false);
-        toast.success("User logged in successfully!");
-        navigate("/agents/list");
+        if (res.data?.retail_api_key) {
+          setCheckRetellKey(false);
+          toast.success("User logged in successfully!");
+          localStorage.setItem("token", res.data?.retail_api_key);
+          localStorage.setItem("userData", JSON.stringify(res.data));
+          dispatch({ type: "SET_TOKEN", payload: res.data?.retail_api_key });
+          dispatch({ type: "SET_USER_DATA", payload: res.data });
+          navigate("/list");
+        } else {
+          setCheckRetellKey(true);
+        }
       } else {
         setIsLoading(false);
-        toast.error("Failed to login user!");
+        toast.error(res?.message || "Failed to login user!");
       }
     } catch (error) {
       console.error("Error creating user:", error);
@@ -78,21 +97,24 @@ const Signin = () => {
                 <div className="grid gap-6">
                   <div className="grid gap-6">
                     <div className="grid gap-3">
-                      <Label htmlFor="username">
-                        Username <RequiredIndicator />
+                      <Label htmlFor="email">
+                        Email <RequiredIndicator />
                       </Label>
                       <Input
-                        id="username"
+                        id="email"
                         type="text"
                         placeholder="johndoe"
                         className={cn(
-                          errors.username &&
+                          errors.email &&
                             "border-red-600 focus:border-red-600 focus:ring-red-600"
                         )}
-                        {...register("username", { ...requiredValidator })}
+                        {...register("email", {
+                          ...requiredValidator,
+                          ...emailValidator,
+                        })}
                       />
-                      {errors.username && (
-                        <ErrorMessage text={errors.username.message} />
+                      {errors.email && (
+                        <ErrorMessage text={errors.email.message} />
                       )}
                     </div>
                     <div className="grid gap-3">
@@ -145,6 +167,20 @@ const Signin = () => {
             </CardContent>
           </Card>
         </div>
+        {checkRetellKey && (
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>Unable to process your request.</AlertTitle>
+            <AlertDescription>
+              <p>Your account in under verification </p>
+              <ul className="list-inside list-disc text-sm">
+                <li>wait for atleast 48 hours</li>
+                <li>check your email for verification confirmation</li>
+                <li>then try again</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     </div>
   );

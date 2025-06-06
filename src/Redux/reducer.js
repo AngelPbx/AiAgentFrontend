@@ -1,6 +1,8 @@
 var nodeConfigBar = true;
 var clickedNodeType = "global"; // default value "global"
 var clickedNodeId = null;
+var token = localStorage.getItem("token");
+var userData = JSON.parse(localStorage.getItem("userData"));
 var initialNodes = [
   {
     id: "7",
@@ -20,6 +22,8 @@ const initialState = {
   initialEdges: initialEdges,
   squadConfigBar: squadConfigBar,
   createAgentType: createAgentType,
+  token: token,
+  userData: userData,
 };
 
 const reducer = (state = initialState, action) => {
@@ -58,6 +62,16 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         createAgentType: action.payload,
+      };
+    case "SET_TOKEN":
+      return {
+        ...state,
+        token: action.payload,
+      };
+    case "SET_USER_DATA":
+      return {
+        ...state,
+        userData: action.payload,
       };
     default:
       return state;

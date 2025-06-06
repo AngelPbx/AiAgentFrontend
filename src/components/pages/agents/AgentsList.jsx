@@ -225,7 +225,11 @@ const AgentsList = () => {
         </div>
         <div>
           <Table>
-            <TableCaption>A list of your recent created agents.</TableCaption>
+            <TableCaption>
+              {allAgents.length > 0
+                ? "A list of your recent created agents."
+                : "No agents found."}
+            </TableCaption>
             <TableHeader className="bg-zinc-800">
               <TableRow className="h-10">
                 <TableHead>Agent Name</TableHead>

@@ -2,30 +2,46 @@ import axios from "axios";
 
 // const apiBaseUrl = "https://ai.webvio.in/backend/backend";
 // const token = "key_fefba4090316b557a67e930307bf"
-// const token = localStorage.getItem("token");
+const token = localStorage.getItem("token");
 const apiBaseUrl = "https://ai.webvio.in/backend/backend";
 // const apiBaseUrl = "http://localhost:8000/backend";
-const token = "key_fefba4090316b557a67e930307bf"
+// const token = "key_fefba4090316b557a67e930307bf"
 // const apiBaseUrl = process.env.BACKEND_BASE_URL;
-
+const pythonBaseurl = "https://testing.webvio.in/backend/api/ai/";
+console.log(token);
 const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`,
+    // Authorization: `Bearer ${token}`,
   },
 });
 
+if (token !== null) {
+  axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
+const setAuthToken = (token) => {
+  if (token) {
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete axiosInstance.defaults.headers.common["Authorization"];
+  }
+};
+
 // python POST method
-export const pythonPostFunction = async(endpoint, data) =>{
+export const pythonPostFunction = async (endpoint, data) => {
   try {
-    const response = await axios.post(endpoint, data);
+    const response = await axios.post(`${pythonBaseurl}${endpoint}`, data);
+    if (endpoint === "login" && response.status) {
+      setAuthToken(response.data.data.retail_api_key);
+    }
     return response.data;
   } catch (error) {
     // console.error("Error: ", error);
     return error.response.data;
   }
-}
+};
 
 // General Get function
 export const generalGetFunction = async (endpoint) => {
