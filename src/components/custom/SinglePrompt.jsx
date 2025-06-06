@@ -31,6 +31,8 @@ const SinglePrompt = ({
   saveClicked,
   agentData,
   llmData,
+  loading,
+  setLoading,
 }) => {
   const [begin_message, setBeginMessage] = useState("");
   const [general_prompt, setGeneralPrompt] = useState("");
@@ -90,6 +92,8 @@ console.log(transcript)
             llmData={llmData}
             setBeginMessage={setBeginMessage}
             setGeneralPrompt={setGeneralPrompt}
+            loading={loading}
+            setLoading={setLoading}
           />
         </ScrollArea>
       </div>
@@ -103,12 +107,12 @@ console.log(transcript)
                 Test Audio
               </span>
             </TabsTrigger>
-            <TabsTrigger value="test-llm">
+            {/* <TabsTrigger value="test-llm">
               <span className=" flex items-center justify-center w-full cursor-pointer">
                 <MessageCircle />
                 Test LLM
               </span>
-            </TabsTrigger>
+            </TabsTrigger> */}
           </TabsList>
           <TabsContent value="test-audio">
             {testCallToken ?

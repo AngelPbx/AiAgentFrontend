@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChartPie, Copy, Dot, PencilLine } from "lucide-react";
+import { ChartPie, Copy, Dot, Loader2, PencilLine } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -23,6 +23,7 @@ export default function ConversationsFlow() {
   const createAgentType = useSelector((state) => state.app.createAgentType);
   const [saveClicked, setSaveClicked] = useState(0);
   const [agentData,setAgentData] = useState();
+   const [loading, setLoading] = useState(false);
 
   useEffect(()=>{
     if(locationState.agentName){
@@ -61,7 +62,7 @@ export default function ConversationsFlow() {
                 <PencilLine />
               </Button>
             </div>
-            <Button onClick={() => setSaveClicked(saveClicked + 1)} className={"cursror-pointer"}>Save</Button>
+            <Button onClick={() => setSaveClicked(saveClicked + 1)} className={"cursror-pointer"}>{locationState.unique ?<>{loading?<><Loader2 className="animate-spin mr-2 h-4 w-4" />Saving..</>:<>Save</>}</> :<>{loading?<><Loader2 className="animate-spin mr-2 h-4 w-4" />Updating..</>:<>Update</>} </>}</Button>
           </div>
           {locationState.unique ? (
             ""
@@ -76,7 +77,7 @@ export default function ConversationsFlow() {
                 Conversation Flow ID: 
                 <Copy className="h-4 w-4 cursor-pointer" />
               </p> */}
-              <Dot />
+              {/* <Dot /> */}
               <p className="flex gap-2">
                 $0.12/min
                 {/* <ChartPie className="h-4 w-4 cursor-pointer" /> */}
@@ -102,8 +103,8 @@ export default function ConversationsFlow() {
                   </TooltipContent>
                 </Tooltip>
               </p>
-              <Dot />
-              <p className="flex gap-2">
+              {/* <Dot /> */}
+              {/* <p className="flex gap-2">
                 2920-3250ms latency
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -132,7 +133,7 @@ export default function ConversationsFlow() {
                 </Tooltip>
               </p>
               <Dot />
-              <p className="flex gap-2">Auto saved at 16:06</p>
+              <p className="flex gap-2">Auto saved at 16:06</p> */}
             </div>
           )}
         </div>
@@ -148,14 +149,14 @@ export default function ConversationsFlow() {
                 value="create"
                 className="text-xl cursor-pointer rounded-none !bg-transparent border-0 !border-b-2 border-transparent data-[state=active]:!bg-transparent data-[state=active]:!shadow-none data-[state=active]:!border-white hover:!bg-transparent"
               >
-                Create
+               {locationState.unique ? "Create":"Update"}
               </TabsTrigger>
-              <TabsTrigger
+              {/* <TabsTrigger
                 value="simulation"
                 className="text-xl cursor-pointer rounded-none !bg-transparent border-0 !border-b-2 border-transparent data-[state=active]:!bg-transparent data-[state=active]:!shadow-none data-[state=active]:!border-white hover:!bg-transparent"
               >
                 Simulation
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
           </div>
           <TabsContent value="create">
@@ -169,6 +170,8 @@ export default function ConversationsFlow() {
                   saveClicked={saveClicked}
                   agentData={agentData}
                   llmData={locationState.llmData}
+                  loading={loading}
+                  setLoading={setLoading}
                 />
               ) : (
                 <Reactflow />
