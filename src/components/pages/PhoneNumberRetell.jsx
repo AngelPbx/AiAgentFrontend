@@ -70,12 +70,15 @@ const PhoneNumberRetell = () => {
   }, []);
 
   const fetchAvailableAgents = async () => {
+    setLoading(true);
     const res = await generalGetFunction("/agent/all");
     if (res.status) {
       setAvailableAgents(res.data);
       // setInboundCallAgent(res.data[0]?.agent_id);
       // setOutboundCallAgent(res.data[0]?.agent_id);
+      setLoading(false);
     } else {
+      setLoading(false);
       console.error("Failed to fetch available LLMs");
     }
   };
@@ -178,6 +181,7 @@ const PhoneNumberRetell = () => {
       number_provider: updatedData.numberProvider || numberProvider || "twilio",
     };
 
+    console.log("update numbr payload: ", payload)
     setLoading(true);
     try {
       const res = await generalPutFunction(
@@ -313,7 +317,11 @@ const PhoneNumberRetell = () => {
                       disabled={numberProvider === "" || loading}
                       onClick={handleCreateNumber}
                     >
-                      Save changes
+                      {loading ? (
+                        <>
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" /> Saving...</>
+                      ) : <>Save changes</>}
+                      
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -411,9 +419,9 @@ const PhoneNumberRetell = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Button className="cursor-pointer" disabled>
+                    {/* <Button className="cursor-pointer" disabled>
                       <Phone /> Make an outbound call
-                    </Button>
+                    </Button> */}
                     <Dialog asChild>
                       <DialogTrigger asChild>
                         <Button
@@ -471,6 +479,7 @@ const PhoneNumberRetell = () => {
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Agents</SelectLabel>
+                          <SelectItem value={"null"}>None (disabled inboung)</SelectItem>
                           {availableAgents.map((agent) => (
                             <SelectItem
                               key={agent?.agent_id}
@@ -528,6 +537,7 @@ const PhoneNumberRetell = () => {
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Agents</SelectLabel>
+                          <SelectItem value={"null"}>None (disabled outbound)</SelectItem>
                           {availableAgents.map((agent) => (
                             <SelectItem
                               key={agent?.agent_id}
