@@ -6,6 +6,7 @@ import {
   CloudUpload,
   Copy,
   EllipsisVertical,
+  Info,
   Link,
   Loader,
   PhoneOutgoing,
@@ -37,6 +38,7 @@ import { Badge } from "../../ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -51,7 +53,10 @@ import {
   initialNodes,
 } from "@/components/custom/ReactFlow/workflow.constants";
 import { useDispatch } from "react-redux";
-import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import {
+  generalDeleteFunction,
+  generalGetFunction,
+} from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
 import Loading from "@/components/commonComponents/Loading";
 
@@ -61,21 +66,22 @@ const AgentsList = () => {
   const [allAgents, setAllAgents] = useState([]);
   const [availableNumbers, setAvailableNumbers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletedItem, setDeletedItem] = useState(null);
 
   useEffect(() => {
-    async function getData() {
-      const apiData = await generalGetFunction("/agent/all");
-      if (apiData.status) {
-        setAllAgents(apiData.data);
-        setLoading(false);
-      } else {
-        setLoading(false);
-      }
-    }
     getData();
     fetchAvailableNumbers();
   }, []);
 
+  async function getData() {
+    const apiData = await generalGetFunction("/agent/all");
+    if (apiData.status) {
+      setAllAgents(apiData.data);
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+  }
   const fetchAvailableNumbers = async () => {
     const res = await generalGetFunction("/phonenumber/all");
     if (res.status) {
@@ -116,6 +122,39 @@ const AgentsList = () => {
     }
   }
 
+  const handleDeleteAgent = async () => {
+    console.log(deletedItem);
+    try {
+      setLoading(true);
+
+      // Delete the LLM
+      const llmRes = await generalDeleteFunction(
+        `/llm/delete/${deletedItem.response_engine.llm_id}`
+      );
+
+      if (!llmRes.status) {
+        throw new Error("Failed to delete LLM");
+      }
+
+      // Delete the agent
+      const agentRes = await generalDeleteFunction(
+        `/agent/delete/${deletedItem.agent_id}`
+      );
+
+      if (!agentRes.status) {
+        throw new Error("Failed to delete agent");
+      }
+
+      getData();
+      toast.success("Agent deleted successfully!");
+    } catch (error) {
+      console.error(error.message, error);
+      toast.error(`${error.message}. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -148,7 +187,7 @@ const AgentsList = () => {
               </DialogContent>
             </Dialog>
             {/* Upload a new agnet  */}
-            <Dialog>
+            {/* <Dialog>
               <DialogTrigger asChild>
                 <Button className="cursor-pointer w-25 me-3" variant="outline">
                   Import
@@ -182,7 +221,7 @@ const AgentsList = () => {
                   <Button type="submit">Save changes</Button>
                 </DialogFooter>
               </DialogContent>
-            </Dialog>
+            </Dialog> */}
           </div>
         </div>
         <div>
@@ -201,42 +240,41 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              
-                  {allAgents.map((item) => (
-                    <TableRow
-                      key={item.agent_id}
-                      onClick={() => handleEditClick(item)}
-                      className="cursor-pointer hover:bg-zinc-800"
-                    >
-                      <TableCell className="font-medium flex items-center">
-                        <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
-                          <BotIcon className="w-5 h-5" />
-                        </span>{" "}
-                        {item.agent_name}
-                      </TableCell>
-                      <TableCell>
+              {allAgents.map((item) => (
+                <TableRow
+                  key={item.agent_id}
+                  onClick={() => handleEditClick(item)}
+                  className="cursor-pointer hover:bg-zinc-800"
+                >
+                  <TableCell className="font-medium flex items-center">
+                    <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
+                      <BotIcon className="w-5 h-5" />
+                    </span>{" "}
+                    {item.agent_name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">
+                      {item.response_engine?.["type"]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {item?.agent_id &&
+                      (finePhoneNumber(item.agent_id)?.length > 0 ? (
                         <Badge variant="secondary">
-                          {item.response_engine?.["type"]}
+                          {finePhoneNumber(item.agent_id)}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {item?.agent_id &&
-                          (finePhoneNumber(item.agent_id)?.length > 0 ? (
-                            <Badge variant="secondary">
-                              {finePhoneNumber(item.agent_id)}
-                            </Badge>
-                          ) : (
-                            "-"
-                          ))}
-                      </TableCell>
-                      <TableCell className="flex items-center">
-                        {item.language}
-                      </TableCell>
-                      <TableCell>{item.voice_id}</TableCell>
-                      {/* <TableCell>
+                      ) : (
+                        "-"
+                      ))}
+                  </TableCell>
+                  <TableCell className="flex items-center">
+                    {item.language}
+                  </TableCell>
+                  <TableCell>{item.voice_id}</TableCell>
+                  {/* <TableCell>
                         {agent?.edited_date ? agent.edited_date : "-"}
                       </TableCell> */}
-                      {/* <TableCell>
+                  {/* <TableCell>
                         {agent?.status ? (
                           <Badge
                             variant={
@@ -251,39 +289,76 @@ const AgentsList = () => {
                           "-"
                         )}
                       </TableCell> */}
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                  <TableCell>
+                    <Dialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-8 h-8 hover:rounded-sm hover:bg-zinc-800 opacity-50 cursor-pointer"
+                          >
+                            <EllipsisVertical />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          {/* <DropdownMenuItem className="cursor-pointer">
+                          <Copy /> Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
+                          <ArrowRightLeft />
+                          Export
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator /> */}
+                          <DropdownMenuItem asChild>
+                            <DialogTrigger asChild>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation(), setDeletedItem(item);
+                                }}
+                                className="flex items-center gap-2 w-full text-left text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span>Delete</span>
+                              </button>
+                            </DialogTrigger>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DialogContent
+                        className={"sm:max-w-[400px] w-full"}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DialogTitle className="text-lg font-semibold mb-4">
+                          Delete Agent
+                        </DialogTitle>
+                        <DialogDescription className="text-sm">
+                          <Info className="inline mr-2 text-red-800 h-6 w-6" />
+                          Are you sure you want to delete this agent?
+                        </DialogDescription>
+                        <DialogFooter>
+                          <DialogClose asChild>
                             <Button
-                              variant="ghost"
-                              className="w-8 h-8 hover:rounded-sm hover:bg-zinc-800 opacity-50 cursor-pointer"
-                            >
-                              <EllipsisVertical />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem className="cursor-pointer">
-                              <Copy /> Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                              <ArrowRightLeft />
-                              Export
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              variant="destructive"
+                              variant="outline"
                               className="cursor-pointer"
                             >
-                              <Trash2 />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              
+                              Cancel
+                            </Button>
+                          </DialogClose>
+                          <Button
+                            className="cursor-pointer"
+                            type="submit"
+                            onClick={handleDeleteAgent}
+                            disabled={loading}
+                          >
+                            Delete
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
