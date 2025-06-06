@@ -110,7 +110,7 @@ const AgentsList = () => {
       );
       if (llmData.status) {
         // setLoading(false);
-        navigate("/agents/conversations-flow", {
+        navigate("/conversations-flow", {
           state: {
             unique: false,
             agentName: item.agent_name,
@@ -123,7 +123,6 @@ const AgentsList = () => {
   }
 
   const handleDeleteAgent = async () => {
-    console.log(deletedItem);
     try {
       setLoading(true);
 

@@ -22,22 +22,22 @@ export default function ConversationsFlow() {
   const [isEdit, setIsEdit] = useState(false);
   const createAgentType = useSelector((state) => state.app.createAgentType);
   const [saveClicked, setSaveClicked] = useState(0);
-  const [agentData,setAgentData] = useState();
-   const [loading, setLoading] = useState(false);
+  const [agentData, setAgentData] = useState();
+  const [loading, setLoading] = useState(false);
 
-  useEffect(()=>{
-    if(locationState.agentName){
+  useEffect(() => {
+    if (locationState.agentName) {
       setDefaultName(locationState.agentName);
       setAgentData(locationState.agentData);
-    }else{
-      navigate(-1)
+    } else {
+      navigate(-1);
     }
-  },[])
+  }, []);
 
   console.log("Agent Data: ", agentData);
 
   return (
-    <div className="space-y-4"> 
+    <div className="space-y-4 p-4">
       <div className="flex items-center justify-between">
         <div className="w-full">
           <div className="flex justify-between w-full">
@@ -62,14 +62,41 @@ export default function ConversationsFlow() {
                 <PencilLine />
               </Button>
             </div>
-            <Button onClick={() => setSaveClicked(saveClicked + 1)} className={"cursror-pointer"}>{locationState.unique ?<>{loading?<><Loader2 className="animate-spin mr-2 h-4 w-4" />Saving..</>:<>Save</>}</> :<>{loading?<><Loader2 className="animate-spin mr-2 h-4 w-4" />Updating..</>:<>Update</>} </>}</Button>
+            <Button
+              onClick={() => setSaveClicked(saveClicked + 1)}
+              className={"cursror-pointer"}
+            >
+              {locationState.unique ? (
+                <>
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                      Saving..
+                    </>
+                  ) : (
+                    <>Save</>
+                  )}
+                </>
+              ) : (
+                <>
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                      Updating..
+                    </>
+                  ) : (
+                    <>Update</>
+                  )}{" "}
+                </>
+              )}
+            </Button>
           </div>
           {locationState.unique ? (
             ""
           ) : (
             <div className="text-muted-foreground flex items-center text-xs mt-2">
               <p className="flex gap-2">
-                Agent ID: {agentData?.agent_id} 
+                Agent ID: {agentData?.agent_id}
                 <Copy className="h-4 w-4 cursor-pointer" />
               </p>
               <Dot />
@@ -149,7 +176,7 @@ export default function ConversationsFlow() {
                 value="create"
                 className="text-xl cursor-pointer rounded-none !bg-transparent border-0 !border-b-2 border-transparent data-[state=active]:!bg-transparent data-[state=active]:!shadow-none data-[state=active]:!border-white hover:!bg-transparent"
               >
-               {locationState.unique ? "Create":"Update"}
+                {locationState.unique ? "Create" : "Update"}
               </TabsTrigger>
               {/* <TabsTrigger
                 value="simulation"

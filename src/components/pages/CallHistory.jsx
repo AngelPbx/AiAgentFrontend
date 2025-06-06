@@ -91,9 +91,12 @@ const CallHistory = () => {
     return `${hours}:${minutes}:${seconds}`;
   }
 
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <>
-      {loading && <Loading />}
+      {/* {loading && <Loading />} */}
       <div className="flex flex-col gap-4 p-4">
         <h1 className="text-2xl font-bold">Call History</h1>
         <p className="text-gray-600">
@@ -188,106 +191,86 @@ const CallHistory = () => {
                     key={index}
                     className="cursor-pointer"
                   >
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
                           <div className="p-4">
                             {formatTimestampToDateTime(call?.start_timestamp)}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">
                             {formatDurationToTime(call?.duration_ms)}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.call_type}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">
                             {call?.call_cost?.combined_cost}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                        
                           <div className="p-4">{call?.call_id}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                         
                           <div className="p-4">
                             {call?.disconnection_reason?.split("_").join(" ")}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.call_status}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                         
                           <div className="p-4">
                             {call?.call_analysis?.user_sentiment}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.from_number}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.to_number}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                   
                   </TableRow>
                 ))}
               </TableBody>

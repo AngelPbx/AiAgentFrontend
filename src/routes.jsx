@@ -20,27 +20,26 @@ export function AppRoutes() {
   return (
     <Routes>
       {/* Redirect root to agents/list */}
-      <Route path="/" element={<Navigate to="/agents/list" replace />} />
+      <Route path="/" element={<Navigate to="/list" replace />} />
       <Route path="/sign-up" element={<Signup />} />
       <Route path="/sign-in" element={<Signin />} />
-      
 
       <Route path="/" element={<Dashboard />}>
         {/* Agents Routes */}
-        <Route path="agents" element={<AgentsLayout />}>
-          <Route path="list" element={<AgentsList />} />
-          <Route path="conversations-flow" element={<ConversationsFlow />} />
-          <Route path="knowledge-base" element={<KnowledgeBase />} />
-          <Route path="squads" element={<Squads />} />
-          <Route path="phone-numbers" element={<PhoneNumber />} />
-          <Route path="number" element={<PhoneNumberRetell />} />
-          <Route path="batch-calls" element={<BatchCall />} />
-          <Route path="call-history" element={<CallHistory />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="keys" element={<ProviderKeys />} />
-          {/* 
+        {/* <Route path="agents" element={<AgentsLayout />}> */}
+        <Route path="list" element={<AgentsList />} />
+        <Route path="conversations-flow" element={<ConversationsFlow />} />
+        <Route path="knowledge-base" element={<KnowledgeBase />} />
+        <Route path="squads" element={<Squads />} />
+        <Route path="phone-numbers" element={<PhoneNumber />} />
+        <Route path="number" element={<PhoneNumberRetell />} />
+        <Route path="batch-calls" element={<BatchCall />} />
+        <Route path="call-history" element={<CallHistory />} />
+        <Route path="billing" element={<Billing />} />
+        <Route path="keys" element={<ProviderKeys />} />
+        {/* 
           <Route path="custom-llm" element={<CustomLLM />} /> */}
-        </Route>
+        {/* </Route> */}
         <Route path="members" element={<Members />} />
 
         {/* Models Routes */}
@@ -50,6 +49,9 @@ export function AppRoutes() {
           <Route path="quantum" element={<Quantum />} />
         </Route> */}
       </Route>
+
+      {/* Catch-all route to redirect to /sign-in */}
+      <Route path="*" element={<Navigate to="/sign-in" replace />} />
     </Routes>
   );
 }

@@ -2,7 +2,7 @@ import React from "react";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../app-sidebar";
 import { Separator } from "../ui/separator";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -40,14 +40,16 @@ const Dashboard = () => {
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                    <BreadcrumbLink>
+                      <Link to="/">Home</Link>
+                    </BreadcrumbLink>
                   </BreadcrumbItem>
                   {section && (
                     <>
                       <BreadcrumbSeparator />
                       <BreadcrumbItem>
-                        <BreadcrumbLink href={`/${section}`}>
-                          {sectionTitle}
+                        <BreadcrumbLink>
+                          <Link to={`/${section}`}>{section}</Link>
                         </BreadcrumbLink>
                       </BreadcrumbItem>
                     </>

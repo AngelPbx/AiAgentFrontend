@@ -149,7 +149,7 @@ const data = {
   projects: [
     {
       name: "All Agents",
-      url: "/agents/list",
+      url: "/list",
       icon: Bot,
     },
     // {
@@ -159,7 +159,7 @@ const data = {
     // },
     {
       name: "Knowledge Base",
-      url: "/agents/knowledge-base",
+      url: "/knowledge-base",
       icon: BookUser,
     },
     // {
@@ -174,17 +174,17 @@ const data = {
     // },
     {
       name: "Number",
-      url: "/agents/number",
+      url: "/number",
       icon: PhoneCall,
     },
     {
       name: "Batch Calls",
-      url: "/agents/batch-calls",
+      url: "/batch-calls",
       icon: MonitorSmartphone,
     },
     {
       name: "Call History",
-      url: "/agents/call-history",
+      url: "/call-history",
       icon: History,
     },
     // {

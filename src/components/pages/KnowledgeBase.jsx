@@ -51,6 +51,7 @@ import {
 } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import Loading from "../commonComponents/Loading";
 
 const KnowledgeBase = () => {
   const [currentTab, setCurrentTab] = useState("webPage");
@@ -78,6 +79,7 @@ const KnowledgeBase = () => {
 
   const fetchInitialData = async () => {
     try {
+      setLoading(true);
       const res = await generalGetFunction("/knowledgebase/all");
       if (res.status) {
         setInitialData(res?.knowledgeBaseResponses);
@@ -86,8 +88,10 @@ const KnowledgeBase = () => {
             ? res?.knowledgeBaseResponses[0]
             : null
         );
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error fetching initial data: ", error);
     }
   };
@@ -282,6 +286,8 @@ const KnowledgeBase = () => {
       setShowDeleteDialog(false);
     }
   };
+
+  if (loading) return <Loading />;
 
   return (
     <>
