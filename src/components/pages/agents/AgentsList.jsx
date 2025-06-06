@@ -53,6 +53,7 @@ import {
 import { useDispatch } from "react-redux";
 import { generalGetFunction } from "@/globalFunctions/globalFunction";
 import { toast } from "sonner";
+import Loading from "@/components/commonComponents/Loading";
 
 const AgentsList = () => {
   const navigate = useNavigate();
@@ -91,7 +92,7 @@ const AgentsList = () => {
         number.outbound_agent_id === agentId
     );
 
-    return number?.phone_number || "-";
+    return number?.phone_number;
   };
 
   async function handleEditClick(item) {
@@ -113,6 +114,10 @@ const AgentsList = () => {
         });
       }
     }
+  }
+
+  if (loading) {
+    return <Loading />;
   }
   return (
     <>
@@ -196,10 +201,7 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <Loader />
-              ) : (
-                <>
+              
                   {allAgents.map((item) => (
                     <TableRow
                       key={item.agent_id}
@@ -218,9 +220,14 @@ const AgentsList = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
-                          {item?.agent_id && finePhoneNumber(item.agent_id)}
-                        </Badge>
+                        {item?.agent_id &&
+                          (finePhoneNumber(item.agent_id)?.length > 0 ? (
+                            <Badge variant="secondary">
+                              {finePhoneNumber(item.agent_id)}
+                            </Badge>
+                          ) : (
+                            "-"
+                          ))}
                       </TableCell>
                       <TableCell className="flex items-center">
                         {item.language}
@@ -276,8 +283,7 @@ const AgentsList = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                </>
-              )}
+              
             </TableBody>
           </Table>
         </div>

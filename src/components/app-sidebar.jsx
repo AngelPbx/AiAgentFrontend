@@ -162,19 +162,19 @@ const data = {
       url: "/agents/knowledge-base",
       icon: BookUser,
     },
-    {
-      name: "Squads",
-      url: "/agents/squads",
-      icon: Users,
-    },
+    // {
+    //   name: "Squads",
+    //   url: "/agents/squads",
+    //   icon: Users,
+    // },
     // {
     //   name: "Phone Numbers",
     //   url: "/agents/phone-numbers",
     //   icon: Phone,
     // },
     {
-      name: "Number Retell",
-      url: "/agents/number-retell",
+      name: "Number",
+      url: "/agents/number",
       icon: PhoneCall,
     },
     {
@@ -187,16 +187,16 @@ const data = {
       url: "/agents/call-history",
       icon: History,
     },
-    {
-      name: "Billing",
-      url: "/agents/billing",
-      icon: ReceiptText,
-    },
-    {
-      name: "Provider Keys",
-      url: "/agents/keys",
-      icon: Key,
-    },
+    // {
+    //   name: "Billing",
+    //   url: "/agents/billing",
+    //   icon: ReceiptText,
+    // },
+    // {
+    //   name: "Provider Keys",
+    //   url: "/agents/keys",
+    //   icon: Key,
+    // },
     // {
     //   title: "Single Prompt",
     //   url: "/agents/single-prompt",

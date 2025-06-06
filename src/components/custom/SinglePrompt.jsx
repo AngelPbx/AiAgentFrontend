@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import GlobalSettings from "./ReactFlow/customFeatures/NodeEditSection/GlobalSettings";
 import { ScrollArea } from "../ui/scroll-area";
 import { Textarea } from "../ui/textarea";
@@ -36,6 +36,11 @@ const SinglePrompt = ({
   const [general_prompt, setGeneralPrompt] = useState("");
   const [testCallToken, setTestCallToken] = useState(false);
   const [transcript, setTranscript] = useState([]);
+  const [agentId, setAgentId] = useState(agentData?.agent_id);
+  useEffect(()=>{
+    setAgentId(agentData?.agent_id);
+  },[agentData])
+  console.log("agentData", agentId);
 console.log(transcript)
   async function handleTestCall() {
     const apiData = await generalPostFunction(`/call/create-web-call`, {
@@ -81,6 +86,7 @@ console.log(transcript)
             newAgent={newAgent}
             saveClicked={saveClicked}
             agentData={agentData}
+            setAgentId={setAgentId}
             llmData={llmData}
             setBeginMessage={setBeginMessage}
             setGeneralPrompt={setGeneralPrompt}
@@ -136,7 +142,7 @@ console.log(transcript)
                   </div>
                   <Separator className={"mb-2"} />
 
-                  <RetellCallComponent agentId={agentData?.agent_id} transcript={transcript} setTranscript={setTranscript} />
+                  <RetellCallComponent agentId={agentId} transcript={transcript} setTranscript={setTranscript} />
                   
                 </div>
               </div>
@@ -161,6 +167,7 @@ console.log(transcript)
                     variant="outline"
                     className={"w-20 cursor-pointer"}
                     onClick={() => setTestCallToken(true)}
+                    disabled={!agentId}
                   >
                     Test
                   </Button>

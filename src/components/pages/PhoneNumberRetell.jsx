@@ -48,6 +48,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import Loading from "../commonComponents/Loading";
 
 const PhoneNumberRetell = () => {
   const [defaultName, setDefaultName] = useState("");
@@ -228,6 +229,9 @@ const PhoneNumberRetell = () => {
     setLoading(false);
   };
 
+  if(loading){
+    return <Loading />
+  }
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full">
