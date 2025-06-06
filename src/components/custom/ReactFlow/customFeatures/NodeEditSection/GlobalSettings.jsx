@@ -115,6 +115,8 @@ const GlobalSettings = ({
   setBeginMessage,
   setGeneralPrompt,
   setAgentId,
+  setLoading,
+  loading,
 }) => {
   // Initializing all the states for agent creation
   const [llm_id, setLlmId] = useState(null);
@@ -173,7 +175,7 @@ const GlobalSettings = ({
   const [model, setModel] = useState("gpt-4o");
   const [llmModels, setLlmModels] = useState([]);
   const [llmKnowlwdgeBaseIds, setLlmKnowlwdgeBaseIds] = useState([]);
-  const [loading, setLoading] = useState(false);
+ 
 
   // LLm model Functions payload added to the agent
   const [general_tools, setGeneralTools] = useState([]);
@@ -423,8 +425,8 @@ const GlobalSettings = ({
           agentParsedData
         );
         if (apiData.status) {
-          console.log(apiData);
           setLoading(false);
+          toast.success("Agent updated successfully!");
         } else {
           toast.error(apiData.error);
           setLoading(false);
@@ -467,7 +469,7 @@ const GlobalSettings = ({
   return (
     <>
       <div className="w-full">
-        {loading && <Loading />}
+        {/* {loading && <Loading />} */}
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="functions">
             <AccordionTrigger>

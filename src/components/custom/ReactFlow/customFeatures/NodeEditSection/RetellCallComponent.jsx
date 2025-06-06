@@ -1,21 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { generalPostFunction } from "@/globalFunctions/globalFunction";
 import { cn } from "@/lib/utils";
-import { PhoneOff, PhoneOutgoing } from "lucide-react";
+import { PhoneOff, PhoneOutgoing, Loader2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { RetellWebClient } from "retell-client-js-sdk";
+import { toast } from "sonner";
 
 const retellWebClient = new RetellWebClient();
 
 const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
-  console.log(agentId);
-
   const [isCalling, setIsCalling] = useState(false);
-  //   const [transcript, setTranscript] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const transcriptRef = useRef([]); // Holds the latest value always
 
   useEffect(() => {
-    // Event listeners
+    // Auto-start on mount
+    toggleConversation();
+
+    // Setup event listeners
     retellWebClient.on("call_started", () => {
       console.log("✅ Call started");
     });
@@ -23,6 +25,7 @@ const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
     retellWebClient.on("call_ended", () => {
       console.log("📞 Call ended");
       setIsCalling(false);
+      setIsLoading(false);
     });
 
     retellWebClient.on("agent_start_talking", () => {
@@ -39,15 +42,13 @@ const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
 
     retellWebClient.on("update", (update) => {
       if (update.transcript) {
-        // console.log("📝 Transcript update", update.transcript )
-        // console.log(update.transcript[update.transcript.length - 1]);
         handleTranscript(
           update.transcript[update.transcript.length - 1].role,
           update.transcript[update.transcript.length - 1].content
         );
-        // setTranscript((prev) => [...prev, ...update.transcript]);
       }
     });
+
     retellWebClient.on("metadata", (metadata) => {
       console.log("ℹ️ Metadata received:", metadata);
     });
@@ -56,15 +57,25 @@ const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
       console.error("❌ Error:", error);
       retellWebClient.stopCall();
       setIsCalling(false);
+      setIsLoading(false);
     });
-    
   }, []);
 
   const toggleConversation = async () => {
+    setIsLoading(true);
+
     if (isCalling) {
-      retellWebClient.stopCall();
-      setIsCalling(false);
+      // Stop the call
+      try {
+        await retellWebClient.stopCall();
+      } catch (err) {
+        console.error("Failed to stop call:", err);
+      } finally {
+        setIsCalling(false);
+        setIsLoading(false);
+      }
     } else {
+      // Start the call
       try {
         const token = await registerCall(agentId);
         if (token) {
@@ -73,6 +84,8 @@ const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
         }
       } catch (err) {
         console.error("Failed to start call:", err);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -85,7 +98,9 @@ const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
       if (response.status) {
         return response.data.access_token;
       } else {
-        throw new Error("Failed to register call");
+         toast.error(response.error);
+        // throw new Error("Failed to register call");
+       
       }
     } catch (err) {
       console.error("Call registration failed:", err);
@@ -109,22 +124,33 @@ const RetellCallComponent = ({ agentId, transcript, setTranscript }) => {
       transcriptRef.current = newTranscript;
       setTranscript(newTranscript);
     }
-
-    //   console.log("✅ handleTranscript", role, text, transcriptRef.current);
   }
 
-  console.log("transcript", transcript);
   return (
-      
-      <Button
-        onClick={toggleConversation}
-        variant={"outline"}
-        className={cn(isCalling ? "text-red-800 hover:text-red-600 " : "text-green-800 hover:text-green-600 ", "flex items-center justify-center w-full rounded-md cursor-pointer")}
-        // disabled={isCalling && transcript.length > 0}
-      >
-        
-        {isCalling ? <><PhoneOff className=""/> Stop</> : <><PhoneOutgoing className=""/> Start</>}
-      </Button>
+    <Button
+      onClick={toggleConversation}
+      variant="outline"
+      disabled={isLoading}
+      className={cn(
+        isCalling ? "text-red-800 hover:text-red-600" : "text-green-800 hover:text-green-600",
+        "flex items-center justify-center w-full rounded-md cursor-pointer"
+      )}
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="animate-spin mr-2 h-4 w-4" />
+          {isCalling ? "Stopping..." : "Starting..."}
+        </>
+      ) : isCalling ? (
+        <>
+          <PhoneOff className="mr-2 h-4 w-4" /> Stop
+        </>
+      ) : (
+        <>
+          <PhoneOutgoing className="mr-2 h-4 w-4" /> Start
+        </>
+      )}
+    </Button>
   );
 };
 

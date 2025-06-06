@@ -9,29 +9,33 @@ import usePreventRadixAutoToggle from "./usePreventRadixAutoToggle";
 
 function App() {
   usePreventRadixAutoToggle();
-useEffect(() => {
-  const preventGlobalScroll = (e) => {
-    const el = document.activeElement;
+  useEffect(() => {
+    const preventGlobalScroll = (e) => {
+      const el = document.activeElement;
 
-    // if focused on something interactive, do not block
-    const isInteractive =
-      el?.tagName === "INPUT" ||
-      el?.tagName === "TEXTAREA" ||
-      el?.tagName === "BUTTON" ||
-      el?.tagName === "SELECT" ||
-      el?.isContentEditable;
+      // if focused on something interactive, do not block
+      const isInteractive =
+        el?.tagName === "INPUT" ||
+        el?.tagName === "TEXTAREA" ||
+        el?.tagName === "BUTTON" ||
+        el?.tagName === "SELECT" ||
+        el?.isContentEditable;
 
-    const isInsideRadix = el?.closest('[data-radix-popper-content-wrapper]');
+      const isInsideRadix = el?.closest("[data-radix-popper-content-wrapper]");
 
-    if (!isInteractive && !isInsideRadix && (e.key === " " || e.key === "Enter")) {
-      e.preventDefault();
-    }
-  };
+      if (
+        !isInteractive &&
+        !isInsideRadix &&
+        (e.key === " " || e.key === "Enter")
+      ) {
+        e.preventDefault();
+      }
+    };
 
-  window.addEventListener("keydown", preventGlobalScroll);
+    window.addEventListener("keydown", preventGlobalScroll);
 
-  return () => window.removeEventListener("keydown", preventGlobalScroll);
-}, []);
+    return () => window.removeEventListener("keydown", preventGlobalScroll);
+  }, []);
 
   return (
     <Provider store={store}>
@@ -40,7 +44,7 @@ useEffect(() => {
           <AppRoutes />
         </BrowserRouter>
       </ThemeProvider>
-      <Toaster />
+      <Toaster theme="dark" />
     </Provider>
   );
 }
