@@ -8,6 +8,7 @@ import {
   Download,
   Headphones,
   History,
+  Info,
   Lightbulb,
   Phone,
   Plus,
@@ -40,8 +41,21 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Separator } from "../ui/separator";
-import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import { generalDeleteFunction, generalGetFunction } from "@/globalFunctions/globalFunction";
 import Loading from "../commonComponents/Loading";
+// import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { toast } from "sonner";
+// import { DialogFooter, DialogHeader } from "../ui/dialog";
 
 const CallHistory = () => {
   // Set default range: from 5 days ago to today
@@ -51,22 +65,26 @@ const CallHistory = () => {
     to: today,
   };
   const [date, setDate] = useState(defaultRange);
-
+  const [showDeleteDialog,setShowDeleteDialog] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCall, setSelectedCall] = useState(null);
+  const [refreshData, setRefreshData] = useState(0);
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/call/all");
       if (apiData.status) {
         setCalls(apiData.data);
         setLoading(false);
+        setDeleteLoading(false);
+        setShowDeleteDialog(false);
       } else {
         setLoading(false);
       }
     }
     getData();
-  }, []);
+  }, [refreshData]);
   function formatTimestampToDateTime(timestamp) {
     const date = new Date(timestamp);
 
@@ -154,9 +172,22 @@ const CallHistory = () => {
     document.body.removeChild(link);
   };
 
+  async function handleDeleteKnowledgeBase(){
+    setDeleteLoading(true);
+    const apiData = await generalDeleteFunction(`/call/delete/${selectedCall?.call_id}`);
+    if( apiData.status) {
+      setRefreshData(refreshData + 1);
+    }else{
+      toast.error(apiData.error || "Failed to delete call history.");
+      setShowDeleteDialog(false);
+      setDeleteLoading(false);
+    }
+  }
+
+  if (loading) return <Loading />;
+  // {loading && <Loading />}
   return (
     <>
-      {loading && <Loading />}
       <div className="flex flex-col gap-4 p-4">
         <h1 className="text-2xl font-bold">Call History</h1>
         <p className="text-gray-600">
@@ -358,7 +389,7 @@ const CallHistory = () => {
                 {formatTimestampToDateTime(selectedCall?.start_timestamp)}{" "}
                 {selectedCall?.call_type}
               </p>
-              <Trash className="cursor-pointer h-4 w-4" />
+              <Trash onClick={()=>setShowDeleteDialog(true)} className="cursor-pointer h-4 w-4" />
             </div>
             <p className="text-xs">
               Agent:{" "}
@@ -502,9 +533,44 @@ const CallHistory = () => {
                 <Button type="submit">Save changes</Button>
               </SheetClose>
             </SheetFooter> */}
+           
           </SheetContent>
         </Sheet>
+       
       </div>
+       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Info className="w-6 h-6 text-red-700 mr-2" />
+              Delete Call History
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this call history? This action
+              cannot be reversed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="mr-2 cursor-pointer"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="cursor-pointer"
+              onClick={handleDeleteKnowledgeBase}
+              disabled={deleteLoading}
+            >
+              {deleteLoading && <Loader2 className="animate-spin mr-2" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

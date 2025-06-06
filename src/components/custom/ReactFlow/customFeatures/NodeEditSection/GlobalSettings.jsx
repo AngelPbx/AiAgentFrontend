@@ -133,7 +133,7 @@ const GlobalSettings = ({
   const [backchannel_words, setBackchannelWords] = useState(null);
   const [reminder_trigger_ms, setReminderTriggerMs] = useState(10000); //If set (in milliseconds), will trigger a reminder to the agent to speak if the user has been silent for the specified duration after some agent speech
   const [reminder_max_count, setReminderMaxCount] = useState(1); //If set, controls how many times agent would remind user when user is unresponsive
-  const [ambient_sounds, setAmbientSounds] = useState(null); //If set, will add ambient environment sound to the call to make experience more realistic Currently supports the following options: coffee-shop, convention-hall,summer-outdoor, mountain-outdoor, static-noise, call-center
+  const [ambient_sound, setAmbientSounds] = useState(null); //If set, will add ambient environment sound to the call to make experience more realistic Currently supports the following options: coffee-shop, convention-hall,summer-outdoor, mountain-outdoor, static-noise, call-center
   const [ambient_sound_volume, setAmbientSoundVolume] = useState(1); //If set, will control the volume of the ambient sound. Value ranging from [0,2]
   const [language, setLanguage] = useState("en-US"); //Specifies what language (and dialect) the speech recognition will operate in
   const [webhook_url, setWebhookUrl] = useState(null); //The webhook for agent to listen to call events.
@@ -158,7 +158,7 @@ const GlobalSettings = ({
     useState("gpt-4o-mini"); //The model to use for post call analysis. Currently only supports gpt-4o-mini and gpt-4o. Default to gpt-4o-mini.
   const [begin_message_delay_ms, setBeginMessageDelayMs] = useState(0); //If set, will delay the first message by the specified amount of milliseconds, so that it gives user more time to prepare to take the call
   const [ring_duration_ms, setRingDurationMs] = useState(30000); //If set, the phone ringing will last for the specified amount of milliseconds. This applies for both outbound call ringtime, and call transfer ringtime
-  const [stt_model, setSttModel] = useState("fast"); //If set, determines whether speech to text should focus on latency or accuracy. Default to fast mode.
+  const [stt_mode, setSttModel] = useState("fast"); //If set, determines whether speech to text should focus on latency or accuracy. Default to fast mode.
   const [allow_user_dtmf, setAllowUserDtmf] = useState(true); //If set to true, DTMF input will be accepted and processed. If false, any DTMF input will be ignored. Default to true.
   const [digit_limit, setDigitLimit] = useState(10); //The maximum number of digits allowed in the user's DTMF (Dual-Tone Multi-Frequency) input per turn. Once this limit is reached, the input is considered complete and a response will be generated immediately.
   const [termination_keys, setTerminationKeys] = useState("#"); //A single key that signals the end of DTMF input. Acceptable values include any digit (0–9), the pound/hash symbol (#), or the asterisk (*).
@@ -253,7 +253,7 @@ const GlobalSettings = ({
       setPostCallAnalysisModel(agentData.post_call_analysis_model);
       setBeginMessageDelayMs(agentData.begin_message_delay_ms);
       setRingDurationMs(agentData.ring_duration_ms);
-      setSttModel(agentData.stt_model);
+      setSttModel(agentData.stt_mode);
       setAllowUserDtmf(agentData.allow_user_dtmf);
       setDigitLimit(agentData.user_dtmf_options?.digit_limit);
       setTerminationKeys(agentData.user_dtmf_options?.termination_keys);
@@ -271,7 +271,7 @@ const GlobalSettings = ({
       setNormalizeForSpeech(agentData.normalize_for_speech);
       setEndCallAfterSilenceMs(agentData.end_call_after_silence_ms);
       setMaxCallDurationMs(agentData.max_call_duration_ms);
-      setAmbientSounds(agentData.ambient_sounds);
+      setAmbientSounds(agentData.ambient_sound);
       setAmbientSoundVolume(agentData.ambient_sound_volume);
       // Setting llm data
       setModel(llmData.model);
@@ -315,7 +315,7 @@ const GlobalSettings = ({
           backchannel_words: backchannel_words,
           reminder_trigger_ms: reminder_trigger_ms,
           reminder_max_count: reminder_max_count,
-          ambient_sounds: ambient_sounds,
+          ambient_sound: ambient_sound,
           ambient_sound_volume: ambient_sound_volume,
           language: language,
           webhook_url: webhook_url,
@@ -334,7 +334,7 @@ const GlobalSettings = ({
           post_call_analysis_model: post_call_analysis_model,
           begin_message_delay_ms: begin_message_delay_ms,
           ring_duration_ms: ring_duration_ms,
-          stt_model: stt_model,
+          stt_mode: stt_mode,
           allow_user_dtmf: allow_user_dtmf,
           user_dtmf_options: {
             digit_limit: digit_limit,
@@ -392,7 +392,7 @@ const GlobalSettings = ({
           backchannel_words: backchannel_words,
           reminder_trigger_ms: reminder_trigger_ms,
           reminder_max_count: reminder_max_count,
-          ambient_sounds: ambient_sounds,
+          ambient_sound: ambient_sound,
           ambient_sound_volume: ambient_sound_volume,
           language: language,
           webhook_url: webhook_url,
@@ -411,7 +411,7 @@ const GlobalSettings = ({
           post_call_analysis_model: post_call_analysis_model,
           begin_message_delay_ms: begin_message_delay_ms,
           ring_duration_ms: ring_duration_ms,
-          stt_model: stt_model,
+          stt_mode: stt_mode,
           allow_user_dtmf: allow_user_dtmf,
           user_dtmf_options: {
             digit_limit: digit_limit,
@@ -2421,7 +2421,7 @@ const GlobalSettings = ({
                   <p className="mb-2">Background Sound</p>
                   <div className="flex items-center gap-3">
                     <Select
-                      value={ambient_sounds}
+                      value={ambient_sound}
                       onValueChange={setAmbientSounds}
                     >
                       <SelectTrigger className="w-full cursor-pointer">
@@ -2541,7 +2541,7 @@ const GlobalSettings = ({
                   <RadioGroup
                     defaultValue="optimized-accuracy"
                     className="mt-2"
-                    value={stt_model}
+                    value={stt_mode}
                     onValueChange={setSttModel}
                   >
                     <div className="flex items-center space-x-2">
@@ -2554,7 +2554,7 @@ const GlobalSettings = ({
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem
-                        value="accuracy"
+                        value="accurate"
                         id="r2"
                         className={"cursor-pointer border border-white"}
                       />
