@@ -62,6 +62,27 @@ const AgentsList = () => {
   const [availableNumbers, setAvailableNumbers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredAgents = allAgents
+    .filter((item) =>
+      item.agent_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aIndex = a.agent_name
+        .toLowerCase()
+        .indexOf(searchTerm.toLowerCase());
+      const bIndex = b.agent_name
+        .toLowerCase()
+        .indexOf(searchTerm.toLowerCase());
+
+      // -1 means no match, put at the end
+      return (
+        (aIndex === -1 ? Infinity : aIndex) -
+        (bIndex === -1 ? Infinity : bIndex)
+      );
+    });
+
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/agent/all");
@@ -131,6 +152,8 @@ const AgentsList = () => {
             type="text"
             placeholder="Search..."
             className="w-full md:w-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <div className="mt-4 md:mt-0">
             {/* Create an agent */}
@@ -201,42 +224,41 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              
-                  {allAgents.map((item) => (
-                    <TableRow
-                      key={item.agent_id}
-                      onClick={() => handleEditClick(item)}
-                      className="cursor-pointer hover:bg-zinc-800"
-                    >
-                      <TableCell className="font-medium flex items-center">
-                        <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
-                          <BotIcon className="w-5 h-5" />
-                        </span>{" "}
-                        {item.agent_name}
-                      </TableCell>
-                      <TableCell>
+              {filteredAgents.map((item) => (
+                <TableRow
+                  key={item.agent_id}
+                  onClick={() => handleEditClick(item)}
+                  className="cursor-pointer hover:bg-zinc-800"
+                >
+                  <TableCell className="font-medium flex items-center">
+                    <span className="p-1 bg-zinc-600 rounded-sm mr-3 opacity-40">
+                      <BotIcon className="w-5 h-5" />
+                    </span>{" "}
+                    {item.agent_name}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">
+                      {item.response_engine?.["type"]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {item?.agent_id &&
+                      (finePhoneNumber(item.agent_id)?.length > 0 ? (
                         <Badge variant="secondary">
-                          {item.response_engine?.["type"]}
+                          {finePhoneNumber(item.agent_id)}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {item?.agent_id &&
-                          (finePhoneNumber(item.agent_id)?.length > 0 ? (
-                            <Badge variant="secondary">
-                              {finePhoneNumber(item.agent_id)}
-                            </Badge>
-                          ) : (
-                            "-"
-                          ))}
-                      </TableCell>
-                      <TableCell className="flex items-center">
-                        {item.language}
-                      </TableCell>
-                      <TableCell>{item.voice_id}</TableCell>
-                      {/* <TableCell>
+                      ) : (
+                        "-"
+                      ))}
+                  </TableCell>
+                  <TableCell className="flex items-center">
+                    {item.language}
+                  </TableCell>
+                  <TableCell>{item.voice_id}</TableCell>
+                  {/* <TableCell>
                         {agent?.edited_date ? agent.edited_date : "-"}
                       </TableCell> */}
-                      {/* <TableCell>
+                  {/* <TableCell>
                         {agent?.status ? (
                           <Badge
                             variant={
@@ -251,39 +273,38 @@ const AgentsList = () => {
                           "-"
                         )}
                       </TableCell> */}
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="w-8 h-8 hover:rounded-sm hover:bg-zinc-800 opacity-50 cursor-pointer"
-                            >
-                              <EllipsisVertical />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem className="cursor-pointer">
-                              <Copy /> Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
-                              <ArrowRightLeft />
-                              Export
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              variant="destructive"
-                              className="cursor-pointer"
-                            >
-                              <Trash2 />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-8 h-8 hover:rounded-sm hover:bg-zinc-800 opacity-50 cursor-pointer"
+                        >
+                          <EllipsisVertical />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem className="cursor-pointer">
+                          <Copy /> Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
+                          <ArrowRightLeft />
+                          Export
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          className="cursor-pointer"
+                        >
+                          <Trash2 />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>

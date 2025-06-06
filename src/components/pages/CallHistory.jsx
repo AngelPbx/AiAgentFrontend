@@ -17,7 +17,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { addDays, format } from "date-fns";
+import { addDays, format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import {
@@ -44,10 +44,13 @@ import { generalGetFunction } from "@/globalFunctions/globalFunction";
 import Loading from "../commonComponents/Loading";
 
 const CallHistory = () => {
-  const [date, setDate] = useState({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
-  });
+  // Set default range: from 5 days ago to today
+  const today = new Date();
+  const defaultRange = {
+    from: subDays(today, 5),
+    to: today,
+  };
+  const [date, setDate] = useState(defaultRange);
 
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +94,66 @@ const CallHistory = () => {
     return `${hours}:${minutes}:${seconds}`;
   }
 
+  const filteredCalls = calls?.filter((call) => {
+    if (!date?.from || !date?.to || !call?.start_timestamp) return false;
+
+    const callDate = new Date(call.start_timestamp);
+
+    const from = new Date(date.from);
+    from.setHours(0, 0, 0, 0);
+
+    const to = new Date(date.to);
+    to.setHours(23, 59, 59, 999);
+
+    return callDate >= from && callDate <= to;
+  });
+
+  const exportToCSV = () => {
+    if (!filteredCalls || filteredCalls.length === 0) {
+      return alert("No data available to export.");
+    }
+
+    // Dynamically get all unique keys from all objects
+    const allKeys = Array.from(
+      new Set(filteredCalls.flatMap((call) => Object.keys(call)))
+    );
+
+    // CSV headers
+    const headers = allKeys;
+
+    // Rows
+    const rows = filteredCalls.map((call) =>
+      allKeys.map((key) => {
+        const value = call[key];
+
+        // Format timestamp if it's the start_timestamp
+        if (key === "start_timestamp") {
+          return formatTimestampToDateTime(value);
+        }
+
+        return value !== undefined && value !== null ? value : "";
+      })
+    );
+
+    // Combine headers and rows
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row.map((item) => `"${String(item).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+
+    // Trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "filtered_calls.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
       {loading && <Loading />}
@@ -107,13 +170,13 @@ const CallHistory = () => {
               <PopoverTrigger asChild>
                 <Button
                   id="date"
-                  variant={"outline"}
+                  variant="outline"
                   className={cn(
                     "w-[300px] justify-start text-left font-normal cursor-pointer",
                     !date && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.from ? (
                     date.to ? (
                       <>
@@ -136,21 +199,26 @@ const CallHistory = () => {
                   selected={date}
                   onSelect={setDate}
                   numberOfMonths={2}
+                  disabled={(day) => day > today} // disable future dates
                 />
               </PopoverContent>
             </Popover>
             {/* <Button variant="outline" className="cursor-pointer">
               <CalendarDays /> Date Range
             </Button> */}
-            <Button variant="outline" className="cursor-pointer">
+            {/* <Button variant="outline" className="cursor-pointer">
               <Plus /> Filter
             </Button>
             <Button variant="outline" className="cursor-pointer">
               <Settings /> Customize Fields
-            </Button>
+            </Button> */}
           </div>
           <div>
-            <Button variant="outline" className="cursor-pointer">
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              className="cursor-pointer"
+            >
               <ArrowUpFromLine /> Export
             </Button>
           </div>
@@ -160,7 +228,11 @@ const CallHistory = () => {
         <Sheet>
           <div className="overflow-x-auto w-full">
             <Table>
-              <TableCaption>A list of your recent calls.</TableCaption>
+              <TableCaption>
+                {filteredCalls.length === 0
+                  ? "No calls found!"
+                  : "A list of your recent calls."}
+              </TableCaption>
               <TableHeader className="bg-zinc-800">
                 <TableRow>
                   <TableHead>Time</TableHead>
@@ -182,112 +254,92 @@ const CallHistory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {calls?.map((call, index) => (
+                {filteredCalls?.map((call, index) => (
                   <TableRow
                     onClick={() => setSelectedCall(call)}
                     key={index}
                     className="cursor-pointer"
                   >
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
                           <div className="p-4">
                             {formatTimestampToDateTime(call?.start_timestamp)}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">
                             {formatDurationToTime(call?.duration_ms)}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.call_type}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">
                             {call?.call_cost?.combined_cost}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                        
                           <div className="p-4">{call?.call_id}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                         
                           <div className="p-4">
                             {call?.disconnection_reason?.split("_").join(" ")}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.call_status}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                         
                           <div className="p-4">
                             {call?.call_analysis?.user_sentiment}
                           </div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.from_number}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                    <TableCell className="p-0" >
+                    <TableCell className="p-0">
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
-                          
                           <div className="p-4">{call?.to_number}</div>
-                          
                         </div>
                       </SheetTrigger>
                     </TableCell>
-                   
                   </TableRow>
                 ))}
               </TableBody>
