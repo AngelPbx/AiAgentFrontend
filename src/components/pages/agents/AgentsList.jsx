@@ -68,6 +68,27 @@ const AgentsList = () => {
   const [loading, setLoading] = useState(true);
   const [deletedItem, setDeletedItem] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredAgents = allAgents
+    .filter((item) =>
+      item.agent_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aIndex = a.agent_name
+        .toLowerCase()
+        .indexOf(searchTerm.toLowerCase());
+      const bIndex = b.agent_name
+        .toLowerCase()
+        .indexOf(searchTerm.toLowerCase());
+
+      // -1 means no match, put at the end
+      return (
+        (aIndex === -1 ? Infinity : aIndex) -
+        (bIndex === -1 ? Infinity : bIndex)
+      );
+    });
+
   useEffect(() => {
     getData();
     fetchAvailableNumbers();
@@ -169,6 +190,8 @@ const AgentsList = () => {
             type="text"
             placeholder="Search..."
             className="w-full md:w-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <div className="mt-4 md:mt-0">
             {/* Create an agent */}
@@ -243,7 +266,7 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allAgents.map((item) => (
+              {filteredAgents.map((item) => (
                 <TableRow
                   key={item.agent_id}
                   onClick={() => handleEditClick(item)}

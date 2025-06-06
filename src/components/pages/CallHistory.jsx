@@ -8,6 +8,7 @@ import {
   Download,
   Headphones,
   History,
+  Info,
   Lightbulb,
   Phone,
   Plus,
@@ -17,7 +18,7 @@ import {
   Trash,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { addDays, format } from "date-fns";
+import { addDays, format, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import {
@@ -40,30 +41,53 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Separator } from "../ui/separator";
-import { generalGetFunction } from "@/globalFunctions/globalFunction";
+import {
+  generalDeleteFunction,
+  generalGetFunction,
+} from "@/globalFunctions/globalFunction";
 import Loading from "../commonComponents/Loading";
+// import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { toast } from "sonner";
+// import { DialogFooter, DialogHeader } from "../ui/dialog";
 
 const CallHistory = () => {
-  const [date, setDate] = useState({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
-  });
-
+  // Set default range: from 5 days ago to today
+  const today = new Date();
+  const defaultRange = {
+    from: subDays(today, 5),
+    to: today,
+  };
+  const [date, setDate] = useState(defaultRange);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCall, setSelectedCall] = useState(null);
+  const [refreshData, setRefreshData] = useState(0);
   useEffect(() => {
     async function getData() {
       const apiData = await generalGetFunction("/call/all");
       if (apiData.status) {
         setCalls(apiData.data);
         setLoading(false);
+        setDeleteLoading(false);
+        setShowDeleteDialog(false);
       } else {
         setLoading(false);
       }
     }
     getData();
-  }, []);
+  }, [refreshData]);
   function formatTimestampToDateTime(timestamp) {
     const date = new Date(timestamp);
 
@@ -91,12 +115,84 @@ const CallHistory = () => {
     return `${hours}:${minutes}:${seconds}`;
   }
 
-  if (loading) {
-    return <Loading />;
+  const filteredCalls = calls?.filter((call) => {
+    if (!date?.from || !date?.to || !call?.start_timestamp) return false;
+
+    const callDate = new Date(call.start_timestamp);
+
+    const from = new Date(date.from);
+    from.setHours(0, 0, 0, 0);
+
+    const to = new Date(date.to);
+    to.setHours(23, 59, 59, 999);
+
+    return callDate >= from && callDate <= to;
+  });
+
+  const exportToCSV = () => {
+    if (!filteredCalls || filteredCalls.length === 0) {
+      return alert("No data available to export.");
+    }
+
+    // Dynamically get all unique keys from all objects
+    const allKeys = Array.from(
+      new Set(filteredCalls.flatMap((call) => Object.keys(call)))
+    );
+
+    // CSV headers
+    const headers = allKeys;
+
+    // Rows
+    const rows = filteredCalls.map((call) =>
+      allKeys.map((key) => {
+        const value = call[key];
+
+        // Format timestamp if it's the start_timestamp
+        if (key === "start_timestamp") {
+          return formatTimestampToDateTime(value);
+        }
+
+        return value !== undefined && value !== null ? value : "";
+      })
+    );
+
+    // Combine headers and rows
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row.map((item) => `"${String(item).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+
+    // Trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "filtered_calls.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  async function handleDeleteKnowledgeBase() {
+    setDeleteLoading(true);
+    const apiData = await generalDeleteFunction(
+      `/call/delete/${selectedCall?.call_id}`
+    );
+    if (apiData.status) {
+      setRefreshData(refreshData + 1);
+    } else {
+      toast.error(apiData.error || "Failed to delete call history.");
+      setShowDeleteDialog(false);
+      setDeleteLoading(false);
+    }
   }
+
+  if (loading) return <Loading />;
+  // {loading && <Loading />}
   return (
     <>
-      {/* {loading && <Loading />} */}
       <div className="flex flex-col gap-4 p-4">
         <h1 className="text-2xl font-bold">Call History</h1>
         <p className="text-gray-600">
@@ -110,13 +206,13 @@ const CallHistory = () => {
               <PopoverTrigger asChild>
                 <Button
                   id="date"
-                  variant={"outline"}
+                  variant="outline"
                   className={cn(
                     "w-[300px] justify-start text-left font-normal cursor-pointer",
                     !date && "text-muted-foreground"
                   )}
                 >
-                  <CalendarIcon />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.from ? (
                     date.to ? (
                       <>
@@ -139,21 +235,26 @@ const CallHistory = () => {
                   selected={date}
                   onSelect={setDate}
                   numberOfMonths={2}
+                  disabled={(day) => day > today} // disable future dates
                 />
               </PopoverContent>
             </Popover>
             {/* <Button variant="outline" className="cursor-pointer">
               <CalendarDays /> Date Range
             </Button> */}
-            <Button variant="outline" className="cursor-pointer">
+            {/* <Button variant="outline" className="cursor-pointer">
               <Plus /> Filter
             </Button>
             <Button variant="outline" className="cursor-pointer">
               <Settings /> Customize Fields
-            </Button>
+            </Button> */}
           </div>
           <div>
-            <Button variant="outline" className="cursor-pointer">
+            <Button
+              onClick={exportToCSV}
+              variant="outline"
+              className="cursor-pointer"
+            >
               <ArrowUpFromLine /> Export
             </Button>
           </div>
@@ -163,7 +264,11 @@ const CallHistory = () => {
         <Sheet>
           <div className="overflow-x-auto w-full">
             <Table>
-              <TableCaption>A list of your recent calls.</TableCaption>
+              <TableCaption>
+                {filteredCalls.length === 0
+                  ? "No calls found!"
+                  : "A list of your recent calls."}
+              </TableCaption>
               <TableHeader className="bg-zinc-800">
                 <TableRow>
                   <TableHead>Time</TableHead>
@@ -185,7 +290,7 @@ const CallHistory = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {calls?.map((call, index) => (
+                {filteredCalls?.map((call, index) => (
                   <TableRow
                     onClick={() => setSelectedCall(call)}
                     key={index}
@@ -292,7 +397,10 @@ const CallHistory = () => {
                 {formatTimestampToDateTime(selectedCall?.start_timestamp)}{" "}
                 {selectedCall?.call_type}
               </p>
-              <Trash className="cursor-pointer h-4 w-4" />
+              <Trash
+                onClick={() => setShowDeleteDialog(true)}
+                className="cursor-pointer h-4 w-4"
+              />
             </div>
             <p className="text-xs">
               Agent:{" "}
@@ -439,6 +547,39 @@ const CallHistory = () => {
           </SheetContent>
         </Sheet>
       </div>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Info className="w-6 h-6 text-red-700 mr-2" />
+              Delete Call History
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this call history? This action
+              cannot be reversed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="mr-2 cursor-pointer"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="cursor-pointer"
+              onClick={handleDeleteKnowledgeBase}
+              disabled={deleteLoading}
+            >
+              {deleteLoading && <Loader2 className="animate-spin mr-2" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
