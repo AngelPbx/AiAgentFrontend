@@ -382,9 +382,9 @@ const KnowledgeBase = () => {
                   </TooltipProvider>
                 </span>
                 <span className="flex items-center gap-3 pe-3">
-                  <Button className="cursor-pointer">
+                  {/* <Button className="cursor-pointer">
                     <Pencil /> Edit
-                  </Button>
+                  </Button> */}
                   <Button
                     variant="outline"
                     size="icon"
@@ -399,72 +399,70 @@ const KnowledgeBase = () => {
               {/* All the available files will be show here  */}
               {activeFile &&
                 activeFile?.knowledge_base_sources?.map((data) => (
-                  <>
-                    <div className="flex flex-col gap-2" key={data?.source_id}>
-                      <div className="flex items-center justify-between p-2 border rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer border-zinc-600">
-                        <span className="flex items-center gap-2">
-                          <i className="fa-solid fa-file-pdf fa-xl text-muted-foreground" />
-                          <span className="flex flex-col">
-                            <span className="text-sm font-bold">
-                              {(data?.type === "text" && data.title) ||
-                                (data?.type === "url" &&
-                                  new URL(data?.url).hostname) ||
-                                (data?.type === "document" && data?.filename)}
-                            </span>
-                            <span className="text-xs text-zinc-500 pt-0.5">
-                              {data?.type.toUpperCase()} | 3MB
-                            </span>
+                  <div className="flex flex-col gap-2" key={data?.source_id}>
+                    <div className="flex items-center justify-between p-2 border rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer border-zinc-600">
+                      <span className="flex items-center gap-2">
+                        <i className="fa-solid fa-file-pdf fa-xl text-muted-foreground" />
+                        <span className="flex flex-col">
+                          <span className="text-sm font-bold">
+                            {(data?.type === "text" && data.title) ||
+                              (data?.type === "url" &&
+                                new URL(data?.url).hostname) ||
+                              (data?.type === "document" && data?.filename)}
+                          </span>
+                          <span className="text-xs text-zinc-500 pt-0.5">
+                            {data?.type.toUpperCase()} | 3MB
                           </span>
                         </span>
-                        <span className="flex gap-3">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="cursor-pointer border-none !bg-transparent !hover:bg-transparent !focus:bg-transparent !active:bg-transparent"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(
-                                      data?.type === "text" && data?.content_url
-                                    ) ||
-                                      (data?.type === "url" && data?.url) ||
-                                      (data?.type === "document" &&
-                                        data?.file_url);
-                                  }}
-                                >
-                                  <Copy />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Copy file url</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="cursor-pointer !bg-transparent !hover:bg-transparent !focus:bg-transparent !active:bg-transparent  border-zinc-600"
-                            onClick={() => {
-                              const url =
-                                data?.type === "text"
-                                  ? data?.content_url
-                                  : data?.type === "url"
-                                  ? data?.url
-                                  : data?.file_url;
-                              if (url) {
-                                window.open(url, "_blank");
-                              } else {
-                                toast.error("No URL available for this file");
-                              }
-                            }}
-                          >
-                            <Download className="text-green-800 hover:text-green-600 hover:text-lg" />
-                          </Button>
-                        </span>
-                      </div>
+                      </span>
+                      <span className="flex gap-3">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="cursor-pointer border-none !bg-transparent !hover:bg-transparent !focus:bg-transparent !active:bg-transparent"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(
+                                    data?.type === "text" && data?.content_url
+                                  ) ||
+                                    (data?.type === "url" && data?.url) ||
+                                    (data?.type === "document" &&
+                                      data?.file_url);
+                                }}
+                              >
+                                <Copy />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copy file url</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="cursor-pointer !bg-transparent !hover:bg-transparent !focus:bg-transparent !active:bg-transparent  border-zinc-600"
+                          onClick={() => {
+                            const url =
+                              data?.type === "text"
+                                ? data?.content_url
+                                : data?.type === "url"
+                                ? data?.url
+                                : data?.file_url;
+                            if (url) {
+                              window.open(url, "_blank");
+                            } else {
+                              toast.error("No URL available for this file");
+                            }
+                          }}
+                        >
+                          <Download className="text-green-800 hover:text-green-600 hover:text-lg" />
+                        </Button>
+                      </span>
                     </div>
-                  </>
+                  </div>
                 ))}
             </div>
           </div>
