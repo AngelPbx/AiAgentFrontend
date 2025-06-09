@@ -2396,7 +2396,7 @@ const GlobalSettings = ({
                         })}
                       <Separator className={"my-2"} />
                       <Link
-                        to="/agents/knowledge-base"
+                        to="/knowledge-base"
                         target="_blank"
                         className="flex items-center justify-center gap-2"
                       >

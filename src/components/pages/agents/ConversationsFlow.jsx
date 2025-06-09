@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ConversationsFlow() {
+  console.log("Inside ")
   const location = useLocation();
   const locationState = location.state;
   const navigate = useNavigate();
@@ -34,7 +35,6 @@ export default function ConversationsFlow() {
     }
   }, []);
 
-  console.log("Agent Data: ", agentData);
 
   return (
     <div className="space-y-4 p-4">

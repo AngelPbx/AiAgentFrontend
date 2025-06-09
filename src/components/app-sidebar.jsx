@@ -80,32 +80,32 @@ const data = {
       items: [
         {
           title: "All Agents",
-          url: "/agents/list",
+          url: "/list",
           icon: Bot,
         },
         {
           title: "Conversations Flow",
-          url: "/agents/conversations-flow",
+          url: "/conversations-flow",
           icon: Waypoints,
         },
         {
           title: "Knowledge Base",
-          url: "/agents/knowledge-base",
+          url: "/knowledge-base",
           icon: BookUser,
         },
         {
           title: "Phone Numbers",
-          url: "/agents/phone-numbers",
+          url: "/phone-numbers",
           icon: Phone,
         },
         {
           title: "Call History",
-          url: "/agents/call-history",
+          url: "/call-history",
           icon: History,
         },
         {
           title: "Billing",
-          url: "/agents/billing",
+          url: "/billing",
           icon: ReceiptText,
         },
         // {

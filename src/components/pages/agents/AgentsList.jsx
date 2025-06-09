@@ -266,9 +266,9 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAgents.map((item) => (
+              {filteredAgents.map((item,key) => (
                 <TableRow
-                  key={item.agent_id}
+                  key={key}
                   onClick={() => handleEditClick(item)}
                   className="cursor-pointer hover:bg-zinc-800"
                 >
@@ -411,30 +411,31 @@ const CreateAgent = () => {
   const emptyInitialEdges = [];
 
   const handleClick = () => {
+    console.log("Agent Type: ");
     if (agentName === "") {
       toast.error("Please enter agent name");
       return;
     }
-    if (
-      // agentType === "single-healthcare" ||
-      agentType === "conversation-flow-patiend-screening"
-    ) {
-      dispatch({ type: "SET_INITIAL_NODES", payload: initialNodes });
-      dispatch({ type: "SET_INITIAL_EDGES", payload: initialEdges });
-    } else {
-      dispatch({ type: "SET_INITIAL_NODES", payload: emptyInitialNodes });
-      dispatch({ type: "SET_INITIAL_EDGES", payload: emptyInitialEdges });
-      dispatch({ type: "CREATE_AGENT_TYPE", payload: "single" });
-    }
+    // if (
+    //   // agentType === "single-healthcare" ||
+    //   agentType === "conversation-flow-patiend-screening"
+    // ) {
+    //   dispatch({ type: "SET_INITIAL_NODES", payload: initialNodes });
+    //   dispatch({ type: "SET_INITIAL_EDGES", payload: initialEdges });
+    // } else {
+    //   dispatch({ type: "SET_INITIAL_NODES", payload: emptyInitialNodes });
+    //   dispatch({ type: "SET_INITIAL_EDGES", payload: emptyInitialEdges });
+    //   dispatch({ type: "CREATE_AGENT_TYPE", payload: "single" });
+    // }
 
-    if (
-      agentType === "conversation-flow-patiend-screening" ||
-      agentType === "conversation-flow-blank"
-    ) {
-      dispatch({ type: "CREATE_AGENT_TYPE", payload: "multiple" });
-    }
+    // if (
+    //   agentType === "conversation-flow-patiend-screening" ||
+    //   agentType === "conversation-flow-blank"
+    // ) {
+    //   dispatch({ type: "CREATE_AGENT_TYPE", payload: "multiple" });
+    // }
 
-    navigate("/agents/conversations-flow", {
+    navigate("/conversations-flow", {
       state: {
         unique: true,
         agentName: agentName,
