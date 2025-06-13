@@ -266,7 +266,7 @@ const AgentsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAgents.map((item,key) => (
+              {filteredAgents.map((item, key) => (
                 <TableRow
                   key={key}
                   onClick={() => handleEditClick(item)}
@@ -459,7 +459,7 @@ const CreateAgent = () => {
             >
               <p>Single Prompt</p>
             </div>
-            <div
+            {/* <div
               className={`cursor-pointer border-2 border-transparent hover:border hover:bg-zinc-800 py-2 ps-2 rounded-md text-muted-foreground ${
                 currentTab === "conversation-flow" ? "bg-zinc-800 " : ""
               }`}
@@ -468,7 +468,7 @@ const CreateAgent = () => {
               }}
             >
               <p>Conversation Flow</p>
-            </div>
+            </div> */}
           </div>
 
           {/* tab content section */}

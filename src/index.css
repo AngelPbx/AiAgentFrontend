@@ -146,3 +146,21 @@
 .react-flow__panel.react-flow__attribution.bottom.right {
   display: none;
 }
+
+@layer base {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    transition: background-color 9999s ease-in-out 0s;
+    -webkit-text-fill-color: #000000 !important; /* black text */
+    caret-color: #000000;
+    box-shadow: 0 0 0 1000px #1f1f1f inset; /* Match your dark input bg */
+  }
+
+  /* Fix invisible selection on autofill or normal text selection */
+  input::selection,
+  input:-webkit-autofill::selection {
+    background: #a3a3a3 !important; /* gray-400 or something visible */
+    color: #000000 !important; /* black text during selection */
+  }
+}

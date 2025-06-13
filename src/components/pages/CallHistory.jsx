@@ -325,6 +325,7 @@ const CallHistory = () => {
                       <SheetTrigger className="w-full cursor-pointer">
                         <div className="grid grid-cols-10 w-full">
                           <div className="p-4">
+                            {call?.call_cost?.combined_cost && "$"}
                             {call?.call_cost?.combined_cost}
                           </div>
                         </div>

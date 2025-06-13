@@ -175,7 +175,6 @@ const GlobalSettings = ({
   const [model, setModel] = useState("gpt-4o");
   const [llmModels, setLlmModels] = useState([]);
   const [llmKnowlwdgeBaseIds, setLlmKnowlwdgeBaseIds] = useState([]);
- 
 
   // LLm model Functions payload added to the agent
   const [general_tools, setGeneralTools] = useState([]);
@@ -464,8 +463,7 @@ const GlobalSettings = ({
   const [editableKey, setEditableKey] = useState(null);
   const [jsonError, setJsonError] = useState(null); // just for error feedback
   console.log("General Tools: ", general_tools);
-  
-  
+
   return (
     <>
       <div className="w-full">
@@ -592,7 +590,9 @@ const GlobalSettings = ({
                                     setSpeakAfterExecution(
                                       item.speak_after_execution
                                     );
-                                    setParameters(JSON.stringify(item.parameters) || {});
+                                    setParameters(
+                                      JSON.stringify(item.parameters) || {}
+                                    );
                                     setExecutionMessageDescription(
                                       item.execution_message_description
                                     );
@@ -678,35 +678,37 @@ const GlobalSettings = ({
                                 </DialogTitle>
                               </DialogHeader>
                               {/* <FunctionItem dialogType={"end_call"} /> */}
-                              <div className="grid gap-4">
-                                <div className="grid gap-3">
-                                  <Label htmlFor="name">Name</Label>
-                                  <Input
-                                    id="name"
-                                    name="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                  />
+                              <ScrollArea className="max-h-[80vh]">
+                                <div className="grid gap-4">
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input
+                                      id="name"
+                                      name="name"
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="description">
+                                      Description{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Textarea
+                                      className={"min-h-[150px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter a description"
+                                      value={description}
+                                      onChange={(e) =>
+                                        setDescription(e.target.value)
+                                      }
+                                    />
+                                  </div>
                                 </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="description">
-                                    Description{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Textarea
-                                    className={"min-h-[150px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter a description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                  />
-                                </div>
-                              </div>
+                              </ScrollArea>
                               <DialogFooter>
                                 <DialogClose
                                   onClick={() => setOpenTrigger(null)}
@@ -810,141 +812,143 @@ const GlobalSettings = ({
                                 </DialogTitle>
                               </DialogHeader>
                               {/* <FunctionItem dialogType={"call-transfer"} /> */}
-                              <div className="grid gap-4">
-                                <div className="grid gap-3">
-                                  <Label htmlFor="name">Name</Label>
-                                  <Input
-                                    id="name"
-                                    name="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="description">
-                                    Description{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Textarea
-                                    className={"min-h-[100px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter a description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                  />
-                                </div>
-
-                                <div className="grid gap-3">
-                                  <Label>Transfer to</Label>
-                                  <Tabs
-                                    defaultValue={transferType}
-                                    onValueChange={setTransferType}
-                                  >
-                                    <TabsList>
-                                      <TabsTrigger value="predefined">
-                                        Static Number
-                                      </TabsTrigger>
-                                      <TabsTrigger value="inferred">
-                                        Dynamic Routing
-                                      </TabsTrigger>
-                                    </TabsList>
-                                    <TabsContent value="predefined">
-                                      <Input
-                                        placeholder="+1xxxxxxxxxx"
-                                        className={"w-full"}
-                                        value={transferNumber}
-                                        onChange={(e) =>
-                                          setTransferNumber(e.target.value)
-                                        }
-                                      />
-                                      <p className="text-xs text-muted-foreground">
-                                        Enter a static phone number or dynamic
-                                        variable.
-                                      </p>
-                                    </TabsContent>
-                                    <TabsContent value="inferred">
-                                      <Textarea
-                                        placeholder="Enter prompt to infer the destinaton number."
-                                        className={"w-full min-h-[100px]"}
-                                        value={transferPrompt}
-                                        onChange={(e) =>
-                                          setTransferPrompt(e.target.value)
-                                        }
-                                      />
-                                      <p className="text-xs text-muted-foreground">
-                                        Use a prompt to handle dynamic call
-                                        transfer routing.
-                                      </p>
-                                    </TabsContent>
-                                  </Tabs>
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label>Type</Label>
-                                  <RadioGroup
-                                    value={callTransfer}
-                                    onValueChange={setCallTransfer}
-                                    className={"flex flex-col w-full"}
-                                  >
-                                    <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                                      <Label
-                                        htmlFor="cold_transfer"
-                                        className={"flex items-center"}
-                                      >
-                                        Cold Transfer
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>
-                                              AI transfers the call to the next
-                                              agent without a debrief.
-                                            </p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </Label>
-                                      <RadioGroupItem
-                                        value="cold_transfer"
-                                        id="cold_transfer"
-                                        className={"cursor-pointer"}
-                                      />
-                                    </div>
-                                    <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
-                                      <Label
-                                        htmlFor="warm_transfer"
-                                        className={"flex items-center"}
-                                      >
-                                        Warm Transfer
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Info className="w-4 h-4 text-muted-foreground" />
-                                          </TooltipTrigger>
-                                          <TooltipContent>
-                                            <p>
-                                              AI provides a debrief to the next
-                                              agent after transferring the call.
-                                            </p>
-                                          </TooltipContent>
-                                        </Tooltip>
-                                      </Label>
-                                      <RadioGroupItem
-                                        value="warm_transfer"
-                                        id="warm_transfer"
-                                        className={"cursor-pointer"}
-                                      />
-                                    </div>
-                                  </RadioGroup>
-                                </div>
-
-                                {callTransfer === "cold_transfer" && (
+                              <ScrollArea className="max-h-[80vh]">
+                                <div className="grid gap-4">
                                   <div className="grid gap-3">
-                                    <Label>Displayed Phone Number</Label>
-                                    {/* <RadioGroup
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input
+                                      id="name"
+                                      name="name"
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="description">
+                                      Description{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Textarea
+                                      className={"min-h-[100px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter a description"
+                                      value={description}
+                                      onChange={(e) =>
+                                        setDescription(e.target.value)
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="grid gap-3">
+                                    <Label>Transfer to</Label>
+                                    <Tabs
+                                      defaultValue={transferType}
+                                      onValueChange={setTransferType}
+                                    >
+                                      <TabsList>
+                                        <TabsTrigger value="predefined">
+                                          Static Number
+                                        </TabsTrigger>
+                                        <TabsTrigger value="inferred">
+                                          Dynamic Routing
+                                        </TabsTrigger>
+                                      </TabsList>
+                                      <TabsContent value="predefined">
+                                        <Input
+                                          placeholder="+1xxxxxxxxxx"
+                                          className={"w-full"}
+                                          value={transferNumber}
+                                          onChange={(e) =>
+                                            setTransferNumber(e.target.value)
+                                          }
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                          Enter a static phone number or dynamic
+                                          variable.
+                                        </p>
+                                      </TabsContent>
+                                      <TabsContent value="inferred">
+                                        <Textarea
+                                          placeholder="Enter prompt to infer the destinaton number."
+                                          className={"w-full min-h-[100px]"}
+                                          value={transferPrompt}
+                                          onChange={(e) =>
+                                            setTransferPrompt(e.target.value)
+                                          }
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                          Use a prompt to handle dynamic call
+                                          transfer routing.
+                                        </p>
+                                      </TabsContent>
+                                    </Tabs>
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label>Type</Label>
+                                    <RadioGroup
+                                      value={callTransfer}
+                                      onValueChange={setCallTransfer}
+                                      className={"flex flex-col w-full"}
+                                    >
+                                      <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                                        <Label
+                                          htmlFor="cold_transfer"
+                                          className={"flex items-center"}
+                                        >
+                                          Cold Transfer
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Info className="w-4 h-4 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>
+                                                AI transfers the call to the
+                                                next agent without a debrief.
+                                              </p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </Label>
+                                        <RadioGroupItem
+                                          value="cold_transfer"
+                                          id="cold_transfer"
+                                          className={"cursor-pointer"}
+                                        />
+                                      </div>
+                                      <div className="flex items-center justify-between text-xl space-x-2 border rounded-md p-4 ">
+                                        <Label
+                                          htmlFor="warm_transfer"
+                                          className={"flex items-center"}
+                                        >
+                                          Warm Transfer
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Info className="w-4 h-4 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <p>
+                                                AI provides a debrief to the
+                                                next agent after transferring
+                                                the call.
+                                              </p>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        </Label>
+                                        <RadioGroupItem
+                                          value="warm_transfer"
+                                          id="warm_transfer"
+                                          className={"cursor-pointer"}
+                                        />
+                                      </div>
+                                    </RadioGroup>
+                                  </div>
+
+                                  {callTransfer === "cold_transfer" && (
+                                    <div className="grid gap-3">
+                                      <Label>Displayed Phone Number</Label>
+                                      {/* <RadioGroup
                                       value={show_transferee_as_caller}
                                       onValueChange={setShowTransfereeAsCaller}
                                       className={"flex flex-col w-full"}
@@ -977,62 +981,65 @@ const GlobalSettings = ({
                                         />
                                       </div>
                                     </RadioGroup> */}
-                                    <div className="mt-4">
-                                      <p>Show transferee's number</p>
-                                      <Switch
-                                        checked={show_transferee_as_caller}
-                                        onCheckedChange={
-                                          setShowTransfereeAsCaller
-                                        }
-                                        className={"mt-2 cursor-pointer"}
-                                      />
+                                      <div className="mt-4">
+                                        <p>Show transferee's number</p>
+                                        <Switch
+                                          checked={show_transferee_as_caller}
+                                          onCheckedChange={
+                                            setShowTransfereeAsCaller
+                                          }
+                                          className={"mt-2 cursor-pointer"}
+                                        />
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
 
-                                {callTransfer === "warm_transfer" && (
-                                  <div className="grid gap-3">
-                                    <Label>Handoff message</Label>
-                                    <Tabs
-                                      value={publicHandoffType}
-                                      onValueChange={setPublicHandoffOptionType}
-                                    >
-                                      <TabsList>
-                                        <TabsTrigger value="prompt">
-                                          Prompt
-                                        </TabsTrigger>
-                                        <TabsTrigger value="static_message">
-                                          Static Sentence
-                                        </TabsTrigger>
-                                      </TabsList>
-                                      <TabsContent value="prompt">
-                                        <Textarea
-                                          placeholder="Say hello to the agent and summarize the user problem to him"
-                                          className={"min-h-[100px]"}
-                                          value={publicHandOffPrompt}
-                                          onChange={(e) =>
-                                            setPublicHandOffPrompt(
-                                              e.target.value
-                                            )
-                                          }
-                                        />
-                                      </TabsContent>
-                                      <TabsContent value="static_message">
-                                        <Textarea
-                                          placeholder="Enter static message"
-                                          className={"w-full min-h-[100px]"}
-                                          value={publicHandOffMessage}
-                                          onChange={(e) =>
-                                            setPublicHandOffMessage(
-                                              e.target.value
-                                            )
-                                          }
-                                        />
-                                      </TabsContent>
-                                    </Tabs>
-                                  </div>
-                                )}
-                              </div>
+                                  {callTransfer === "warm_transfer" && (
+                                    <div className="grid gap-3">
+                                      <Label>Handoff message</Label>
+                                      <Tabs
+                                        value={publicHandoffType}
+                                        onValueChange={
+                                          setPublicHandoffOptionType
+                                        }
+                                      >
+                                        <TabsList>
+                                          <TabsTrigger value="prompt">
+                                            Prompt
+                                          </TabsTrigger>
+                                          <TabsTrigger value="static_message">
+                                            Static Sentence
+                                          </TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="prompt">
+                                          <Textarea
+                                            placeholder="Say hello to the agent and summarize the user problem to him"
+                                            className={"min-h-[100px]"}
+                                            value={publicHandOffPrompt}
+                                            onChange={(e) =>
+                                              setPublicHandOffPrompt(
+                                                e.target.value
+                                              )
+                                            }
+                                          />
+                                        </TabsContent>
+                                        <TabsContent value="static_message">
+                                          <Textarea
+                                            placeholder="Enter static message"
+                                            className={"w-full min-h-[100px]"}
+                                            value={publicHandOffMessage}
+                                            onChange={(e) =>
+                                              setPublicHandOffMessage(
+                                                e.target.value
+                                              )
+                                            }
+                                          />
+                                        </TabsContent>
+                                      </Tabs>
+                                    </div>
+                                  )}
+                                </div>
+                              </ScrollArea>
                               <DialogFooter>
                                 <DialogClose
                                   onClick={() => {
@@ -1166,79 +1173,81 @@ const GlobalSettings = ({
                                 </DialogTitle>
                               </DialogHeader>
                               {/* <FunctionItem dialogType={"check-calender"} /> */}
-                              <div className="grid gap-4">
-                                <div className="grid gap-3">
-                                  <Label htmlFor="name">Name</Label>
-                                  <Input
-                                    id="name"
-                                    name="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                  />
+                              <ScrollArea className="max-h-[80vh]">
+                                <div className="grid gap-4">
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input
+                                      id="name"
+                                      name="name"
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="description">
+                                      Description{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Textarea
+                                      className={"min-h-[100px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter a description"
+                                      value={description}
+                                      onChange={(e) =>
+                                        setDescription(e.target.value)
+                                      }
+                                      // onChange={handleInputChange}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="api-key">
+                                      API Key (Cal.com)
+                                    </Label>
+                                    <Input
+                                      id="api-key"
+                                      name="api-key"
+                                      value={cal_api_key}
+                                      onChange={(e) =>
+                                        setCalApiKey(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="event-type-id">
+                                      Event Type ID (Cal.com)
+                                    </Label>
+                                    <Input
+                                      id="event-type-id"
+                                      type={"number"}
+                                      name="event-type-id"
+                                      value={event_type_id}
+                                      onChange={(e) =>
+                                        setEventTypeId(Number(e.target.value))
+                                      }
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="timezone">
+                                      Timezone{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Input
+                                      id="timezone"
+                                      name="timezone"
+                                      value={timezone}
+                                      onChange={(e) =>
+                                        setTimezone(e.target.value)
+                                      }
+                                    />
+                                  </div>
                                 </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="description">
-                                    Description{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Textarea
-                                    className={"min-h-[100px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter a description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                    // onChange={handleInputChange}
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="api-key">
-                                    API Key (Cal.com)
-                                  </Label>
-                                  <Input
-                                    id="api-key"
-                                    name="api-key"
-                                    value={cal_api_key}
-                                    onChange={(e) =>
-                                      setCalApiKey(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="event-type-id">
-                                    Event Type ID (Cal.com)
-                                  </Label>
-                                  <Input
-                                    id="event-type-id"
-                                    type={"number"}
-                                    name="event-type-id"
-                                    value={event_type_id}
-                                    onChange={(e) =>
-                                      setEventTypeId(Number(e.target.value))
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="timezone">
-                                    Timezone{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Input
-                                    id="timezone"
-                                    name="timezone"
-                                    value={timezone}
-                                    onChange={(e) =>
-                                      setTimezone(e.target.value)
-                                    }
-                                  />
-                                </div>
-                              </div>
+                              </ScrollArea>
                               <DialogFooter>
                                 <DialogClose
                                   onClick={() => setOpenTrigger(null)}
@@ -1338,78 +1347,80 @@ const GlobalSettings = ({
                                 </DialogTitle>
                               </DialogHeader>
                               {/* <FunctionItem dialogType={"book-calender"} /> */}
-                              <div className="grid gap-4">
-                                <div className="grid gap-3">
-                                  <Label htmlFor="name">Name</Label>
-                                  <Input
-                                    id="name"
-                                    name="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                  />
+                              <ScrollArea className="max-h-[80vh]">
+                                <div className="grid gap-4">
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input
+                                      id="name"
+                                      name="name"
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="description">
+                                      Description{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Textarea
+                                      className={"min-h-[100px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter a description"
+                                      value={description}
+                                      onChange={(e) =>
+                                        setDescription(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="api-key">
+                                      API Key (Cal.com)
+                                    </Label>
+                                    <Input
+                                      id="api-key"
+                                      name="api-key"
+                                      value={cal_api_key}
+                                      onChange={(e) =>
+                                        setCalApiKey(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="event-type-id">
+                                      Event Type ID (Cal.com)
+                                    </Label>
+                                    <Input
+                                      id="event-type-id"
+                                      name="event-type-id"
+                                      type={"number"}
+                                      value={event_type_id}
+                                      onChange={(e) =>
+                                        setEventTypeId(Number(e.target.value))
+                                      }
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="timezone">
+                                      Timezone{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Input
+                                      id="timezone"
+                                      name="timezone"
+                                      value={timezone}
+                                      onChange={(e) =>
+                                        setTimezone(e.target.value)
+                                      }
+                                    />
+                                  </div>
                                 </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="description">
-                                    Description{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Textarea
-                                    className={"min-h-[100px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter a description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="api-key">
-                                    API Key (Cal.com)
-                                  </Label>
-                                  <Input
-                                    id="api-key"
-                                    name="api-key"
-                                    value={cal_api_key}
-                                    onChange={(e) =>
-                                      setCalApiKey(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="event-type-id">
-                                    Event Type ID (Cal.com)
-                                  </Label>
-                                  <Input
-                                    id="event-type-id"
-                                    name="event-type-id"
-                                    type={"number"}
-                                    value={event_type_id}
-                                    onChange={(e) =>
-                                      setEventTypeId(Number(e.target.value))
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="timezone">
-                                    Timezone{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Input
-                                    id="timezone"
-                                    name="timezone"
-                                    value={timezone}
-                                    onChange={(e) =>
-                                      setTimezone(e.target.value)
-                                    }
-                                  />
-                                </div>
-                              </div>
+                              </ScrollArea>
                               <DialogFooter>
                                 <DialogClose
                                   onClick={() => setOpenTrigger(null)}
@@ -1507,69 +1518,71 @@ const GlobalSettings = ({
                                 </DialogTitle>
                               </DialogHeader>
                               {/* <FunctionItem dialogType={"press-digits"} /> */}
-                              <div className="grid gap-4">
-                                <div className="grid gap-3">
-                                  <Label htmlFor="name">Name</Label>
-                                  <Input
-                                    id="name"
-                                    name="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="description">
-                                    Description{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                  </Label>
-                                  <Textarea
-                                    className={"min-h-[100px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter a description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="paush-detection">
-                                    Description{" "}
-                                    <span className="text-muted-foreground text-xs">
-                                      (Optional)
-                                    </span>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="w-4 h-4 text-muted-foreground" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>
-                                          Adds extra wait time after pauses to
-                                          prevent pressing too early. Ensures
-                                          digits are pressed only after the IVR
-                                          fully finishes. Default: 1000ms
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </Label>
-                                  <div className=" flex items-center gap-3">
+                              <ScrollArea className="max-h-[80vh]">
+                                <div className="grid gap-4">
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="name">Name</Label>
                                     <Input
-                                      id="paush-detection"
-                                      name="paush-detection"
-                                      type={"number"}
-                                      value={delay_ms}
-                                      onChange={(e) =>
-                                        setDelayMs(e.target.value)
-                                      }
-                                      className={"w-3/4"}
+                                      id="name"
+                                      name="name"
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
                                     />
-                                    <span>miliseconds</span>
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="description">
+                                      Description{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                    </Label>
+                                    <Textarea
+                                      className={"min-h-[100px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter a description"
+                                      value={description}
+                                      onChange={(e) =>
+                                        setDescription(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="paush-detection">
+                                      Description{" "}
+                                      <span className="text-muted-foreground text-xs">
+                                        (Optional)
+                                      </span>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Info className="w-4 h-4 text-muted-foreground" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>
+                                            Adds extra wait time after pauses to
+                                            prevent pressing too early. Ensures
+                                            digits are pressed only after the
+                                            IVR fully finishes. Default: 1000ms
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </Label>
+                                    <div className=" flex items-center gap-3">
+                                      <Input
+                                        id="paush-detection"
+                                        name="paush-detection"
+                                        type={"number"}
+                                        value={delay_ms}
+                                        onChange={(e) =>
+                                          setDelayMs(e.target.value)
+                                        }
+                                        className={"w-3/4"}
+                                      />
+                                      <span>miliseconds</span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+                              </ScrollArea>
                               <DialogFooter>
                                 <DialogClose
                                   onClick={() => setOpenTrigger(null)}
@@ -1750,7 +1763,7 @@ const GlobalSettings = ({
                               </span>
                             </DialogTrigger>
                             <DialogContent
-                              className="sm:max-w-[750px]"
+                              className="sm:max-w-[750px] border"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}
@@ -1764,88 +1777,89 @@ const GlobalSettings = ({
                                 </DialogTitle>
                               </DialogHeader>
                               {/* <FunctionItem dialogType={"custom-function"} /> */}
-                              <div className="grid gap-4">
-                                <div className="grid gap-3">
-                                  <Label htmlFor="name">Name</Label>
-                                  <Input
-                                    id="name"
-                                    name="name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="description">
-                                    Description{" "}
-                                  </Label>
-                                  <Textarea
-                                    className={"min-h-[100px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter a description"
-                                    value={description}
-                                    onChange={(e) =>
-                                      setDescription(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label htmlFor="your-url">Your URL</Label>
-                                  <Input
-                                    id="your-url"
-                                    name="your-url"
-                                    placeholder="Enter the url of the custom function"
-                                    value={url}
-                                    onChange={(e) => setUrl(e.target.value)}
-                                  />
-                                </div>
-                                <div className=" flex items-center gap-3">
-                                  <Input
-                                    id="paush-detection"
-                                    name="paush-detection"
-                                    type={"number"}
-                                    placeholder="Enter a description"
-                                    value={timeout_ms}
-                                    onChange={(e) =>
-                                      setTimeoutMs(e.target.value)
-                                    }
-                                    className={"w-3/4"}
-                                  />
-                                  <span>miliseconds</span>
-                                </div>
-                                <div className="grid gap-3">
-                                  <Label>Parameters (Optional)</Label>
-                                  <p className="text-sm text-muted-foreground">
-                                    JSON schema that defines the format in which
-                                    the LLM will return. Please refer to the
-                                    docs.
-                                  </p>
-                                  <Textarea
-                                    className={"min-h-[150px]"}
-                                    id="description"
-                                    name="description"
-                                    placeholder="Enter JSON schema here..."
-                                    value={parameters}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-                                      setParameters(value);
-
-                                      try {
-                                        JSON.parse(value); // Just validate it
-                                        console.log(JSON.parse(value));
-                                        setJsonError(null);
-                                      } catch (err) {
-                                        setJsonError("Invalid JSON");
+                              <ScrollArea className="max-h-[80vh]">
+                                <div className="grid gap-4">
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input
+                                      id="name"
+                                      name="name"
+                                      value={name}
+                                      onChange={(e) => setName(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="description">
+                                      Description{" "}
+                                    </Label>
+                                    <Textarea
+                                      className={"min-h-[100px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter a description"
+                                      value={description}
+                                      onChange={(e) =>
+                                        setDescription(e.target.value)
                                       }
-                                    }}
-                                  />
-                                  {jsonError && (
-                                    <p className="text-red-500 text-sm mt-1">
-                                      {jsonError}
+                                    />
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label htmlFor="your-url">Your URL</Label>
+                                    <Input
+                                      id="your-url"
+                                      name="your-url"
+                                      placeholder="Enter the url of the custom function"
+                                      value={url}
+                                      onChange={(e) => setUrl(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className=" flex items-center gap-3">
+                                    <Input
+                                      id="paush-detection"
+                                      name="paush-detection"
+                                      type={"number"}
+                                      placeholder="Enter a description"
+                                      value={timeout_ms}
+                                      onChange={(e) =>
+                                        setTimeoutMs(e.target.value)
+                                      }
+                                      className={"w-3/4"}
+                                    />
+                                    <span>miliseconds</span>
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <Label>Parameters (Optional)</Label>
+                                    <p className="text-sm text-muted-foreground">
+                                      JSON schema that defines the format in
+                                      which the LLM will return. Please refer to
+                                      the docs.
                                     </p>
-                                  )}
-                                </div>
-                                {/* <div className="grid grid-cols-3 gap-3 w-2/5">
+                                    <Textarea
+                                      className={"min-h-[150px]"}
+                                      id="description"
+                                      name="description"
+                                      placeholder="Enter JSON schema here..."
+                                      value={parameters}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        setParameters(value);
+
+                                        try {
+                                          JSON.parse(value); // Just validate it
+                                          console.log(JSON.parse(value));
+                                          setJsonError(null);
+                                        } catch (err) {
+                                          setJsonError("Invalid JSON");
+                                        }
+                                      }}
+                                    />
+                                    {jsonError && (
+                                      <p className="text-red-500 text-sm mt-1">
+                                        {jsonError}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {/* <div className="grid grid-cols-3 gap-3 w-2/5">
                                   <Button
                                     size={"sm"}
                                     className={"cursor-pointer w-20"}
@@ -1865,69 +1879,71 @@ const GlobalSettings = ({
                                     Example 3
                                   </Button>
                                 </div> */}
-                                {/* <div className="grid gap-3">
+                                  {/* <div className="grid gap-3">
                                   <Button className={"cursor-pointer w-full"}>
                                     Format JSON
                                   </Button>
                                 </div> */}
-                                <div className="grid grid-cols-1 gap-3">
-                                  <div className="flex items-start gap-3">
-                                    <Checkbox
-                                      id="terms-2"
-                                      defaultChecked={speak_during_execution}
-                                      onClick={() =>
-                                        setSpeakDuringExecution(
-                                          !speak_during_execution
-                                        )
-                                      }
-                                    />
-                                    <div className="grid gap-2">
-                                      <Label htmlFor="terms-2">
-                                        Speak During Execution
-                                      </Label>
-                                      <p className="text-muted-foreground text-sm">
-                                        If the function takes over 2 seconds,
-                                        the agent can say something like: "Let
-                                        me check that for you."
-                                      </p>
+                                  <div className="grid grid-cols-1 gap-3">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        id="terms-2"
+                                        defaultChecked={speak_during_execution}
+                                        onClick={() =>
+                                          setSpeakDuringExecution(
+                                            !speak_during_execution
+                                          )
+                                        }
+                                      />
+                                      <div className="grid gap-2">
+                                        <Label htmlFor="terms-2">
+                                          Speak During Execution
+                                        </Label>
+                                        <p className="text-muted-foreground text-sm">
+                                          If the function takes over 2 seconds,
+                                          the agent can say something like: "Let
+                                          me check that for you."
+                                        </p>
+                                      </div>
+                                    </div>
+                                    {speak_during_execution && (
+                                      <Input
+                                        placeholder="Enter the execution message description"
+                                        value={execution_message_description}
+                                        onChange={(e) =>
+                                          setExecutionMessageDescription(
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                    )}
+                                  </div>
+                                  <div className="grid gap-3">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        id="terms-2"
+                                        checked={speak_after_execution}
+                                        onClick={() =>
+                                          setSpeakAfterExecution(
+                                            !speak_after_execution
+                                          )
+                                        }
+                                      />
+                                      <div className="grid gap-2">
+                                        <Label htmlFor="terms-2">
+                                          Speak After Execution
+                                        </Label>
+                                        <p className="text-muted-foreground text-sm">
+                                          Unselect if you want to run the
+                                          function silently, such as uploading
+                                          the call result to the server
+                                          silently.
+                                        </p>
+                                      </div>
                                     </div>
                                   </div>
-                                  {speak_during_execution && (
-                                    <Input
-                                      placeholder="Enter the execution message description"
-                                      value={execution_message_description}
-                                      onChange={(e) =>
-                                        setExecutionMessageDescription(
-                                          e.target.value
-                                        )
-                                      }
-                                    />
-                                  )}
                                 </div>
-                                <div className="grid gap-3">
-                                  <div className="flex items-start gap-3">
-                                    <Checkbox
-                                      id="terms-2"
-                                      checked={speak_after_execution}
-                                      onClick={() =>
-                                        setSpeakAfterExecution(
-                                          !speak_after_execution
-                                        )
-                                      }
-                                    />
-                                    <div className="grid gap-2">
-                                      <Label htmlFor="terms-2">
-                                        Speak After Execution
-                                      </Label>
-                                      <p className="text-muted-foreground text-sm">
-                                        Unselect if you want to run the function
-                                        silently, such as uploading the call
-                                        result to the server silently.
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
+                              </ScrollArea>
                               <DialogFooter>
                                 <DialogClose
                                   onClick={() => setOpenTrigger(null)}
@@ -1959,7 +1975,9 @@ const GlobalSettings = ({
                                             speak_during_execution,
                                             execution_message_description,
                                             speak_after_execution,
-                                            parameters:!jsonError?JSON.parse(parameters):{},
+                                            parameters: !jsonError
+                                              ? JSON.parse(parameters)
+                                              : {},
                                           };
 
                                           if (
@@ -2032,13 +2050,13 @@ const GlobalSettings = ({
                         </SelectGroup>
                       </SelectContent>
                     </Select>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-1">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
                             variant={"outline"}
                             className={
-                              "!border-r-0 max-w-[180px] cursor-pointer"
+                              "!border-r-0 max-w-[180px] min-w-[100px] cursor-pointer"
                             }
                           >
                             {voice_id
@@ -2338,17 +2356,19 @@ const GlobalSettings = ({
                   {llmKnowlwdgeBaseIds.map((item, index) => {
                     return (
                       <div
-                        className="flex items-center  py-2 ps-2 rounded-md gap-2 bg-zinc-800"
+                        className="flex items-center justify-between py-2 px-2 rounded-md gap-2 bg-zinc-800"
                         key={index}
                       >
-                        <Book className="size-4 text-muted-foreground4" />{" "}
-                        <p>
-                          {
-                            allKnowledgeBases.filter(
-                              (item2) => item2.knowledge_base_id === item
-                            )?.[0]?.knowledge_base_name
-                          }
-                        </p>{" "}
+                        <div className="flex items-center gap-2">
+                          <Book className="size-4 text-muted-foreground4" />{" "}
+                          <p>
+                            {
+                              allKnowledgeBases.filter(
+                                (item2) => item2.knowledge_base_id === item
+                              )?.[0]?.knowledge_base_name
+                            }
+                          </p>
+                        </div>
                         <Trash2
                           onClick={() => {
                             setLlmKnowlwdgeBaseIds((prev) =>
@@ -2416,7 +2436,7 @@ const GlobalSettings = ({
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="w-full font-normal">
+              <div className="w-full font-normal px-3">
                 <div>
                   <p className="mb-2">Background Sound</p>
                   <div className="flex items-center gap-3">
@@ -2917,67 +2937,71 @@ const GlobalSettings = ({
                         Text
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="py-4">
-                      <div className="items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                          Name
-                        </Label>
-                        <Input
-                          id="name"
-                          className="col-span-3 my-4"
-                          placeholder="John Smith"
-                          value={postCallName}
-                          onChange={(e) => setPostCallName(e.target.value)}
-                        />
-                      </div>
-                      <div className="items-center gap-4">
-                        <Label htmlFor="description" className="text-right">
-                          Description
-                        </Label>
-                        <Textarea
-                          id="description"
-                          className="col-span-3 my-4 h-24"
-                          placeholder="Enter a description"
-                          value={postCallDescription}
-                          onChange={(e) =>
-                            setPostCallDescription(e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="items-center gap-4 flex">
-                        <div className="flex flex-col w-full ">
-                          <Label htmlFor="example" className="text-right">
-                            Format Example (Optional)
+                    <ScrollArea className={"max-h-[80vh]"}>
+                      <div className="py-4">
+                        <div className="items-center gap-4">
+                          <Label htmlFor="name" className="text-right">
+                            Name
                           </Label>
                           <Input
-                            id="example"
-                            className="w-full mt-4"
-                            placeholder="Option value"
-                            value={postCallExample}
-                            onChange={(e) => setPostCallExample(e.target.value)}
+                            id="name"
+                            className="col-span-3 my-4"
+                            placeholder="John Smith"
+                            value={postCallName}
+                            onChange={(e) => setPostCallName(e.target.value)}
                           />
                         </div>
-                        <Button
-                          variant={"outline"}
-                          size={"icon"}
-                          className={
-                            "mt-8 cursor-pointer text-red-800 hover:text-red-600"
-                          }
-                          onClick={() => {
-                            setPostCallExample("");
-                          }}
-                        >
-                          <Trash2 className="" />
-                        </Button>
-                      </div>
-                      {/* <Button
+                        <div className="items-center gap-4">
+                          <Label htmlFor="description" className="text-right">
+                            Description
+                          </Label>
+                          <Textarea
+                            id="description"
+                            className="col-span-3 my-4 min-h-24"
+                            placeholder="Enter a description"
+                            value={postCallDescription}
+                            onChange={(e) =>
+                              setPostCallDescription(e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="items-center gap-4 flex">
+                          <div className="flex flex-col w-full ">
+                            <Label htmlFor="example" className="text-right">
+                              Format Example (Optional)
+                            </Label>
+                            <Input
+                              id="example"
+                              className="w-full mt-4"
+                              placeholder="Option value"
+                              value={postCallExample}
+                              onChange={(e) =>
+                                setPostCallExample(e.target.value)
+                              }
+                            />
+                          </div>
+                          <Button
+                            variant={"outline"}
+                            size={"icon"}
+                            className={
+                              "mt-8 cursor-pointer text-red-800 hover:text-red-600"
+                            }
+                            onClick={() => {
+                              setPostCallExample("");
+                            }}
+                          >
+                            <Trash2 className="" />
+                          </Button>
+                        </div>
+                        {/* <Button
                         variant="outline"
                         className={"mt-4 cursor-pointer"}
                       >
                         <Plus />
                         Add
                       </Button> */}
-                    </div>
+                      </div>
+                    </ScrollArea>
                     <DialogFooter>
                       <DialogClose>
                         <Button
@@ -3042,7 +3066,7 @@ const GlobalSettings = ({
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="w-full font-normal">
+              <div className="w-full font-normal px-3">
                 <div className="mt-4">
                   <p className="mb-2 font-bold">
                     Opt Out Sensitive Data Storage

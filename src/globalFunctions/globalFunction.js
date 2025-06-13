@@ -7,6 +7,7 @@ const apiBaseUrl = "https://ai.webvio.in/backend/backend";
 // const apiBaseUrl = "http://localhost:8000/backend";
 // const token = "key_fefba4090316b557a67e930307bf"
 // const apiBaseUrl = process.env.BACKEND_BASE_URL;
+// const pythonBaseurl = "https://ai.webvio.in/backend-py";
 const pythonBaseurl = "https://testing.webvio.in/backend/api/ai/";
 console.log(token);
 const axiosInstance = axios.create({
